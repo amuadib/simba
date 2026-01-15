@@ -1,0 +1,128 @@
+@extends('layouts.app')
+
+@section('title', 'Presensi ' . $pembelajaran->keterangan)
+
+@section('content')
+    <h5>Input Presensi {{ $pembelajaran->keterangan }}</h5>
+
+    <form method="post" class="row g-2 mb-3" action="{{ route('pembelajaran.presensi.store', $pembelajaran->id) }}">
+        @csrf
+        <div class="col-md-3">
+            <input type="date" name="tanggal" id="tanggal" class="form-control" value="{{ request()->tanggal }}" required>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-primary" type="button" onclick="loadPresensi()">Tampilkan</button>
+        </div>
+        {{-- </form>
+
+    @if ($step == 1)
+        <form method="post" action="{{ route('pembelajaran.presensi.store', $pembelajaran->id) }}">
+            @csrf
+            <input type="hidden" name="step" value="2">
+            <input type="hidden" name="tanggal" value="{{ $tanggal }}"> --}}
+        <table class="table-bordered visually-hidden table">
+            <thead>
+                <tr>
+                    <th>Nama</th>
+                    <th>Status</th>
+                    <th>Keterangan</th>
+                </tr>
+            </thead>
+            <tbody id="tabel-presensi">
+                {{-- @foreach ($anggota as $a)
+                <tr>
+                    <td>{{ $a->siswa->nama }}</td>
+                    <td>
+                        @foreach (['H', 'I', 'S', 'A'] as $st)
+                            <div class="form-check-inline">
+                                <input type="radio" name="data[{{ $a->siswa->id }}][status]" class="form-check-input"
+                                    value="{{ $st }}"
+                                    {{ (isset($presensi[$a->siswa->id]) && $presensi[$a->siswa->id] == $st ? 'checked' : $st == 'A') ? 'checked' : '' }}>
+                                <label class="form-check-label">{{ $st }}
+                                </label>
+                            </div>
+                        @endforeach
+                    </td>
+                    <td>
+                        <textarea name="data[{{ $a->siswa->id }}][keterangan]" class="form-control" rows="1"></textarea>
+                    </td>
+                </tr>
+            @endforeach --}}
+            </tbody>
+        </table>
+
+        <button class="btn btn-success visually-hidden">Simpan Presensi</button>
+    </form>
+    {{-- @endif --}}
+@endsection
+
+@push('scripts')
+    <script>
+        loadPresensi();
+
+        function loadPresensi() {
+            const tanggal = document.getElementById('tanggal').value;
+            const pembelajaran = "{{ $pembelajaran->id }}";
+            const url = "{{ route('pembelajaran.presensi.load') }}";
+
+            if (!tanggal) {
+                alert('Tanggal wajib diisi');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                tanggal: tanggal,
+                pembelajaran_id: pembelajaran
+            });
+
+            fetch(url + '?' + params.toString())
+                .then(response => response.json())
+                .then(res => {
+                    let html = '';
+                    res.forEach((siswa, i) => {
+                        html += `
+                <tr>
+                    <td>${siswa.nama}</td>
+                    <td>
+                        <div class="form-check-inline">
+                                <input type="radio" name="data[${siswa.id}][status]" class="form-check-input"
+                                    value="H"
+                                    ${siswa.status === 'H' ? 'checked' : ''}>
+                                <label class="form-check-label">H</label>
+                            </div>
+                        <div class="form-check-inline">
+                                <input type="radio" name="data[${siswa.id}][status]" class="form-check-input"
+                                    value="I"
+                                    ${siswa.status === 'I' ? 'checked' : ''}>
+                                <label class="form-check-label">I</label>
+                            </div>
+                        <div class="form-check-inline">
+                                <input type="radio" name="data[${siswa.id}][status]" class="form-check-input"
+                                    value="S"
+                                    ${siswa.status === 'S' ? 'checked' : ''}>
+                                <label class="form-check-label">S</label>
+                            </div>
+                        <div class="form-check-inline">
+                                <input type="radio" name="data[${siswa.id}][status]" class="form-check-input"
+                                    value="A"
+                                    ${siswa.status === 'A' ? 'checked' : ''}>
+                                <label class="form-check-label">A</label>
+                            </div>
+                    </td>
+                    <td>
+                        <textarea name="data[${siswa.id}][keterangan]" class="form-control" rows="1">${siswa.keterangan || ''}</textarea>
+                    </td>
+                </tr>`;
+                    });
+
+                    document.getElementById('tabel-presensi').innerHTML = html;
+                    document.querySelector('table').classList.remove('visually-hidden');
+                    document.querySelector('button.btn-success').classList.remove('visually-hidden');
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Gagal memuat data presensi');
+                });
+        }
+    </script>
+@endpush
