@@ -13,13 +13,6 @@
         <div class="col-md-3">
             <button class="btn btn-primary" type="button" onclick="loadPresensi()">Tampilkan</button>
         </div>
-        {{-- </form>
-
-    @if ($step == 1)
-        <form method="post" action="{{ route('pembelajaran.presensi.store', $pembelajaran->id) }}">
-            @csrf
-            <input type="hidden" name="step" value="2">
-            <input type="hidden" name="tanggal" value="{{ $tanggal }}"> --}}
         <table class="table-bordered visually-hidden table">
             <thead>
                 <tr>
@@ -29,31 +22,11 @@
                 </tr>
             </thead>
             <tbody id="tabel-presensi">
-                {{-- @foreach ($anggota as $a)
-                <tr>
-                    <td>{{ $a->siswa->nama }}</td>
-                    <td>
-                        @foreach (['H', 'I', 'S', 'A'] as $st)
-                            <div class="form-check-inline">
-                                <input type="radio" name="data[{{ $a->siswa->id }}][status]" class="form-check-input"
-                                    value="{{ $st }}"
-                                    {{ (isset($presensi[$a->siswa->id]) && $presensi[$a->siswa->id] == $st ? 'checked' : $st == 'A') ? 'checked' : '' }}>
-                                <label class="form-check-label">{{ $st }}
-                                </label>
-                            </div>
-                        @endforeach
-                    </td>
-                    <td>
-                        <textarea name="data[{{ $a->siswa->id }}][keterangan]" class="form-control" rows="1"></textarea>
-                    </td>
-                </tr>
-            @endforeach --}}
             </tbody>
         </table>
 
         <button class="btn btn-success visually-hidden">Simpan Presensi</button>
     </form>
-    {{-- @endif --}}
 @endsection
 
 @push('scripts')

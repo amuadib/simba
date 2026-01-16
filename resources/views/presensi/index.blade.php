@@ -11,7 +11,7 @@
             <input type="month" name="bulan" value="{{ $bulan }}" class="form-control" onchange="this.form.submit()">
         </div>
         <div class="col-auto">
-            <select name="pembelajaran_id" class="form-select" onchange="this.form.submit()">
+            <select name="pembelajaran_id" id="pembelajaran_id" class="form-select" onchange="this.form.submit()">
                 <option value="">--Pilih Pembelajaran--</option>
                 @foreach ($pembelajaran_list as $p)
                     <option value="{{ $p->id }}" {{ request()->pembelajaran_id == $p->id ? 'selected' : '' }}>
@@ -42,29 +42,97 @@
             </tr>
             @foreach ($rekap as $r)
                 <tr>
-                    <td>{{ $r['nama'] }}</td>
+                    <td data-siswa="{{ $r['id'] }}">{{ $r['nama'] }}</td>
                     @foreach ($tglList as $t)
-                        <td class="{{ $statusColor[$r['tgl'][$t] ?? '-'] }} text-center">{{ $r['tgl'][$t] ?? '-' }}</td>
+                        <td class="{{ $statusColor[$r['tgl'][$t] ?? '-'] }} sel" data-tanggal="{{ $t }}">
+                            {{ $r['tgl'][$t] ?? '-' }}</td>
                     @endforeach
-                    <td class="text-success">{{ $r['H'] }}</td>
-                    <td class="text-warning">{{ $r['I'] }}</td>
-                    <td class="text-info">{{ $r['S'] }}</td>
-                    <td class="text-danger">{{ $r['A'] }}</td>
+                    <td class="text-success total-h" data-row="{{ $r['id'] }}">{{ $r['H'] }}</td>
+                    <td class="text-warning total-i" data-row="{{ $r['id'] }}">{{ $r['I'] }}</td>
+                    <td class="text-info total-s" data-row="{{ $r['id'] }}">{{ $r['S'] }}</td>
+                    <td class="text-danger total-a" data-row="{{ $r['id'] }}">{{ $r['A'] }}</td>
                 </tr>
             @endforeach
         </table>
     @else
         <div class="alert alert-info">Tidak ada data presensi.</div>
     @endif
-    <style>
-        @media print {
-            @page {
-                size: A4 landscape;
-            }
+@endsection
 
-            form {
-                display: none
-            }
+@push('styles')
+    <style>
+        .sel {
+            cursor: pointer;
+            text-align: center;
         }
     </style>
-@endsection
+@endpush
+@push('scripts')
+    <script>
+        const statusCycle = ['-', 'H', 'A', 'S', 'I'];
+        let lastTap = 0;
+
+        document.addEventListener('touchend', function(e) {
+            const now = Date.now();
+            if (now - lastTap < 350) return;
+            lastTap = now;
+
+            const cell = e.target.closest('.sel');
+            if (cell) cell.click();
+        });
+
+        document.addEventListener('click', function(e) {
+            const cell = e.target.closest('.sel');
+            if (!cell) return;
+
+            const current = cell.innerText;
+            const siswaId = e.target.closest('tr').querySelector('td:first-child').dataset.siswa;
+            const next = statusCycle[(statusCycle.indexOf(current) + 1) % statusCycle.length];
+            const url = "{{ route('pembelajaran.presensi.update') }}";
+
+            // optimistic UI (langsung berubah)
+            updateCellUI(cell, next);
+            updateTotals(siswaId, current, next);
+
+            fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        siswa_id: siswaId,
+                        pembelajaran_id: document.getElementById('pembelajaran_id').value,
+                        tanggal: cell.dataset.tanggal,
+                        status: next
+                    })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (!res.success) throw 'failed';
+                })
+                .catch(() => {
+                    // rollback jika gagal
+                    updateCellUI(cell, current);
+                    alert('Gagal update presensi');
+                });
+        });
+
+        function updateCellUI(cell, status) {
+            const styleMap = {!! json_encode($statusColor) !!};
+            cell.textContent = status;
+            cell.classList.remove(styleMap['H'], styleMap['I'], styleMap['S'], styleMap['A']);
+            cell.classList.add(styleMap[status] || '');
+        }
+
+        function updateTotals(siswaId, oldStatus, newStatus) {
+            if (oldStatus === newStatus) return;
+
+            const dec = document.querySelector(`.total-${oldStatus.toLowerCase()}[data-row="${siswaId}"]`);
+            const inc = document.querySelector(`.total-${newStatus.toLowerCase()}[data-row="${siswaId}"]`);
+
+            if (dec) dec.textContent = Math.max(0, Number(dec.textContent) - 1);
+            if (inc) inc.textContent = Number(inc.textContent) + 1;
+        }
+    </script>
+@endpush

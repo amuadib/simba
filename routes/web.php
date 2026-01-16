@@ -21,6 +21,7 @@ Route::resource('pelajaran', PelajaranController::class);
 Route::resource('rombel', RombelController::class);
 Route::get('pembelajaran/presensi', [PresensiController::class, 'index'])->name('pembelajaran.presensi.index');
 Route::get('pembelajaran/presensi/load', [PresensiController::class, 'load'])->name('pembelajaran.presensi.load');
+Route::post('pembelajaran/presensi/update', [PresensiController::class, 'updateCell'])->name('pembelajaran.presensi.update');
 Route::get('pembelajaran/{pembelajaran}/presensi/create', [PresensiController::class, 'create'])->name('pembelajaran.presensi.create');
 Route::post('pembelajaran/{pembelajaran}/presensi', [PresensiController::class, 'store'])->name('pembelajaran.presensi.store');
 Route::get('pembelajaran/{pembelajaran}/anggota', [AnggotaPembelajaranController::class, 'index'])->name('pembelajaran.anggota.index');
@@ -29,8 +30,8 @@ Route::resource('pembelajaran', PembelajaranController::class);
 Route::resource('tahun_ajaran', TahunAjaranController::class);
 
 
-Route::get('/rekap-presensi', [RekapPresensiController::class, 'index'])
-    ->name('rekap.presensi');
+// Route::get('/rekap-presensi', [RekapPresensiController::class, 'index'])
+//     ->name('rekap.presensi');
 
-Route::get('/rekap-presensi/export', [RekapPresensiController::class, 'export'])
-    ->name('rekap.presensi.export');
+// Route::get('/rekap-presensi/export', [RekapPresensiController::class, 'export'])
+//     ->name('rekap.presensi.export');

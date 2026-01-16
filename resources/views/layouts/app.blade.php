@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Presensi Sekolah')</title>
     <link href="{{ asset('bootstrap.min.css') }}" rel="stylesheet">
+    @stack('styles')
 </head>
 
 <body class="container py-4">
