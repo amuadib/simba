@@ -25,7 +25,7 @@ class PresensiController extends Controller
                 $tglList[] = $d->format('Y-m-d');
             }
             foreach (
-                Siswa::join('presensi', 'presensi.siswa_id', '=', 'siswa.id')
+                Siswa::leftJoin('presensi', 'presensi.siswa_id', '=', 'siswa.id')
                     ->where('presensi.pembelajaran_id', $request->pembelajaran_id)
                     ->where('presensi.tanggal', 'like', $bulan . '-%')
                     ->orderBy('siswa.nama')
