@@ -11,16 +11,22 @@
 
 <body class="container py-4">
 
-    <h4>📘 Sistem Presensi</h4>
+    <div class="mb-1">
+        <h4>📘 Sistem Presensi</h4>
+        @auth
+            <form method="POST" action="/logout" class="float-end">
+                @csrf
+                <button class="no-print btn btn-sm btn-outline-danger">Logout {{ auth()->user()->name }}</button>
+            </form>
+        @endauth
+    </div>
     <nav class="mb-3">
-        {{-- <a class="btn btn-sm btn-primary" href="{{ route('presensi.create') }}">Presensi</a> --}}
         <a class="btn btn-sm btn-primary" href="{{ route('pembelajaran.presensi.index') }}">Rekap Presensi</a>
         <a class="btn btn-sm btn-success" href="{{ route('pembelajaran.index') }}">Pembelajaran</a>
         <a class="btn btn-sm btn-outline-success" href="{{ route('siswa.index') }}">Siswa</a>
         <a class="btn btn-sm btn-outline-success" href="{{ route('rombel.index') }}">Rombel</a>
         <a class="btn btn-sm btn-outline-success" href="{{ route('pelajaran.index') }}">Pelajaran</a>
         <a class="btn btn-sm btn-outline-success" href="{{ route('tahun_ajaran.index') }}">Tahun Ajaran</a>
-
         <button id="themeToggle" class="btn btn-sm btn-outline-secondary float-end">
             🌙 Dark Mode
         </button>
