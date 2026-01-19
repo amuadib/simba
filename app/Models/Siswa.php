@@ -15,6 +15,11 @@ class Siswa extends Model
         'nisn',
         'rombel_id',
     ];
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class);
+    }
+
     public function rombel()
     {
         return $this->belongsTo(Rombel::class);

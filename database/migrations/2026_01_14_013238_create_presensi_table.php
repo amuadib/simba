@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('presensi', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignId('pembelajaran_id')->constrained('pembelajaran')->cascadeOnDelete();
-            $table->foreignId('siswa_id')->constrained('siswa')->cascadeOnDelete();
+            $table->foreignUuid('pembelajaran_id')->constrained('pembelajaran')->cascadeOnDelete();
+            $table->foreignUuid('siswa_id')->constrained('siswa')->cascadeOnDelete();
             $table->date('tanggal');
             $table->enum('status', ['H', 'I', 'S', 'A']);
             $table->timestamps();

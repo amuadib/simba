@@ -20,6 +20,9 @@
                     @endforeach
                 </select>
             </div>
+
+            @include('siswa._tag')
+
             <div class="col-auto"><button class="btn btn-warning">Edit</button></div>
         </form>
     @else
@@ -35,6 +38,9 @@
                     @endforeach
                 </select>
             </div>
+
+            @include('siswa._tag')
+
             <div class="col-auto"><button class="btn btn-primary">Tambah</button></div>
         </form>
     @endif
@@ -65,6 +71,17 @@
                 @endforeach
             </select>
         </div>
+        <div class="col">
+            <select name="tag_id" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Semua Tag --</option>
+                @foreach ($tags as $tag)
+                    <option value="{{ $tag->id }}" {{ request('tag_id') == $tag->id ? 'selected' : '' }}>
+                        {{ $tag->nama }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
         <div class="col-auto"><button class="btn btn-success">Filter</button></div>
     </form>
     <table class="table-bordered table">
@@ -72,6 +89,7 @@
             <th>Nama</th>
             <th>NISN</th>
             <th>Rombel</th>
+            <th>Tag</th>
             <th>Aksi</th>
         </tr>
         @foreach ($siswa as $s)
@@ -79,6 +97,16 @@
                 <td>{{ $s->nama }}</td>
                 <td>{{ $s->nisn }}</td>
                 <td>{{ $s->rombel->nama }}</td>
+                <td>
+                    @forelse ($s->tags as $tag)
+                        <span class="badge bg-info text-dark me-1">
+                            {{ $tag->nama }}
+                        </span>
+                    @empty
+                        <span class="text-muted">-</span>
+                    @endforelse
+                </td>
+
                 <td width="200">
                     <a href="{{ route('siswa.edit', $s->id) }}" class="btn btn-sm btn-default">📝</a>
                     <form action="{{ route('siswa.destroy', $s->id) }}" method="post" class="d-inline">
@@ -97,3 +125,178 @@
     </nav>
 
 @endsection
+
+@push('scripts')
+    <script>
+        const tagInput = document.getElementById('tagInput');
+        const tagBox = document.getElementById('tagBox');
+        const dropdown = document.getElementById('tagDropdown');
+
+        let debounceTimer = null;
+        let selectedIndex = -1;
+        let results = [];
+
+        tagBox.addEventListener('click', () => tagInput.focus());
+
+        tagInput.addEventListener('input', function() {
+            const q = this.value.trim();
+            if (q.length < 1) return hideDropdown();
+
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => searchTag(q), 250);
+        });
+
+        // tagInput.addEventListener('blur', () => {
+        //     const value = tagInput.value.trim();
+        //     if (value) {
+        //         addNewTag(value);
+        //         tagInput.value = '';
+        //     }
+        // });
+        tagInput.addEventListener('keydown', function(e) {
+            if (e.key === ',') {
+                e.preventDefault();
+
+                const value = this.value.replace(',', '').trim();
+                if (!value) return;
+
+                addNewTag(value);
+                this.value = '';
+                hideDropdown();
+                return;
+            }
+            if (dropdown.classList.contains('d-none')) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, results.length - 1);
+                highlight();
+            }
+
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, 0);
+                highlight();
+            }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+
+                if (selectedIndex >= 0) {
+                    selectTag(results[selectedIndex]);
+                }
+            }
+
+        });
+
+        document.addEventListener('click', e => {
+            if (!e.target.closest('#tagBox')) hideDropdown();
+        });
+
+        function searchTag(q) {
+            fetch(`/tags/search?q=${encodeURIComponent(q)}`)
+                .then(res => res.json())
+                .then(data => {
+                    results = data;
+                    selectedIndex = -1;
+                    renderDropdown();
+                });
+        }
+
+        function renderDropdown() {
+            if (!results.length) return hideDropdown();
+
+            dropdown.innerHTML = results.map((t, i) => `
+        <button type="button"
+                class="list-group-item list-group-item-action"
+                onclick="selectTag(${i})">
+            <span class="badge bg-primary me-2">${t.nama}</span>
+        </button>
+    `).join('');
+
+            dropdown.classList.remove('d-none');
+        }
+
+        function highlight() {
+            [...dropdown.children].forEach((el, i) => {
+                el.classList.toggle('active', i === selectedIndex);
+            });
+        }
+
+        function selectTag(index) {
+            const tag = typeof index === 'number' ? results[index] : index;
+            addExistingTag(tag);
+            tagInput.value = '';
+            hideDropdown();
+        }
+
+        function addExistingTag(tag) {
+            if (document.querySelector(`.tag-chip[data-id="${tag.id}"]`)) return;
+
+            const span = document.createElement('span');
+            span.className = `tag-chip bg-primary text-white`;
+            span.dataset.id = tag.id;
+            span.dataset.name = tag.nama.toLowerCase();
+            span.innerHTML = `
+        ${tag.nama}
+        <button type="button" onclick="removeTag(this)">×</button>
+        <input type="hidden" name="tags[]" value="${tag.id}">
+    `;
+            tagBox.insertBefore(span, tagInput);
+        }
+
+        function addNewTag(name) {
+            if (!name) return;
+
+            const exists = [...document.querySelectorAll('.tag-chip')]
+                .some(t => t.dataset.name === name.toLowerCase());
+            if (exists) return;
+
+            const span = document.createElement('span');
+            span.className = 'tag-chip bg-primary text-white';
+            span.dataset.name = name.toLowerCase();
+            span.innerHTML = `
+        ${name}
+        <button type="button" onclick="removeTag(this)">×</button>
+        <input type="hidden" name="tags_new[]" value="${name}">
+    `;
+            tagBox.insertBefore(span, tagInput);
+        }
+
+        function removeTag(btn) {
+            btn.parentElement.remove();
+        }
+
+        function hideDropdown() {
+            dropdown.classList.add('d-none');
+        }
+    </script>
+@endpush
+@push('styles')
+    <style>
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 4px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .tag-chip button {
+            border: none;
+            background: transparent;
+            color: #fff;
+            margin-left: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #tagInput {
+            min-width: 120px;
+        }
+
+        #tagDropdown .active {
+            background-color: #0d6efd;
+            color: white;
+        }
+    </style>
+@endpush

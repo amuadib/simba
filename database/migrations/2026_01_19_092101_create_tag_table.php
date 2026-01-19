@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('siswa', function (Blueprint $table) {
+        Schema::create('tag', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('nisn')
-                ->unique()
-                ->nullable();
-            $table->string('nama');
-            $table->foreignUuid('rombel_id')->constrained('rombel')->onDelete('cascade');
+            $table->string('nama')->unique();
             $table->timestamps();
         });
     }
@@ -27,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('siswa');
+        Schema::dropIfExists('tag');
     }
 };

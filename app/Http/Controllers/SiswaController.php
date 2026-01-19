@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Siswa;
+use App\Models\Tag;
 use App\Imports\SiswaImport;
 use App\Models\Rombel;
 use Maatwebsite\Excel\Facades\Excel;
@@ -19,20 +20,36 @@ class SiswaController extends Controller
                 ->when(request('rombel_id'), function ($q, $rombel_id) {
                     $q->where('rombel_id', $rombel_id);
                 })
+                ->when(request('tag_id'), function ($q, $tag_id) {
+                    $q->whereHas('tags', function ($q) use ($tag_id) {
+                        $q->where('tag_id', $tag_id);
+                    });
+                })
                 ->paginate($this->paginate)
                 ->withQueryString(),
             'rombel' => Rombel::orderBy('tingkat')->get(),
+            'tags' => Tag::orderBy('nama')->get(),
             'action' => '',
         ]);
     }
 
-    public function store(Request $r)
+    public function store(Request $request)
     {
-        Siswa::create($r->validate([
+        $siswa = Siswa::create($request->validate([
             'nama' => 'required',
             'nisn' => 'nullable',
             'rombel_id' => 'required'
         ]));
+        $siswa->tags()->sync($request->tags ?? []);
+
+        if ($request->tags_new) {
+            foreach ($request->tags_new as $name) {
+                $tag = Tag::firstOrCreate(
+                    ['nama' => $name]
+                );
+                $siswa->tags()->attach($tag->id);
+            }
+        }
 
         return back()->with('success', 'Siswa berhasil ditambahkan');
     }
@@ -42,6 +59,7 @@ class SiswaController extends Controller
             'data' => $siswa,
             'action' => 'edit',
             'rombel' => Rombel::orderBy('tingkat')->get(),
+            'tags' => Tag::orderBy('nama')->get(),
             'siswa' => Siswa::with('rombel')->orderBy('nama')->paginate($this->paginate),
         ]);
     }
@@ -53,11 +71,25 @@ class SiswaController extends Controller
             'rombel_id' => 'required'
         ]));
 
+        $siswa->tags()->sync($request->tags ?? []);
+        if ($request->tags_new) {
+            foreach ($request->tags_new as $name) {
+                $tag = Tag::firstOrCreate([
+                    'nama' => $name,
+                ]);
+
+                $siswa->tags()->attach($tag->id);
+            }
+        }
+
         return redirect()->route('siswa.index')->with('success', 'Siswa berhasil diperbarui');
     }
     public function destroy(Siswa $siswa)
     {
-        $siswa->delete();
+        DB::transaction(function () use ($siswa) {
+            $siswa->tags()->detach(); // hapus pivot saja
+            $siswa->delete();
+        });
         return back()->with('success', 'Siswa berhasil dihapus');
     }
     public function import(Request $r)

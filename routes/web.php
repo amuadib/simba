@@ -6,18 +6,35 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PelajaranController;
 use App\Http\Controllers\RombelController;
 use App\Http\Controllers\PembelajaranController;
-use App\Http\Controllers\RekapPresensiController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\TahunAjaranController;
 use App\Http\Controllers\AnggotaPembelajaranController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\BackupController;
 
 Route::get('/login', [AuthController::class, 'form'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::middleware('auth')->group(function () {
+
+    Route::prefix('tags')->group(function () {
+        Route::post('/', [TagController::class, 'store']);
+        Route::put('/{tag}', [TagController::class, 'update']);
+        Route::delete('/{tag}', [TagController::class, 'destroy']);
+        Route::get('/search', function (\Illuminate\Http\Request $request) {
+            $q = $request->get('q');
+
+            return \App\Models\Tag::where('nama', 'like', "%{$q}%")
+                ->orderBy('nama')
+                ->limit(10)
+                ->get(['id', 'nama']);
+        });
+    });
+
+    // Route::resource('tag', TagController::class);
     Route::resource('siswa', SiswaController::class);
     Route::post('siswa/import', [SiswaController::class, 'import'])->name('siswa.import');
     Route::resource('pelajaran', PelajaranController::class);
