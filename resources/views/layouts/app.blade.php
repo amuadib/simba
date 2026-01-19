@@ -27,6 +27,7 @@
         <a class="btn btn-sm btn-outline-success" href="{{ route('rombel.index') }}">Rombel</a>
         <a class="btn btn-sm btn-outline-success" href="{{ route('pelajaran.index') }}">Pelajaran</a>
         <a class="btn btn-sm btn-outline-success" href="{{ route('tahun_ajaran.index') }}">Tahun Ajaran</a>
+        <a class="btn btn-sm btn-danger" href="{{ route('backup.index') }}">Backup</a>
         <button id="themeToggle" class="btn btn-sm btn-outline-secondary float-end">
             🌙 Dark Mode
         </button>

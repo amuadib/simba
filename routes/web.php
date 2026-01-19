@@ -20,6 +20,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::middleware('auth')->group(function () {
 
+    Route::get('/admin/backup', [BackupController::class, 'index'])->name('backup.index');
+    Route::post('/admin/backup/export', [BackupController::class, 'export'])->name('backup.export');
+    Route::post('/admin/backup/import', [BackupController::class, 'import'])->name('backup.import');
+
     Route::prefix('tags')->group(function () {
         Route::post('/', [TagController::class, 'store']);
         Route::put('/{tag}', [TagController::class, 'update']);
