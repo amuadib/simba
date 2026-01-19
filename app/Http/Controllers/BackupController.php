@@ -47,7 +47,7 @@ class BackupController extends Controller
             'data' => $data,
         ];
 
-        $filename = 'backup_' . now()->format('Ymd_His') . '.json';
+        $filename = 'backup_' . \Str::slug(config('app.name')) . '_' . now()->format('Ymd_His') . '.json';
 
         return Response::make(
             json_encode($payload, JSON_PRETTY_PRINT),

@@ -9,7 +9,7 @@
 
         @foreach ($tables as $table)
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="tables[]" value="{{ $table }}">
+                <input class="form-check-input" type="checkbox" name="tables[]" value="{{ $table }}" checked>
                 <label class="form-check-label">{{ $table }}</label>
             </div>
         @endforeach
