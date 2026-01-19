@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Http\Request;
 
@@ -12,15 +11,15 @@ class BackupController extends Controller
     public function index()
     {
         $tables = [
-            'anggota_pembelajaran',
+            'tahun_ajaran',
             'pelajaran',
-            'pembelajaran',
-            'presensi',
             'rombel',
             'siswa',
+            'pembelajaran',
+            'anggota_pembelajaran',
+            'presensi',
             'siswa_tag',
             'tag',
-            'tahun_ajaran',
             'users',
         ];
 
@@ -68,13 +67,14 @@ class BackupController extends Controller
             file_get_contents($request->file('file')->getRealPath()),
             true
         );
-
         DB::transaction(function () use ($json) {
-
-            DB::statement('SET FOREIGN_KEY_CHECKS=0'); //MySQL
-            DB::statement('SET FOREIGN_KEY_CHECKS=1');
-
-            DB::statement('PRAGMA foreign_keys = OFF'); // SQLite
+            $driver = DB::getDriverName();
+            if ($driver === 'sqlite') {
+                DB::statement('PRAGMA foreign_keys = OFF'); // SQLite
+            } else {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0'); //MySQL
+                DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            }
 
             foreach ($json['meta']['tables'] as $table) {
                 DB::table($table)->truncate();
