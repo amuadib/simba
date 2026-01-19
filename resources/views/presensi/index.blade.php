@@ -64,6 +64,7 @@
         .sel {
             cursor: pointer;
             text-align: center;
+            touch-action: manipulation;
         }
     </style>
 @endpush
@@ -72,14 +73,25 @@
         const statusCycle = ['-', 'H', 'A', 'S', 'I'];
         let lastTap = 0;
 
-        document.addEventListener('touchend', function(e) {
-            const now = Date.now();
-            if (now - lastTap < 350) return;
-            lastTap = now;
+        // document.addEventListener('touchend', function(e) {
+        //     const now = Date.now();
+        //     if (now - lastTap < 350) return;
+        //     lastTap = now;
 
+        //     const cell = e.target.closest('.sel');
+        //     if (cell) cell.click();
+        // });
+        document.addEventListener('pointerup', function(e) {
             const cell = e.target.closest('.sel');
-            if (cell) cell.click();
+            if (!cell) return;
+
+            e.preventDefault();
+            // handleCellClick(cell);
         });
+
+        // function handleCellClick(cell) {
+        //     // cell.click();
+        // }
 
         document.addEventListener('click', function(e) {
             const cell = e.target.closest('.sel');
