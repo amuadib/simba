@@ -3,15 +3,9 @@
 @section('title', 'Dashboard')
 
 @section('content')
-    <header>
-        <h1>📊 Dashboard Presensi Sekolah</h1>
-    </header>
     <div class="no-print" style="max-width:300px">
         <canvas id="grafikPresensi"></canvas>
     </div>
-    <footer>
-        &copy; {{ date('Y') }} Sistem Presensi
-    </footer>
 @endsection
 
 @push('scripts')

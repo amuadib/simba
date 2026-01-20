@@ -43,7 +43,10 @@
     @endif
 
     @yield('content')
-    </div>
+
+    <footer>
+        &copy; {{ date('Y') }} Sistem Presensi
+    </footer>
     <script src="{{ asset('bootstrap.bundle.min.js') }}"></script>
     <script>
         const html = document.documentElement;

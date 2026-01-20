@@ -3,9 +3,13 @@
 @section('title', 'Rekap Presensi ')
 
 @section('content')
-    <h5>Rekap Presensi Bulanan</h5>
+    <h5 class="d-print-none">Rekap Presensi Bulanan</h5>
 
-    <form method="GET" class="row g-2 no-print mb-3">
+    <h5 class="d-print-block d-none">
+        Rekap Presensi Bulan {{ \Carbon\Carbon::parse($bulan)->locale('id_ID')->isoFormat('MMMM YYYY') }}
+    </h5>
+
+    <form method="GET" class="row g-2 d-print-none mb-3">
         @csrf
         <div class="col-auto">
             <input type="month" name="bulan" value="{{ $bulan }}" class="form-control" onchange="this.form.submit()">
@@ -23,9 +27,11 @@
         <div class="col-auto">
             <button class="btn btn-primary">Tampilkan</button>
         </div>
-        <div class="col-auto"><a class="btn btn-success" href="?<?= http_build_query($_GET + ['export' => 1]) ?>">Export
-                Excel</a></div>
-        <div class="col-auto"><button type="button" onclick="print()" class="btn btn-secondary">Print</button></div>
+        @if (count($rekap) > 0)
+            <div class="col-auto"><a class="btn btn-success" href="?<?= http_build_query($_GET + ['export' => 1]) ?>">Export
+                    Excel</a></div>
+            <div class="col-auto"><button type="button" onclick="print()" class="btn btn-secondary">Print</button></div>
+        @endif
     </form>
 
     @if (count($rekap) > 0)
@@ -71,27 +77,12 @@
 @push('scripts')
     <script>
         const statusCycle = ['-', 'H', 'A', 'S', 'I'];
-        let lastTap = 0;
-
-        // document.addEventListener('touchend', function(e) {
-        //     const now = Date.now();
-        //     if (now - lastTap < 350) return;
-        //     lastTap = now;
-
-        //     const cell = e.target.closest('.sel');
-        //     if (cell) cell.click();
-        // });
         document.addEventListener('pointerup', function(e) {
             const cell = e.target.closest('.sel');
             if (!cell) return;
 
             e.preventDefault();
-            // handleCellClick(cell);
         });
-
-        // function handleCellClick(cell) {
-        //     // cell.click();
-        // }
 
         document.addEventListener('click', function(e) {
             const cell = e.target.closest('.sel');
