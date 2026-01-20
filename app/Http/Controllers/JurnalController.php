@@ -29,7 +29,7 @@ class JurnalController extends Controller
 
         return response()->json([
             'id' => $jurnal->id,
-            'tanggal' => $jurnal->tanggal->format('d F Y'),
+            'tanggal' => $jurnal->tanggal->locale('id_ID')->isoFormat('DD MMMM YYYY'),
             'materi' => $jurnal->materi,
         ]);
     }
