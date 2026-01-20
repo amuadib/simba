@@ -23,9 +23,7 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('pembelajaran')->group(function () {
         Route::get('/{pembelajaran}/jurnal', [JurnalController::class, 'index'])->name('pembelajaran.jurnal.index');
-        // Route::get('/{pembelajaran}/jurnal/create', [JurnalController::class, 'create'])->name('pembelajaran.jurnal.create');
         Route::post('/{pembelajaran}/jurnal', [JurnalController::class, 'store'])->name('pembelajaran.jurnal.store');
-        // Route::get('/{pembelajaran}/jurnal/{jurnal}/edit', [JurnalController::class, 'edit'])->name('pembelajaran.jurnal.edit');
         Route::patch('/{pembelajaran}/jurnal/{jurnal}', [JurnalController::class, 'update'])->name('pembelajaran.jurnal.update');
         Route::delete('/{pembelajaran}/jurnal/{jurnal}', [JurnalController::class, 'destroy'])->name('pembelajaran.jurnal.destroy');
     });
@@ -47,12 +45,12 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-    // Route::resource('tag', TagController::class);
     Route::resource('siswa', SiswaController::class);
     Route::post('siswa/import', [SiswaController::class, 'import'])->name('siswa.import');
     Route::resource('pelajaran', PelajaranController::class);
     Route::resource('rombel', RombelController::class);
     Route::get('pembelajaran/presensi', [PresensiController::class, 'index'])->name('pembelajaran.presensi.index');
+    Route::get('pembelajaran/presensi/export', [PresensiController::class, 'export'])->name('pembelajaran.presensi.export');
     Route::get('pembelajaran/presensi/load', [PresensiController::class, 'load'])->name('pembelajaran.presensi.load');
     Route::post('pembelajaran/presensi/update', [PresensiController::class, 'updateCell'])->name('pembelajaran.presensi.update');
     Route::get('pembelajaran/{pembelajaran}/presensi/create', [PresensiController::class, 'create'])->name('pembelajaran.presensi.create');

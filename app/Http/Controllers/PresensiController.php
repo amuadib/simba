@@ -7,9 +7,26 @@ use Illuminate\Http\Request;
 use App\Models\Presensi;
 use App\Models\Siswa;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\RekapPresensiExport;
 
 class PresensiController extends Controller
 {
+    public function export(Request $request)
+    {
+        $request->validate([
+            'pembelajaran_id' => 'required',
+            'bulan' => 'required|date_format:Y-m'
+        ]);
+
+        return Excel::download(
+            new RekapPresensiExport(
+                $request->pembelajaran_id,
+                $request->bulan
+            ),
+            'rekap-presensi.xlsx'
+        );
+    }
     public function index(Request $request)
     {
         $rekap = [];

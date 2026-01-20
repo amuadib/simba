@@ -28,13 +28,20 @@
             <button class="btn btn-primary">Tampilkan</button>
         </div>
         @if (count($rekap) > 0)
-            <div class="col-auto"><a class="btn btn-success" href="?<?= http_build_query($_GET + ['export' => 1]) ?>">Export
-                    Excel</a></div>
+            <div class="col-auto">
+                <button class="btn btn-success" type="button" onclick="document.getElementById('export-form').submit()">
+                    Export Excel
+                </button>
+            </div>
             <div class="col-auto"><button type="button" onclick="print()" class="btn btn-secondary">Print</button></div>
         @endif
     </form>
 
     @if (count($rekap) > 0)
+        <form method="get" action="{{ route('pembelajaran.presensi.export') }}" target="_blank" id="export-form">
+            <input type="hidden" name="pembelajaran_id" value="{{ request()->pembelajaran_id }}">
+            <input type="hidden" name="bulan" value="{{ request()->bulan }}">
+        </form>
         <table class="table-bordered table-sm table">
             <tr>
                 <th>Nama</th>
