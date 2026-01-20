@@ -32,4 +32,8 @@ class Pembelajaran extends Model
     {
         return $this->hasMany(Presensi::class);
     }
+    public function jurnal()
+    {
+        return $this->hasMany(Jurnal::class);
+    }
 }

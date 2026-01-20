@@ -13,6 +13,7 @@ use App\Http\Controllers\AnggotaPembelajaranController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\JurnalController;
 
 Route::get('/login', [AuthController::class, 'form'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -20,6 +21,14 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::middleware('auth')->group(function () {
 
+    Route::prefix('pembelajaran')->group(function () {
+        Route::get('/{pembelajaran}/jurnal', [JurnalController::class, 'index'])->name('pembelajaran.jurnal.index');
+        // Route::get('/{pembelajaran}/jurnal/create', [JurnalController::class, 'create'])->name('pembelajaran.jurnal.create');
+        Route::post('/{pembelajaran}/jurnal', [JurnalController::class, 'store'])->name('pembelajaran.jurnal.store');
+        // Route::get('/{pembelajaran}/jurnal/{jurnal}/edit', [JurnalController::class, 'edit'])->name('pembelajaran.jurnal.edit');
+        Route::patch('/{pembelajaran}/jurnal/{jurnal}', [JurnalController::class, 'update'])->name('pembelajaran.jurnal.update');
+        Route::delete('/{pembelajaran}/jurnal/{jurnal}', [JurnalController::class, 'destroy'])->name('pembelajaran.jurnal.destroy');
+    });
     Route::get('/admin/backup', [BackupController::class, 'index'])->name('backup.index');
     Route::post('/admin/backup/export', [BackupController::class, 'export'])->name('backup.export');
     Route::post('/admin/backup/import', [BackupController::class, 'import'])->name('backup.import');

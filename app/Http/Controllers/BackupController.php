@@ -14,12 +14,13 @@ class BackupController extends Controller
             'tahun_ajaran',
             'pelajaran',
             'rombel',
+            'tag',
             'siswa',
             'pembelajaran',
             'anggota_pembelajaran',
             'presensi',
             'siswa_tag',
-            'tag',
+            'jurnal',
             'users',
         ];
 

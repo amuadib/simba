@@ -74,17 +74,19 @@
                     <td>{{ $s->tahunAjaran->nama }}</td>
                     <td>{{ $s->pelajaran->nama }}</td>
                     <td>{{ $s->anggota->count() }}</td>
-                    <td width="300">
+                    <td width="350">
+                        <a href="{{ route('pembelajaran.jurnal.index', $s->id) }}?tanggal={{ date('Y-m-d') }}"
+                            class="btn btn-sm btn-outline-warning">Jurnal</a>
                         <a href="{{ route('pembelajaran.presensi.create', $s->id) }}?tanggal={{ date('Y-m-d') }}"
-                            class="btn btn-sm btn-primary">Presensi</a>
+                            class="btn btn-sm btn-outline-primary">Presensi</a>
                         <a href="{{ route('pembelajaran.anggota.index', $s->id) }}"
                             class="btn btn-sm btn-outline-success">Anggota</a>
-                        <a href="{{ route('pembelajaran.edit', $s->id) }}" class="btn btn-sm btn-default">📝</a>
+                        <a href="{{ route('pembelajaran.edit', $s->id) }}" class="btn btn-sm btn-warning">✏️</a>
                         <form action="{{ route('pembelajaran.destroy', $s->id) }}" method="post" class="d-inline">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-default"
-                                onclick="return confirm('Hapus data ini?')">❌</button>
+                            <button type="submit" class="btn btn-sm btn-danger"
+                                onclick="return confirm('Hapus data ini?')">🗑</button>
                         </form>
                     </td>
                 </tr>
