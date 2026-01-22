@@ -62,7 +62,7 @@
                     {{-- Email --}}
                     <div class="mb-3">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" placeholder="email@contoh.com"
+                        <input type="email" name="email" class="form-control" placeholder="Email"
                             value="{{ old('email') }}" required autofocus inputmode="email">
                     </div>
 
@@ -72,7 +72,7 @@
 
                         <div class="input-group">
                             <input type="password" name="password" id="password" class="form-control"
-                                placeholder="••••••••" required>
+                                placeholder="Password" required>
 
                             <span class="input-group-text password-toggle" id="togglePassword">
                                 <span class="bi">🐵</span>
