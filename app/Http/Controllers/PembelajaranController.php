@@ -17,7 +17,6 @@ class PembelajaranController extends Controller
 
     public function anggota(Request $r, Pembelajaran $pembelajaran)
     {
-        $kelas_id = $r->get('kelas_id') ?? null;
         return view('pembelajaran.anggota', [
             'pembelajaran' => $pembelajaran,
             'anggota' => $pembelajaran->siswa,
@@ -30,12 +29,20 @@ class PembelajaranController extends Controller
             'pembelajaran' => Pembelajaran::with('tahunAjaran', 'pelajaran')->orderBy('id', 'desc')->paginate(15),
             'tahunajaran' => TahunAjaran::orderBy('nama', 'desc')->get(),
             'pelajaran' => Pelajaran::orderBy('nama', 'desc')->get(),
+            'kelas' => \App\Models\Rombel::orderBy('nama', 'desc')->get(),
             'action' => '',
         ]);
     }
     public function store(Request $r)
     {
-        Pembelajaran::create($r->validate($this->rules));
+        $pembelajaran = Pembelajaran::create($r->validate($this->rules));
+        if ($r->kelas_id) {
+            foreach (\App\Models\Siswa::where('rombel_id', $r->kelas_id)->get() as $siswa) {
+                $pembelajaran->anggota()->create([
+                    'siswa_id' => $siswa->id,
+                ]);
+            }
+        }
 
         return back()->with('success', 'Pembelajaran berhasil ditambahkan');
     }

@@ -8,9 +8,6 @@
         <form method="post" action="{{ route('pembelajaran.update', $data) }}" class="row g-2 mb-3">
             @csrf @method('PUT')
             <div class="col">
-                <input name="keterangan" class="form-control" placeholder="Nama" value="{{ $data->keterangan }}">
-            </div>
-            <div class="col">
                 <select name="tahun_ajaran_id" class="form-select" required>
                     <option value="">--Pilih Tahun Ajaran--</option>
                     @foreach ($tahunajaran as $ta)
@@ -28,14 +25,14 @@
                     @endforeach
                 </select>
             </div>
+            <div class="col">
+                <input name="keterangan" class="form-control" placeholder="Nama" value="{{ $data->keterangan }}">
+            </div>
             <div class="col-auto"><button class="btn btn-warning">Update</button></div>
         </form>
     @else
         <form method="post" action="{{ route('pembelajaran.store') }}" class="row g-2 mb-3">
             @csrf
-            <div class="col">
-                <input name="keterangan" class="form-control" placeholder="Nama">
-            </div>
             <div class="col">
                 <select name="tahun_ajaran_id" class="form-select" required>
                     <option value="">--Pilih Tahun Ajaran--</option>
@@ -45,14 +42,26 @@
                 </select>
             </div>
             <div class="col">
-                <select name="pelajaran_id" class="form-select" required>
+                <select name="pelajaran_id" class="form-select" required onchange="addToKeterangan()">
                     <option value="">--Pilih Pelajaran--</option>
                     @foreach ($pelajaran as $p)
                         <option value="{{ $p->id }}">{{ $p->nama }}</option>
                     @endforeach
                 </select>
             </div>
+            <div class="col">
+                <select name="kelas_id" class="form-select" onchange="addToKeterangan()">
+                    <option value="">--Pilih Kelas--</option>
+                    @foreach ($kelas as $k)
+                        <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col">
+                <input name="keterangan" class="form-control" placeholder="Keterangan">
+            </div>
             <div class="col-auto"><button class="btn btn-primary">Tambah</button></div>
+            <small class="text-muted">Pilih Kelas untuk menambahkan Anggota Otomatis</small>
         </form>
     @endif
     <table class="table-bordered table">
@@ -99,3 +108,28 @@
     </nav>
 
 @endsection
+
+@push('scripts')
+    <script>
+        function addToKeterangan() {
+            const pelajaranSelect = document.querySelector('select[name="pelajaran_id"]');
+            const kelasSelect = document.querySelector('select[name="kelas_id"]');
+            const keteranganInput = document.querySelector('input[name="keterangan"]');
+
+            const pelajaranText = pelajaranSelect.options[pelajaranSelect.selectedIndex].text;
+            const kelasText = kelasSelect.options[kelasSelect.selectedIndex].text;
+
+            let keterangan = '';
+            if (pelajaranSelect.value) {
+                keterangan += pelajaranText;
+            }
+            if (kelasSelect.value) {
+                if (keterangan) {
+                    keterangan += ' ';
+                }
+                keterangan += kelasText;
+            }
+
+            keteranganInput.value = keterangan;
+        }
+    </script>
