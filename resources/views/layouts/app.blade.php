@@ -152,7 +152,12 @@
             <button id="themeToggle" class="btn btn-sm btn-outline-info me-2">
                 <i class="bi bi-moon-stars"></i>
             </button>
-            <button class="btn btn-sm btn-danger">Logout</button>
+            @auth
+                <form method="POST" action="/logout" class="float-end">
+                    @csrf
+                    <button class="no-print btn btn-sm btn-danger">Logout {{ auth()->user()->name }}</button>
+                </form>
+            @endauth
         </div>
     </nav>
 
