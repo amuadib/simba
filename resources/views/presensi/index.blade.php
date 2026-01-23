@@ -5,71 +5,80 @@
 @section('content')
     <h5 class="d-print-none">Rekap Presensi Bulanan</h5>
 
-    <h5 class="d-print-block d-none">
-        Rekap Presensi Bulan {{ \Carbon\Carbon::parse($bulan)->locale('id_ID')->isoFormat('MMMM YYYY') }}
-    </h5>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="d-print-block d-none">
+                Rekap Presensi Bulan {{ \Carbon\Carbon::parse($bulan)->locale('id_ID')->isoFormat('MMMM YYYY') }}
+            </h5>
 
-    <form method="GET" class="row g-2 d-print-none mb-3">
-        @csrf
-        <div class="col-auto">
-            <input type="month" name="bulan" value="{{ $bulan }}" class="form-control" onchange="this.form.submit()">
-        </div>
-        <div class="col-auto">
-            <select name="pembelajaran_id" id="pembelajaran_id" class="form-select" onchange="this.form.submit()">
-                <option value="">--Pilih Pembelajaran--</option>
-                @foreach ($pembelajaran_list as $p)
-                    <option value="{{ $p->id }}" {{ request()->pembelajaran_id == $p->id ? 'selected' : '' }}>
-                        {{ $p->keterangan }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-auto">
-            <button class="btn btn-primary">Tampilkan</button>
-        </div>
-        @if (count($rekap) > 0)
-            <div class="col-auto">
-                <button class="btn btn-success" type="button" onclick="document.getElementById('export-form').submit()">
-                    Export Excel
-                </button>
-            </div>
-            <div class="col-auto"><button type="button" onclick="print()" class="btn btn-secondary">Print</button></div>
-        @endif
-    </form>
+            <form method="GET" class="row g-2 d-print-none mb-3">
+                @csrf
+                <div class="col-auto">
+                    <input type="month" name="bulan" value="{{ $bulan }}" class="form-control"
+                        onchange="this.form.submit()">
+                </div>
+                <div class="col-auto">
+                    <select name="pembelajaran_id" id="pembelajaran_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">--Pilih Pembelajaran--</option>
+                        @foreach ($pembelajaran_list as $p)
+                            <option value="{{ $p->id }}"
+                                {{ request()->pembelajaran_id == $p->id ? 'selected' : '' }}>
+                                {{ $p->keterangan }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary">Tampilkan</button>
+                </div>
+                @if (count($rekap) > 0)
+                    <div class="col-auto">
+                        <button class="btn btn-success" type="button"
+                            onclick="document.getElementById('export-form').submit()">
+                            Export Excel
+                        </button>
+                    </div>
+                    <div class="col-auto"><button type="button" onclick="print()" class="btn btn-secondary">Print</button>
+                    </div>
+                @endif
+            </form>
 
-    @if (count($rekap) > 0)
-        <form method="get" action="{{ route('pembelajaran.presensi.export') }}" target="_blank" id="export-form">
-            <input type="hidden" name="pembelajaran_id" value="{{ request()->pembelajaran_id }}">
-            <input type="hidden" name="bulan" value="{{ request()->bulan }}">
-        </form>
-        <table class="table-bordered table-sm table">
-            <tr>
-                <th>Nama</th>
-                @foreach ($tglList as $t)
-                    <th>{{ date('d', strtotime($t)) }}</th>
-                @endforeach
-                <th>H</th>
-                <th>I</th>
-                <th>S</th>
-                <th>A</th>
-            </tr>
-            @foreach ($rekap as $r)
-                <tr>
-                    <td data-siswa="{{ $r['id'] }}">{{ $r['nama'] }}</td>
-                    @foreach ($tglList as $t)
-                        <td class="{{ $statusColor[$r['tgl'][$t] ?? '-'] }} sel" data-tanggal="{{ $t }}">
-                            {{ $r['tgl'][$t] ?? '-' }}</td>
+            @if (count($rekap) > 0)
+                <form method="get" action="{{ route('pembelajaran.presensi.export') }}" target="_blank" id="export-form">
+                    <input type="hidden" name="pembelajaran_id" value="{{ request()->pembelajaran_id }}">
+                    <input type="hidden" name="bulan" value="{{ request()->bulan }}">
+                </form>
+                <table class="table-bordered table-sm table">
+                    <tr>
+                        <th>Nama</th>
+                        @foreach ($tglList as $t)
+                            <th>{{ date('d', strtotime($t)) }}</th>
+                        @endforeach
+                        <th>H</th>
+                        <th>I</th>
+                        <th>S</th>
+                        <th>A</th>
+                    </tr>
+                    @foreach ($rekap as $r)
+                        <tr>
+                            <td data-siswa="{{ $r['id'] }}">{{ $r['nama'] }}</td>
+                            @foreach ($tglList as $t)
+                                <td class="{{ $statusColor[$r['tgl'][$t] ?? '-'] }} sel"
+                                    data-tanggal="{{ $t }}">
+                                    {{ $r['tgl'][$t] ?? '-' }}</td>
+                            @endforeach
+                            <td class="text-success total-h" data-row="{{ $r['id'] }}">{{ $r['H'] }}</td>
+                            <td class="text-warning total-i" data-row="{{ $r['id'] }}">{{ $r['I'] }}</td>
+                            <td class="text-info total-s" data-row="{{ $r['id'] }}">{{ $r['S'] }}</td>
+                            <td class="text-danger total-a" data-row="{{ $r['id'] }}">{{ $r['A'] }}</td>
+                        </tr>
                     @endforeach
-                    <td class="text-success total-h" data-row="{{ $r['id'] }}">{{ $r['H'] }}</td>
-                    <td class="text-warning total-i" data-row="{{ $r['id'] }}">{{ $r['I'] }}</td>
-                    <td class="text-info total-s" data-row="{{ $r['id'] }}">{{ $r['S'] }}</td>
-                    <td class="text-danger total-a" data-row="{{ $r['id'] }}">{{ $r['A'] }}</td>
-                </tr>
-            @endforeach
-        </table>
-    @else
-        <div class="alert alert-info">Tidak ada data presensi.</div>
-    @endif
+                </table>
+            @else
+                <div class="alert alert-info">Tidak ada data presensi.</div>
+            @endif
+        </div>
+    </div>
 @endsection
 
 @push('styles')

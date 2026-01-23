@@ -3,47 +3,52 @@
 @section('content')
     <h5>Jurnal Pembelajaran {{ $pembelajaran->keterangan }}</h5>
 
-    <table class="table-bordered table" id="table-jurnal">
-        <thead>
-            <tr>
-                <th style="width:200px;">Tanggal</th>
-                <th>Materi</th>
-                <th width="150">Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (!$jurnals->count())
-                <tr id="no-data">
-                    <td colspan="3" class="text-center">Data tidak ditemukan</td>
-                </tr>
-            @else
-                @foreach ($jurnals as $j)
-                    <tr data-id="{{ $j->id }}">
-                        <td class="editable" data-field="tanggal" data-value={{ $j->tanggal }}>
-                            {{ $j->tanggal->locale('id_ID')->isoFormat('DD MMMM YYYY') }}
-                        </td>
-                        <td class="editable" data-field="materi">{!! $j->materi !!}</td>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table-bordered table" id="table-jurnal">
+                <thead>
+                    <tr>
+                        <th style="width:200px;">Tanggal</th>
+                        <th>Materi</th>
+                        <th width="150">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!$jurnals->count())
+                        <tr id="no-data">
+                            <td colspan="3" class="text-center">Data tidak ditemukan</td>
+                        </tr>
+                    @else
+                        @foreach ($jurnals as $j)
+                            <tr data-id="{{ $j->id }}">
+                                <td class="editable" data-field="tanggal" data-value={{ $j->tanggal }}>
+                                    {{ $j->tanggal->locale('id_ID')->isoFormat('DD MMMM YYYY') }}
+                                </td>
+                                <td class="editable" data-field="materi">{!! $j->materi !!}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger btn-delete">🗑</button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endif
+                    <tr id="row-add">
                         <td>
-                            <button class="btn btn-sm btn-danger btn-delete">🗑</button>
+                            <input type="date" id="add-tanggal" class="form-control form-control-sm"
+                                placeholder="Tanggal">
+                        </td>
+                        <td>
+                            <input type="text" id="add-materi" class="form-control form-control-sm" placeholder="Materi">
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" id="btn-add">➕</button>
                         </td>
                     </tr>
-                @endforeach
-            @endif
-            <tr id="row-add">
-                <td>
-                    <input type="date" id="add-tanggal" class="form-control form-control-sm" placeholder="Tanggal">
-                </td>
-                <td>
-                    <input type="text" id="add-materi" class="form-control form-control-sm" placeholder="Materi">
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-primary" id="btn-add">➕</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                </tbody>
+            </table>
 
-    {{ $jurnals->links() }}
+            {{ $jurnals->links() }}
+        </div>
+    </div>
 @endsection
 
 @push('scripts')

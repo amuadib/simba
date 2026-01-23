@@ -5,28 +5,33 @@
 @section('content')
     <h5>Input Presensi {{ $pembelajaran->keterangan }}</h5>
 
-    <form method="post" class="row g-2 mb-3" action="{{ route('pembelajaran.presensi.store', $pembelajaran->id) }}">
-        @csrf
-        <div class="col-md-3">
-            <input type="date" name="tanggal" id="tanggal" class="form-control" value="{{ request()->tanggal }}" required>
-        </div>
-        <div class="col-md-3">
-            <button class="btn btn-primary" type="button" onclick="loadPresensi()">Tampilkan</button>
-        </div>
-        <table class="table-bordered visually-hidden table">
-            <thead>
-                <tr>
-                    <th>Nama</th>
-                    <th>Status</th>
-                    <th>Keterangan</th>
-                </tr>
-            </thead>
-            <tbody id="tabel-presensi">
-            </tbody>
-        </table>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post" class="row g-2 mb-3" action="{{ route('pembelajaran.presensi.store', $pembelajaran->id) }}">
+                @csrf
+                <div class="col-md-3">
+                    <input type="date" name="tanggal" id="tanggal" class="form-control" value="{{ request()->tanggal }}"
+                        required>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary" type="button" onclick="loadPresensi()">Tampilkan</button>
+                </div>
+                <table class="table-bordered visually-hidden table">
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>Status</th>
+                            <th>Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-presensi">
+                    </tbody>
+                </table>
 
-        <button class="btn btn-success visually-hidden">Simpan Presensi</button>
-    </form>
+                <button class="btn btn-success visually-hidden">Simpan Presensi</button>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')

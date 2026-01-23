@@ -3,29 +3,35 @@
 @section('title', 'Data Siswa')
 
 @section('content')
-    <form method="post" action="{{ route('backup.export') }}">
-        @csrf
-        <h5>Export Database</h5>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post" action="{{ route('backup.export') }}">
+                @csrf
+                <h5>Export Database</h5>
+                @foreach ($tables as $table)
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="tables[]" value="{{ $table }}" checked>
+                        <label class="form-check-label">{{ $table }}</label>
+                    </div>
+                @endforeach
 
-        @foreach ($tables as $table)
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="tables[]" value="{{ $table }}" checked>
-                <label class="form-check-label">{{ $table }}</label>
-            </div>
-        @endforeach
+                <button class="btn btn-success mt-3">
+                    📤 Export
+                </button>
+            </form>
+        </div>
+    </div>
+    <br>
+    <div class="card shadow-sm">
+        <div class="card-body">
 
-        <button class="btn btn-success mt-3">
-            📤 Export
-        </button>
-    </form>
+            <form method="post" action="{{ route('backup.import') }}" enctype="multipart/form-data">
+                @csrf
+                <h5>Import Database</h5>
 
-    <hr>
-
-    <form method="post" action="{{ route('backup.import') }}" enctype="multipart/form-data">
-        @csrf
-        <h5>Import Database</h5>
-
-        <input type="file" name="file" class="form-control" accept=".json" required>
-        <button class="btn btn-primary mt-3">📥 Import</button>
-    </form>
+                <input type="file" name="file" class="form-control" accept=".json" required>
+                <button class="btn btn-primary mt-3">📥 Import</button>
+            </form>
+        </div>
+    </div>
 @endsection
