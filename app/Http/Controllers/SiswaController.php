@@ -86,7 +86,7 @@ class SiswaController extends Controller
     }
     public function destroy(Siswa $siswa)
     {
-        DB::transaction(function () use ($siswa) {
+        \DB::transaction(function () use ($siswa) {
             $siswa->tags()->detach(); // hapus pivot saja
             $siswa->delete();
         });
