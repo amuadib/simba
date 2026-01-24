@@ -14,6 +14,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\DatabaseController;
 use App\Http\Controllers\JurnalController;
+use App\Http\Controllers\NilaiController;
 
 Route::get('/csrf-refresh', fn() => ['token' => csrf_token()]);
 Route::get('/login', [AuthController::class, 'form'])->name('login');
@@ -27,6 +28,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{pembelajaran}/jurnal', [JurnalController::class, 'store'])->name('pembelajaran.jurnal.store');
         Route::patch('/{pembelajaran}/jurnal/{jurnal}', [JurnalController::class, 'update'])->name('pembelajaran.jurnal.update');
         Route::delete('/{pembelajaran}/jurnal/{jurnal}', [JurnalController::class, 'destroy'])->name('pembelajaran.jurnal.destroy');
+        Route::get('/{pembelajaran}/jurnal/{jurnal}/nilai/create', [NilaiController::class, 'create'])->name('pembelajaran.jurnal.nilai.create');
         Route::get('/presensi', [PresensiController::class, 'index'])->name('pembelajaran.presensi.index');
         Route::get('/presensi/export', [PresensiController::class, 'export'])->name('pembelajaran.presensi.export');
         Route::get('/presensi/load', [PresensiController::class, 'load'])->name('pembelajaran.presensi.load');
@@ -36,9 +38,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/{pembelajaran}/anggota', [AnggotaPembelajaranController::class, 'index'])->name('pembelajaran.anggota.index');
         Route::post('/{pembelajaran}/anggota/{mode?}', [AnggotaPembelajaranController::class, 'update'])->name('pembelajaran.anggota.update');
     });
-    Route::get('/admin/database', [DatabaseController::class, 'index'])->name('database.index');
-    Route::post('/admin/database/export', [DatabaseController::class, 'export'])->name('database.export');
-    Route::post('/admin/database/import', [DatabaseController::class, 'import'])->name('database.import');
+
+    Route::prefix('admin')->group(function () {
+        Route::get('/database', [DatabaseController::class, 'index'])->name('database.index');
+        Route::post('/database/export', [DatabaseController::class, 'export'])->name('database.export');
+        Route::post('/database/import', [DatabaseController::class, 'import'])->name('database.import');
+    });
 
     Route::prefix('tags')->group(function () {
         Route::post('/', [TagController::class, 'store']);
@@ -46,7 +51,6 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{tag}', [TagController::class, 'destroy']);
         Route::get('/search', function (\Illuminate\Http\Request $request) {
             $q = $request->get('q');
-
             return \App\Models\Tag::where('nama', 'like', "%{$q}%")
                 ->orderBy('nama')
                 ->limit(10)
