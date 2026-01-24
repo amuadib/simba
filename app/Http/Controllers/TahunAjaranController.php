@@ -23,26 +23,26 @@ class TahunAjaranController extends Controller
 
         return back()->with('success', 'Tahun Ajaran berhasil ditambahkan');
     }
-    public function edit(TahunAjaran $tahunajaran)
+    public function edit(TahunAjaran $tahun_ajaran)
     {
         return view('tahun_ajaran.index', [
-            'data' => $tahunajaran,
+            'data' => $tahun_ajaran,
             'action' => 'edit',
             'tahunajaran' => TahunAjaran::orderBy('tahun')->paginate(15),
         ]);
     }
-    public function update(Request $request, TahunAjaran $tahunajaran)
+    public function update(Request $request, TahunAjaran $tahun_ajaran)
     {
-        $tahunajaran->update($request->validate([
+        $tahun_ajaran->update($request->validate([
             'nama' => 'required',
             'aktif' => 'required',
         ]));
 
         return redirect()->route('tahun_ajaran.index');
     }
-    public function destroy(TahunAjaran $tahunajaran)
+    public function destroy(TahunAjaran $tahun_ajaran)
     {
-        $tahunajaran->delete();
+        $tahun_ajaran->delete();
         return back();
     }
 }
