@@ -26,7 +26,7 @@ class PembelajaranController extends Controller
     public function index()
     {
         return view('pembelajaran.index', [
-            'pembelajaran' => Pembelajaran::with('tahunAjaran', 'pelajaran')->orderBy('id', 'desc')->paginate(15),
+            'pembelajaran' => Pembelajaran::with('tahunAjaran', 'pelajaran')->orderBy('keterangan', 'asc')->paginate(15),
             'tahunajaran' => TahunAjaran::orderBy('nama', 'desc')->get(),
             'pelajaran' => Pelajaran::orderBy('nama', 'desc')->get(),
             'kelas' => \App\Models\Rombel::orderBy('nama', 'desc')->get(),
