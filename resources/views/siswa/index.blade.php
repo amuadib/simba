@@ -2,7 +2,7 @@
 
 @section('title', 'Data Siswa')
 
-@section('content'){{-- Header --}}
+@section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="mb-0">Data Siswa</h4>
@@ -54,7 +54,7 @@
 
                     @include('siswa._tag')
 
-                    <div class="col-auto"><button class="btn btn-primary"> <i class="bi bi-plus-circle"></i> Tambah</button>
+                    <div class="col-auto"><button class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah</button>
                     </div>
                 </form>
             @endif
