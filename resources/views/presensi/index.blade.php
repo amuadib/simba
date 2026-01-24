@@ -3,8 +3,13 @@
 @section('title', 'Rekap Presensi ')
 
 @section('content')
-    <h5 class="d-print-none">Rekap Presensi Bulanan</h5>
-
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Presensi</h4>
+            <small class="text-muted">Rekap Presensi Bulanan</small>
+        </div>
+        <x-breadcrumb />
+    </div>
     <div class="card shadow-sm">
         <div class="card-body">
             <h5 class="d-print-block d-none">

@@ -1,8 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-    <h5>Jurnal Pembelajaran {{ $pembelajaran->keterangan }}</h5>
-
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Jurnal Pembelajaran</h4>
+            <small class="text-muted">Daftar Jurnal Pembelajaran {{ $pembelajaran->keterangan }}</small>
+        </div>
+        <x-breadcrumb />
+    </div>
     <div class="card shadow-sm">
         <div class="card-body">
             <table class="table-bordered table" id="table-jurnal">
@@ -40,7 +45,7 @@
                             <input type="text" id="add-materi" class="form-control form-control-sm" placeholder="Materi">
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-primary" id="btn-add">➕</button>
+                            <button class="btn btn-sm btn-primary" id="btn-add"><i class="bi bi-plus-circle"></i></button>
                         </td>
                     </tr>
                 </tbody>

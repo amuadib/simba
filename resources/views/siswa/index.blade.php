@@ -8,9 +8,7 @@
             <h4 class="mb-0">Data Siswa</h4>
             <small class="text-muted">Daftar seluruh siswa terdaftar</small>
         </div>
-        {{-- <a href="#" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-circle"></i> Tambah Siswa
-        </a> --}}
+        <x-breadcrumb />
     </div>
 
     {{-- Card --}}

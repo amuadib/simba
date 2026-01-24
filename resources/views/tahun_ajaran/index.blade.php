@@ -3,7 +3,13 @@
 @section('title', 'Data Tahun Ajaran')
 
 @section('content')
-    <h5>Data Tahun Ajaran</h5>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Data Tahun Ajaran</h4>
+            <small class="text-muted">Daftar seluruh Tahun Ajaran</small>
+        </div>
+        <x-breadcrumb />
+    </div>
     <div class="card shadow-sm">
         <div class="card-body">
             @if ($action == 'edit')
@@ -28,7 +34,7 @@
                             </label>
                         </div>
                     </div>
-                    <div class="col-auto"><button class="btn btn-warning">Update</button></div>
+                    <div class="col-auto"><button class="btn btn-warning"><i class="bi bi-pencil"></i> Update</button></div>
                 </form>
             @else
                 <form method="post" action="{{ route('tahun_ajaran.store') }}" class="row g-2 mb-3">
@@ -50,7 +56,8 @@
                             </label>
                         </div>
                     </div>
-                    <div class="col-auto"><button class="btn btn-primary">Tambah</button></div>
+                    <div class="col-auto"><button class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah</button>
+                    </div>
                 </form>
             @endif
             <table class="table-bordered table">
@@ -69,12 +76,13 @@
                             <td>{{ $s->nama }}</td>
                             <td>{{ $s->aktif == 'y' ? '✅' : '🚫' }}</td>
                             <td width="200">
-                                <a href="{{ route('tahun_ajaran.edit', $s->id) }}" class="btn btn-sm btn-default">📝</a>
+                                <a href="{{ route('tahun_ajaran.edit', $s->id) }}" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-pencil"></i> </a>
                                 <form action="{{ route('tahun_ajaran.destroy', $s->id) }}" method="post" class="d-inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-default"
-                                        onclick="return confirm('Hapus data ini?')">❌</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Hapus data ini?')"> <i class="bi bi-trash"></i> </button>
                                 </form>
                             </td>
                         </tr>

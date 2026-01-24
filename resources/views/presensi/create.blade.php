@@ -3,8 +3,13 @@
 @section('title', 'Presensi ' . $pembelajaran->keterangan)
 
 @section('content')
-    <h5>Input Presensi {{ $pembelajaran->keterangan }}</h5>
-
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Presensi</h4>
+            <small class="text-muted">Input Presensi {{ $pembelajaran->keterangan }}</small>
+        </div>
+        <x-breadcrumb />
+    </div>
     <div class="card shadow-sm">
         <div class="card-body">
             <form method="post" class="row g-2 mb-3" action="{{ route('pembelajaran.presensi.store', $pembelajaran->id) }}">

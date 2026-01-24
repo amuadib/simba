@@ -3,8 +3,13 @@
 @section('title', 'Data Anggota Pembelajaran')
 
 @section('content')
-    <h5>Data Pembelajaran</h5>
-
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Anggota Pembelajaran</h4>
+            <small class="text-muted">Daftar Anggota Pembelajaran {{ $pembelajaran->keterangan }}</small>
+        </div>
+        <x-breadcrumb />
+    </div>
     <div class="card shadow-sm">
         <div class="card-body">
             <table class="table-bordered table">

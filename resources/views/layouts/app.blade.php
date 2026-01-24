@@ -19,6 +19,14 @@
     <link href="{{ asset('bootstrap-icons.css') }}" rel="stylesheet">
     @stack('styles')
     <style>
+        .breadcrumb a {
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
         /* =====================
    THEME VARIABLES
 ===================== */

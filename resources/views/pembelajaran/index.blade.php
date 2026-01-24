@@ -3,14 +3,19 @@
 @section('title', 'Data Pembelajaran')
 
 @section('content')
-    <h5>Data Pembelajaran</h5>
-
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Data Pembelajaran</h4>
+            <small class="text-muted">Daftar seluruh Pembelajaran</small>
+        </div>
+        <x-breadcrumb />
+    </div>
     <div class="card shadow-sm">
         <div class="card-body">
             @if ($action == 'edit')
                 <form method="post" action="{{ route('pembelajaran.update', $data) }}" class="row g-2 mb-3">
                     @csrf @method('PUT')
-                    <div class="col">
+                    <div class="col-md-3">
                         <select name="tahun_ajaran_id" class="form-select" required>
                             <option value="">--Pilih Tahun Ajaran--</option>
                             @foreach ($tahunajaran as $ta)
@@ -20,7 +25,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col">
+                    <div class="col-md-3">
                         <select name="pelajaran_id" class="form-select" required>
                             <option value="">--Pilih Pelajaran--</option>
                             @foreach ($pelajaran as $p)
@@ -29,15 +34,15 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col">
+                    <div class="col-md-4">
                         <input name="keterangan" class="form-control" placeholder="Nama" value="{{ $data->keterangan }}">
                     </div>
-                    <div class="col-auto"><button class="btn btn-warning">Update</button></div>
+                    <div class="col-md-2"><button class="btn btn-warning"><i class="bi bi-pencil"></i> Update</button></div>
                 </form>
             @else
                 <form method="post" action="{{ route('pembelajaran.store') }}" class="row g-2 mb-3">
                     @csrf
-                    <div class="col">
+                    <div class="col-md-2">
                         <select name="tahun_ajaran_id" class="form-select" required>
                             <option value="">--Pilih Tahun Ajaran--</option>
                             @foreach ($tahunajaran as $ta)
@@ -45,7 +50,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col">
+                    <div class="col-md-2">
                         <select name="pelajaran_id" class="form-select" required onchange="addToKeterangan()">
                             <option value="">--Pilih Pelajaran--</option>
                             @foreach ($pelajaran as $p)
@@ -53,7 +58,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col">
+                    <div class="col-md-2">
                         <select name="kelas_id" class="form-select" onchange="addToKeterangan()">
                             <option value="">--Pilih Kelas--</option>
                             @foreach ($kelas as $k)
@@ -61,10 +66,11 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col">
+                    <div class="col-md-4">
                         <input name="keterangan" class="form-control" placeholder="Keterangan">
                     </div>
-                    <div class="col-auto"><button class="btn btn-primary">Tambah</button></div>
+                    <div class="col-md-2"><button class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah</button>
+                    </div>
                     <small class="text-muted">Pilih Kelas untuk menambahkan Anggota Otomatis</small>
                 </form>
             @endif
@@ -94,12 +100,14 @@
                                     class="btn btn-sm btn-outline-primary">Presensi</a>
                                 <a href="{{ route('pembelajaran.anggota.index', $s->id) }}"
                                     class="btn btn-sm btn-outline-success">Anggota</a>
-                                <a href="{{ route('pembelajaran.edit', $s->id) }}" class="btn btn-sm btn-warning">✏️</a>
+                                <a href="{{ route('pembelajaran.edit', $s->id) }}"
+                                    class="btn btn-sm btn-outline-warning">&nbsp;<i class="bi bi-pencil"></i>&nbsp;</a>
                                 <form action="{{ route('pembelajaran.destroy', $s->id) }}" method="post" class="d-inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger"
-                                        onclick="return confirm('Hapus data ini?')">🗑</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Hapus data ini?')">&nbsp;<i
+                                            class="bi bi-trash"></i>&nbsp;</button>
                                 </form>
                             </td>
                         </tr>
@@ -138,3 +146,4 @@
             keteranganInput.value = keterangan;
         }
     </script>
+@endpush
