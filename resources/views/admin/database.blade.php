@@ -13,7 +13,7 @@
     </div>
     <div class="card shadow-sm">
         <div class="card-body">
-            <form method="post" action="{{ route('backup.export') }}">
+            <form method="post" action="{{ route('database.export') }}">
                 @csrf
                 <h5>Ekspor Database</h5>
                 @foreach ($tables as $table)
@@ -33,7 +33,7 @@
     <div class="card shadow-sm">
         <div class="card-body">
 
-            <form method="post" action="{{ route('backup.import') }}" enctype="multipart/form-data">
+            <form method="post" action="{{ route('database.import') }}" enctype="multipart/form-data">
                 @csrf
                 <h5>Impor Database</h5>
 

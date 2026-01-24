@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Http\Request;
 
-class BackupController extends Controller
+class DatabaseController extends Controller
 {
     public function index()
     {
@@ -24,7 +24,7 @@ class BackupController extends Controller
             'users',
         ];
 
-        return view('admin.backup', compact('tables'));
+        return view('admin.database', compact('tables'));
     }
 
     public function export(Request $request)

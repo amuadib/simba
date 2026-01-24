@@ -12,7 +12,7 @@ use App\Http\Controllers\TahunAjaranController;
 use App\Http\Controllers\AnggotaPembelajaranController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TagController;
-use App\Http\Controllers\BackupController;
+use App\Http\Controllers\DatabaseController;
 use App\Http\Controllers\JurnalController;
 
 Route::get('/csrf-refresh', fn() => ['token' => csrf_token()]);
@@ -28,9 +28,9 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{pembelajaran}/jurnal/{jurnal}', [JurnalController::class, 'update'])->name('pembelajaran.jurnal.update');
         Route::delete('/{pembelajaran}/jurnal/{jurnal}', [JurnalController::class, 'destroy'])->name('pembelajaran.jurnal.destroy');
     });
-    Route::get('/admin/backup', [BackupController::class, 'index'])->name('backup.index');
-    Route::post('/admin/backup/export', [BackupController::class, 'export'])->name('backup.export');
-    Route::post('/admin/backup/import', [BackupController::class, 'import'])->name('backup.import');
+    Route::get('/admin/database', [DatabaseController::class, 'index'])->name('database.index');
+    Route::post('/admin/database/export', [DatabaseController::class, 'export'])->name('database.export');
+    Route::post('/admin/database/import', [DatabaseController::class, 'import'])->name('database.import');
 
     Route::prefix('tags')->group(function () {
         Route::post('/', [TagController::class, 'store']);

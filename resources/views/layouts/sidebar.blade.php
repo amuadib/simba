@@ -42,10 +42,10 @@
             'label' => 'Tahun Ajaran',
         ],
         [
-            'route' => 'backup.*',
-            'url' => 'backup.index',
+            'route' => 'database.*',
+            'url' => 'database.index',
             'icon' => 'bi-database',
-            'label' => 'Backup',
+            'label' => 'Database',
         ],
     ];
 @endphp
