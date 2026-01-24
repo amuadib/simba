@@ -26,7 +26,7 @@
                         <tr>
                             <th>Nama</th>
                             <th>Status</th>
-                            <th>Keterangan</th>
+                            <th class="d-none d-md-block">Keterangan</th>
                         </tr>
                     </thead>
                     <tbody id="tabel-presensi">
@@ -92,7 +92,7 @@
                                 <label class="form-check-label">A</label>
                             </div>
                     </td>
-                    <td>
+                    <td class="d-none d-md-block">
                         <textarea name="data[${siswa.id}][keterangan]" class="form-control" rows="1">${siswa.keterangan || ''}</textarea>
                     </td>
                 </tr>`;
