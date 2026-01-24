@@ -31,7 +31,8 @@
                                 </td>
                                 <td class="editable" data-field="materi">{!! $j->materi !!}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-danger btn-delete">🗑</button>
+                                    <button class="btn btn-sm btn-outline-danger btn-delete"> <i class="bi bi-trash"></i>
+                                    </button>
                                 </td>
                             </tr>
                         @endforeach
