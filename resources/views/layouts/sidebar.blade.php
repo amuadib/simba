@@ -12,7 +12,7 @@
             'label' => 'Rekap Presensi',
         ],
         [
-            'route' => 'pembelajaran.index',
+            'route' => 'pembelajaran.*',
             'url' => 'pembelajaran.index',
             'icon' => 'bi-journal-bookmark-fill',
             'label' => 'Pembelajaran',
