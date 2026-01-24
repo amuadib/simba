@@ -15,6 +15,7 @@ use App\Http\Controllers\TagController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\JurnalController;
 
+Route::get('/csrf-refresh', fn() => ['token' => csrf_token()]);
 Route::get('/login', [AuthController::class, 'form'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');

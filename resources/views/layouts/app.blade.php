@@ -5,6 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+        setInterval(() => {
+            fetch('/csrf-refresh')
+                .then(r => r.json())
+                .then(d => {
+                    document.querySelector('meta[name="csrf-token"]').content = d.token;
+                });
+        }, 5 * 60 * 1000);
+    </script>
     <title>@yield('title', 'Presensi Sekolah')</title>
     <link href="{{ asset('bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('bootstrap-icons.css') }}" rel="stylesheet">

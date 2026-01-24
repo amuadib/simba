@@ -4,14 +4,11 @@
 <head>
     <meta charset="utf-8">
     <title>Login</title>
-
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    {{-- Bootstrap 5 --}}
     <link href="{{ asset('bootstrap.min.css') }}" rel="stylesheet">
-
-    {{-- Bootstrap Icons --}}
-    {{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"> --}}
+    <link href="{{ asset('bootstrap-icons') }}" rel="stylesheet">
 
     <style>
         body {
@@ -35,6 +32,58 @@
             cursor: pointer;
         }
     </style>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const btn = document.getElementById('btnLogin');
+        const errorBox = document.getElementById('loginError');
+
+        let retried = false;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorBox.classList.add('d-none');
+            btn.disabled = true;
+
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch("{{ route('login') }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: formData
+                });
+
+                if (res.status === 419 && !retried) {
+                    retried = true;
+                    await refreshToken();
+                    return form.dispatchEvent(new Event('submit'));
+                }
+
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(text || 'Login gagal');
+                }
+
+                window.location.href = "{{ route('dashboard') }}";
+
+            } catch (err) {
+                errorBox.textContent = 'Login gagal. Periksa email atau password.';
+                errorBox.classList.remove('d-none');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        async function refreshToken() {
+            const res = await fetch('/csrf-refresh');
+            const data = await res.json();
+            document.querySelector('meta[name="csrf-token"]').content = data.token;
+        }
+    </script>
+
 </head>
 
 <body class="d-flex align-items-center">
@@ -55,8 +104,8 @@
                         {{ $errors->first() }}
                     </div>
                 @endif
-
-                <form method="POST" action="/login">
+                <div id="loginError" class="text-danger d-none mt-2"></div>
+                <form method="POST" action="/login" id="loginForm">
                     @csrf
 
                     {{-- Email --}}
@@ -89,7 +138,7 @@
                     </div>
 
                     {{-- Button --}}
-                    <button class="btn btn-primary w-100 fw-semibold">
+                    <button class="btn btn-primary w-100 fw-semibold" id="btnLogin">
                         Login
                     </button>
                 </form>
