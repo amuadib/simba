@@ -152,6 +152,14 @@
         .offcanvas.sidebar {
             box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
         }
+
+        .table td,
+        .table th {
+            max-width: 100px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 
