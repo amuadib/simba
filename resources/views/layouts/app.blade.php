@@ -164,8 +164,10 @@
         </button>
 
         <span class="fw-bold ms-2">📘 Sistem Presensi</span>
-
         <div class="d-flex align-items-center ms-auto">
+            <div class="text-muted mx-2" id="tanggal">
+                loading ...
+            </div>
             <button id="themeToggle" class="btn btn-sm btn-outline-info me-2">
                 <i class="bi bi-moon-stars"></i>
             </button>
@@ -218,7 +220,27 @@
     </script>
 
     <script src="{{ asset('bootstrap.bundle.min.js') }}"></script>
+    <script>
+        var serverTime = "{{ now() }}";
+        var now = new Date(serverTime);
+        var options = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        };
 
+        function updateTanggal() {
+            now.setSeconds(now.getSeconds() + 1);
+            document.getElementById('tanggal').innerHTML = now.toLocaleDateString('id-ID', options).replace(' pukul ',
+                ', ').replaceAll('.',
+                ':');
+        }
+        setInterval(updateTanggal, 1000);
+    </script>
     @stack('scripts')
 </body>
 
