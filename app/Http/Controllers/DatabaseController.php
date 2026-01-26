@@ -21,6 +21,7 @@ class DatabaseController extends Controller
             'presensi',
             'siswa_tag',
             'jurnal',
+            'nilai',
             'users',
         ];
 
