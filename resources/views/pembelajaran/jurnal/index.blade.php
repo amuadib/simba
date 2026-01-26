@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Jurnal Pembelajaran ' . $pembelajaran->keterangan)
+
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -13,8 +15,8 @@
             <table class="table-bordered table" id="table-jurnal">
                 <thead>
                     <tr>
-                        <th style="width:200px;">Tanggal</th>
-                        <th>Materi</th>
+                        <th style="max-width:200px;">Tanggal</th>
+                        <th style="max-width:500px;">Materi</th>
                         <th width="150">Aksi</th>
                     </tr>
                 </thead>
@@ -31,6 +33,8 @@
                                 </td>
                                 <td class="editable" data-field="materi">{!! $j->materi !!}</td>
                                 <td>
+                                    <a href="{{ route('pembelajaran.jurnal.nilai.create', [$pembelajaran->id, $j->id]) }}"
+                                        class="btn btn-sm btn-outline-primary">Nilai</a>
                                     <button class="btn btn-sm btn-outline-danger btn-delete"> <i class="bi bi-trash"></i>
                                     </button>
                                 </td>

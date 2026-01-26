@@ -28,4 +28,8 @@ class Jurnal extends Model
         return $this->hasMany(Presensi::class, 'pembelajaran_id', 'pembelajaran_id')
             ->whereColumn('presensi.tanggal', 'jurnal.tanggal');
     }
+    public function nilai()
+    {
+        return $this->hasMany(Nilai::class);
+    }
 }
