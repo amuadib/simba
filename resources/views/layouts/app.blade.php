@@ -173,7 +173,7 @@
 
         <span class="fw-bold ms-2">📘 Sistem Presensi</span>
         <div class="d-flex align-items-center ms-auto">
-            <div class="text-muted mx-2" id="tanggal">
+            <div class="text-muted mx-2" id="tanggal_live">
                 loading ...
             </div>
             <button id="themeToggle" class="btn btn-sm btn-outline-info me-2">
@@ -229,9 +229,8 @@
 
     <script src="{{ asset('bootstrap.bundle.min.js') }}"></script>
     <script>
-        var serverTime = "{{ now() }}";
-        var now = new Date(serverTime);
-        var options = {
+        const now = new Date("{{ now() }}");
+        const options = {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -243,7 +242,7 @@
 
         function updateTanggal() {
             now.setSeconds(now.getSeconds() + 1);
-            document.getElementById('tanggal').innerHTML = now.toLocaleDateString('id-ID', options).replace(' pukul ',
+            document.getElementById('tanggal_live').innerHTML = now.toLocaleDateString('id-ID', options).replace(' pukul ',
                 ', ').replaceAll('.',
                 ':');
         }
