@@ -29,7 +29,7 @@ class JurnalController extends Controller
 
         return response()->json([
             'id' => $jurnal->id,
-            'tanggal' => $jurnal->tanggal->locale('id_ID')->isoFormat('DD MMMM YYYY'),
+            'tanggal' => \Carbon\Carbon::parse($jurnal->tanggal)->locale('id_ID')->isoFormat('DD MMMM YYYY'),
             'materi' => $jurnal->materi,
         ]);
     }

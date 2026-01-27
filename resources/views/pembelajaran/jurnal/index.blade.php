@@ -12,6 +12,9 @@
     </div>
     <div class="card shadow-sm">
         <div class="card-body">
+            <a href="{{ route('pembelajaran.jurnal.nilai.index', $pembelajaran) }}" class="btn btn-primary mb-3">Daftar
+                Nilai</a>
+
             <table class="table-bordered table" id="table-jurnal">
                 <thead>
                     <tr>
@@ -29,7 +32,7 @@
                         @foreach ($jurnals as $j)
                             <tr data-id="{{ $j->id }}">
                                 <td class="editable" data-field="tanggal" data-value={{ $j->tanggal }}>
-                                    {{ $j->tanggal->locale('id_ID')->isoFormat('DD MMMM YYYY') }}
+                                    {{ \Carbon\Carbon::parse($j->tanggal)->locale('id_ID')->isoFormat('DD MMMM YYYY') }}
                                 </td>
                                 <td class="editable" data-field="materi">{!! $j->materi !!}</td>
                                 <td>
