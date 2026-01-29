@@ -54,8 +54,6 @@ class JurnalController extends Controller
     {
         $jurnal->delete();
 
-        return response()->json([
-            'success' => true,
-        ]);
+        return back()->with('success', 'Jurnal berhasil dihapus');
     }
 }

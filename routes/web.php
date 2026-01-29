@@ -27,10 +27,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/{pembelajaran}/jurnal', [JurnalController::class, 'index'])->name('pembelajaran.jurnal.index');
         Route::post('/{pembelajaran}/jurnal', [JurnalController::class, 'store'])->name('pembelajaran.jurnal.store');
         Route::patch('/{pembelajaran}/jurnal/{jurnal}', [JurnalController::class, 'update'])->name('pembelajaran.jurnal.update');
-        Route::delete('/{pembelajaran}/jurnal/{jurnal}', [JurnalController::class, 'destroy'])->name('pembelajaran.jurnal.destroy');
+        Route::get('/{pembelajaran}/jurnal/{jurnal}/delete', [JurnalController::class, 'destroy'])->name('pembelajaran.jurnal.destroy');
         Route::get('/{pembelajaran}/jurnal/{jurnal}/nilai/create', [NilaiController::class, 'create'])->name('pembelajaran.jurnal.nilai.create');
         Route::get('/{pembelajaran}/jurnal/nilai', [NilaiController::class, 'index'])->name('pembelajaran.jurnal.nilai.index');
-        // Route::post('/{pembelajaran}/jurnal/{jurnal}/nilai', [NilaiController::class, 'store'])->name('pembelajaran.jurnal.nilai.store');
         Route::post('/nilai/update', [NilaiController::class, 'update'])->name('pembelajaran.jurnal.nilai.update');
         Route::get('/presensi', [PresensiController::class, 'index'])->name('pembelajaran.presensi.index');
         Route::get('/presensi/export', [PresensiController::class, 'export'])->name('pembelajaran.presensi.export');

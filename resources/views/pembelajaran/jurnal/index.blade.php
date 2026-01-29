@@ -38,8 +38,10 @@
                                 <td>
                                     <a href="{{ route('pembelajaran.jurnal.nilai.create', [$pembelajaran->id, $j->id]) }}"
                                         class="btn btn-sm btn-outline-primary">Presensi & Nilai</a>
-                                    <button class="btn btn-sm btn-outline-danger btn-delete"> <i class="bi bi-trash"></i>
-                                    </button>
+                                    <a href="{{ route('pembelajaran.jurnal.destroy', [$pembelajaran->id, $j->id]) }}"
+                                        class="btn btn-sm btn-outline-danger btn-delete"
+                                        onclick="return confirm('Hapus data ini?')"> <i class="bi bi-trash"></i>
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach
@@ -188,7 +190,8 @@
                 ${data.materi}
             </td>
             <td>
-                <button class="btn btn-sm btn-danger btn-delete">🗑</button>
+                <a href="${url}/${pembelajaran_id}/jurnal/${data.id}/nilai/create" class="btn btn-sm btn-outline-primary">Presensi & Nilai</a>
+                <a href="${url}/${pembelajaran_id}/jurnal/${data.id}/delete" class="btn btn-sm btn-outline-danger btn-delete" onclick="return confirm('Hapus data ini?')"> <i class="bi bi-trash"></i> </a>
             </td>
         `;
 
