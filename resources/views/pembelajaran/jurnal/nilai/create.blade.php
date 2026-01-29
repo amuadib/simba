@@ -48,7 +48,7 @@
                 <tbody>
                     @foreach ($pembelajaran->anggota as $s)
                         <tr data-id="{{ $s->siswa->id }}">
-                            <td>{{ $s->siswa->nama }}</td>
+                            <td>{{ $s->siswa->nama }} ({{ $s->siswa->rombel->nama }})</td>
                             <td class="presensi">
                                 <div class="input-group presensi-controls">
                                     {!! $btn_group_presensi !!}
