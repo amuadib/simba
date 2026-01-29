@@ -20,7 +20,7 @@
                     <tr>
                         <th style="max-width:200px;">Tanggal</th>
                         <th style="max-width:500px;">Materi</th>
-                        <th width="150">Aksi</th>
+                        <th width="250">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,7 +37,7 @@
                                 <td class="editable" data-field="materi">{!! $j->materi !!}</td>
                                 <td>
                                     <a href="{{ route('pembelajaran.jurnal.nilai.create', [$pembelajaran->id, $j->id]) }}"
-                                        class="btn btn-sm btn-outline-primary">Nilai</a>
+                                        class="btn btn-sm btn-outline-primary">Presensi & Nilai</a>
                                     <button class="btn btn-sm btn-outline-danger btn-delete"> <i class="bi bi-trash"></i>
                                     </button>
                                 </td>

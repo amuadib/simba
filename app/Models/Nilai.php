@@ -25,8 +25,4 @@ class Nilai extends Model
     {
         return $this->belongsTo(Jurnal::class);
     }
-    public function jenis()
-    {
-        return $this->belongsTo(JenisNilai::class, 'jenis_nilai_id');
-    }
 }

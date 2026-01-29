@@ -15,9 +15,9 @@ class Jurnal extends Model
         'tanggal',
         'materi',
     ];
-    protected $casts = [
-        'tanggal' => 'date',
-    ];
+    // protected $casts = [
+    //     'tanggal' => 'date',
+    // ];
     public function pembelajaran()
     {
         return $this->belongsTo(Pembelajaran::class);

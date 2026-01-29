@@ -160,6 +160,47 @@
             white-space: nowrap;
             text-overflow: ellipsis;
         }
+
+        .toast-msg {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 220px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            background: #198754;
+            /* default success */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, .25);
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            transition: opacity .25s ease, transform .25s ease;
+        }
+
+        /* show */
+        .toast-msg.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* error */
+        .toast-msg.error {
+            background: #dc3545;
+        }
+
+        /* mobile */
+        @media (max-width: 576px) {
+            .toast-msg {
+                left: 16px;
+                right: 16px;
+                bottom: 16px;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 
@@ -212,6 +253,7 @@
         </div>
     </div>
 
+    <div id="toast" class="toast-msg"></div>
     <!-- SCRIPT -->
     <script>
         const toggle = document.getElementById('themeToggle');
@@ -248,6 +290,23 @@
         }
         setInterval(updateTanggal, 1000);
     </script>
+    <script>
+        let toastTimer = null;
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+
+            toast.textContent = message;
+            toast.className = 'toast-msg show' + (type === 'error' ? ' error' : '');
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+    </script>
+
     @stack('scripts')
 </body>
 

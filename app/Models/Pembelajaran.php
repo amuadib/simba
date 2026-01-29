@@ -34,6 +34,7 @@ class Pembelajaran extends Model
     }
     public function jurnal()
     {
-        return $this->hasMany(Jurnal::class);
+        return $this->hasMany(Jurnal::class)
+            ->orderBy('tanggal');
     }
 }
