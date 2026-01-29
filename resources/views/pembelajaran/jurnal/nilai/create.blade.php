@@ -73,189 +73,223 @@
                     @endforeach
                 </tbody>
             </table>
-            {{-- <button class="btn btn-primary">Simpan</button>
-            </form> --}}
         </div>
     </div>
 @endsection
 
 @push('scripts')
-    {{-- <script>
-        document.addEventListener('click', (e) => {
-            const cell = e.target.closest('.btn-preset');
-            const id = cell.closest('tr').dataset.id
-            document.querySelector('input[name="nilai[' + id + ']"]').value = cell.textContent + "0"
-        })
-    </script> --}}
-
-    {{-- <script>
-        document.addEventListener('click', function(e) {
-
-            /* ===============================
-             * PRESENSI BUTTON → SELECT
-             * =============================== */
-            const presensiBtn = e.target.closest('.presensi-controls button');
-            if (presensiBtn) {
-                e.preventDefault();
-
-                const wrapper = presensiBtn.closest('.presensi-controls');
-                const select = wrapper.querySelector('select');
-                if (!select) return;
-
-                // ambil teks button (H / S / I / A)
-                const status = presensiBtn.textContent.trim();
-
-                // set select value
-                select.value = status;
-
-                // optional: trigger change (kalau ada listener lain)
-                select.dispatchEvent(new Event('change', {
-                    bubbles: true
-                }));
-
-                // UI active state
-                wrapper.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-                presensiBtn.classList.add('active');
-
-                return;
-            }
-
-            /* ===============================
-             * NILAI BUTTON → INPUT
-             * =============================== */
-            const nilaiBtn = e.target.closest('.nilai-controls .btn-preset');
-            if (nilaiBtn) {
-                e.preventDefault();
-
-                const wrapper = nilaiBtn.closest('.nilai-controls');
-                const input = wrapper.querySelector('input[type="number"]');
-                if (!input) return;
-
-                const nilai = nilaiBtn.textContent.trim();
-
-                input.value = nilai;
-
-                // trigger input & change (untuk hitung nilai / ajax)
-                input.dispatchEvent(new Event('input', {
-                    bubbles: true
-                }));
-                input.dispatchEvent(new Event('change', {
-                    bubbles: true
-                }));
-
-                // UI active state
-                wrapper.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
-                nilaiBtn.classList.add('active');
-            }
-
-        });
-    </script> --}}
-
     <script>
-        const urlUpdatePresensi = "{{ route('pembelajaran.presensi.update') }}";
-        const urlUpdateNilai = "{{ route('pembelajaran.jurnal.nilai.update') }}";
-        const pembelajaranId = "{{ $pembelajaran->id }}";
-        const jenisNilaiId = 1;
-        const jurnalId = "{{ $jurnal->id }}";
-        const tanggal = "{{ date('Y-m-d', strtotime($jurnal->tanggal)) }}";
-        /* =========================================
-         * GLOBAL STATE
-         * ========================================= */
+        const CONFIG = {
+            presensiUrl: "{{ route('pembelajaran.presensi.update') }}",
+            nilaiUrl: "{{ route('pembelajaran.jurnal.nilai.update') }}",
+            pembelajaranId: "{{ $pembelajaran->id }}",
+            jurnalId: "{{ $jurnal->id }}",
+            jenisNilaiId: 1,
+            tanggal: "{{ date('Y-m-d', strtotime($jurnal->tanggal)) }}",
+        };
+        const QUEUE = {
+            jobs: [],
+            active: 0,
+            maxConcurrent: 3,
+            locks: new Set(), // siswa_id yang sedang disave
+        };
+
         let ajaxQueue = [];
         let isSaving = false;
         let lastTapTime = 0;
         let nilaiDebounce = null;
 
-        /* =========================================
-         * AJAX QUEUE PROCESSOR
-         * ========================================= */
-        async function processQueue() {
-            if (isSaving || ajaxQueue.length === 0) return;
+        const csrfToken = () =>
+            document.querySelector('meta[name="csrf-token"]').content;
 
-            isSaving = true;
-            const job = ajaxQueue.shift();
+        const getIdFromName = (name) =>
+            name.match(/\[(.*)\]/)?.[1] ?? null;
+
+        function enqueueSave(url, payload, siswaId) {
+            QUEUE.jobs.push({
+                url,
+                payload,
+                siswaId,
+                attempt: 0,
+                maxRetry: 3,
+            });
+            runQueue();
+        }
+
+        async function runQueue() {
+            if (QUEUE.active >= QUEUE.maxConcurrent) return;
+            if (!QUEUE.jobs.length) return;
+
+            const job = QUEUE.jobs.find(j => !QUEUE.locks.has(j.siswaId));
+            if (!job) return;
+
+            QUEUE.jobs = QUEUE.jobs.filter(j => j !== job);
+
+            QUEUE.active++;
+            QUEUE.locks.add(job.siswaId);
+            setRowLoading(job.siswaId, true);
 
             try {
-                const res = await fetch(job.url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify(job.payload)
-                });
-                if (!res.ok) throw new Error('HTTP Error');
-
+                await sendRequest(job);
                 showToast('Tersimpan ✔');
-            } catch (e) {
-                console.error('Auto save gagal', e);
-                showToast('Gagal menyimpan ✖', 'error');
+            } catch (err) {
+                job.attempt++;
+
+                if (job.attempt <= job.maxRetry) {
+                    const delay = 500 * Math.pow(2, job.attempt);
+                    setTimeout(() => {
+                        QUEUE.jobs.push(job);
+                        runQueue();
+                    }, delay);
+                } else {
+                    setRowError(job.siswaId);
+                    showToast('Gagal menyimpan ✖', 'error');
+                }
             } finally {
-                isSaving = false;
-                processQueue();
+                QUEUE.active--;
+                QUEUE.locks.delete(job.siswaId);
+                setRowLoading(job.siswaId, false);
+                runQueue();
             }
         }
 
-        function enqueueSave(url, payload) {
-            ajaxQueue.push({
-                url,
-                payload
+        async function sendRequest(job) {
+            const res = await fetch(job.url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(job.payload)
             });
-            processQueue();
+
+            if (!res.ok) throw new Error('HTTP error');
         }
 
-        function updatePresensi(e) {
+        function setRowLoading(siswaId, state) {
+            const row = document.querySelector(`tr[data-id="${siswaId}"]`);
+            if (!row) return;
+
+            row.classList.toggle('is-saving', state);
+            if (state) row.classList.remove('is-error');
+        }
+
+        function setRowError(siswaId) {
+            const row = document.querySelector(`tr[data-id="${siswaId}"]`);
+            if (!row) return;
+
+            row.classList.add('is-error');
+        }
+
+        function savePresensi(select) {
+            const siswaId = getIdFromName(select.name);
+            if (!siswaId) return;
+
+            enqueueSave(
+                CONFIG.presensiUrl, {
+                    siswa_id: siswaId,
+                    status: select.value,
+                    pembelajaran_id: CONFIG.pembelajaranId,
+                    tanggal: CONFIG.tanggal
+                },
+                siswaId
+            );
+        }
+
+        function syncPresensiButtons(select) {
+            const wrap = select.closest('.presensi-controls');
+            wrap.querySelectorAll('button').forEach(btn =>
+                btn.classList.toggle('active', btn.textContent.trim() === select.value)
+            );
+        }
+
+        function saveNilai(input) {
+            const siswaId = getIdFromName(input.name);
+            if (!siswaId) return;
+
+            enqueueSave(
+                CONFIG.nilaiUrl, {
+                    siswa_id: siswaId,
+                    jurnal_id: CONFIG.jurnalId,
+                    jenis_nilai_id: CONFIG.jenisNilaiId,
+                    nilai: input.value,
+                },
+                siswaId
+            );
+
+        }
+
+        function syncNilaiButtons(input) {
+            const wrap = input.closest('.nilai-controls');
+            wrap.querySelectorAll('.btn-preset').forEach(btn =>
+                btn.classList.toggle('active', btn.textContent.trim() === input.value)
+            );
+        }
+
+
+        // PRESENSI SELECT
+        document.addEventListener('change', e => {
+            const select = e.target.closest('.presensi-controls select');
+            if (!select) return;
+
+            syncPresensiButtons(select);
+            savePresensi(select);
+        });
+
+        // NILAI INPUT
+        document.addEventListener('input', e => {
+            const input = e.target.closest('.nilai-controls input[type="number"]');
+            if (!input) return;
+
+            clearTimeout(nilaiDebounce);
+            nilaiDebounce = setTimeout(() => {
+                syncNilaiButtons(input);
+                saveNilai(input);
+            }, 500);
+        });
+
+        document.addEventListener('change', e => {
+            const input = e.target.closest('.nilai-controls input[type="number"]');
+            if (!input) return;
+
+            syncNilaiButtons(input);
+            saveNilai(input);
+        });
+
+        document.addEventListener('blur', e => {
+            const input = e.target.closest('.nilai-controls input[type="number"]');
+            if (!input) return;
+
+            syncNilaiButtons(input);
+            saveNilai(input);
+        }, true);
+
+        /* =========================================
+         * BUTTON (POINTER / TOUCH)
+         * ========================================= */
+        document.addEventListener('pointerdown', e => {
+            const now = Date.now();
+            if (now - lastTapTime < 300) return;
+            lastTapTime = now;
+
+            /* PRESENSI BUTTON */
             const presensiBtn = e.target.closest('.presensi-controls button');
             if (presensiBtn) {
                 e.preventDefault();
+
                 const wrap = presensiBtn.closest('.presensi-controls');
                 const select = wrap.querySelector('select');
                 if (!select) return;
 
-                const value = presensiBtn.textContent.trim();
-                const old = select.value;
-
-                // toggle kosong
-                select.value = (old === value) ? '-' : value;
-
-                wrap.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-                if (select.value !== '-') presensiBtn.classList.add('active');
-
-                // AUTO SAVE
-                enqueueSave(urlUpdatePresensi, {
-                    siswa_id: select.name.match(/\[(.*)\]/)[1],
-                    status: select.value,
-                    pembelajaran_id: pembelajaranId,
-                    tanggal: tanggal
-                });
-
+                const val = presensiBtn.textContent.trim();
+                select.value = select.value === val ? '-' : val;
+                select.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
                 return;
             }
-        }
 
-        function handlePresensiChange(select) {
-            const wrap = select.closest('.presensi-controls');
-            const value = select.value;
-            const siswaId = select.name.match(/\[(.*)\]/)[1];
-
-            // Sync tombol
-            wrap.querySelectorAll('button').forEach(btn => {
-                btn.classList.toggle(
-                    'active',
-                    btn.textContent.trim() === value
-                );
-            });
-
-            // AUTO SAVE (queue)
-            enqueueSave(urlUpdatePresensi, {
-                siswa_id: select.name.match(/\[(.*)\]/)[1],
-                status: value,
-                pembelajaran_id: pembelajaranId,
-                tanggal: tanggal
-            });
-        }
-
-        function updateNilai(e) {
+            /* NILAI BUTTON */
             const nilaiBtn = e.target.closest('.nilai-controls .btn-preset');
             if (nilaiBtn) {
                 e.preventDefault();
@@ -264,83 +298,11 @@
                 const input = wrap.querySelector('input[type="number"]');
                 if (!input) return;
 
-                const value = nilaiBtn.textContent.trim();
-                const old = input.value;
-
-                // toggle kosong
-                input.value = (old === value) ? '' : value;
-
-                wrap.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
-                if (input.value !== '') nilaiBtn.classList.add('active');
-
-                // AUTO SAVE
-                enqueueSave(urlUpdateNilai, {
-                    siswa_id: input.name.match(/\[(.*)\]/)[1],
-                    jurnal_id: jurnalId,
-                    jenis_nilai_id: jenisNilaiId,
-                    nilai: input.value
-                });
+                const val = nilaiBtn.textContent.trim();
+                input.value = input.value === val ? '' : val;
+                syncNilaiButtons(input);
+                saveNilai(input);
             }
-        }
-
-        function updateNilaiInput(input) {
-            enqueueSave(urlUpdateNilai, {
-                siswa_id: input.name.match(/\[(.*)\]/)[1],
-                jurnal_id: jurnalId,
-                jenis_nilai_id: jenisNilaiId,
-                nilai: input.value
-            });
-
-            // sync tombol preset
-            const wrap = input.closest('.nilai-controls');
-            wrap.querySelectorAll('.btn-preset').forEach(btn => {
-                btn.classList.toggle('active', btn.textContent.trim() === nilai);
-            });
-        }
-
-        // SELECT
-        document.addEventListener('change', function(e) {
-            const select = e.target;
-            if (!select.matches('.presensi-controls select')) return;
-
-            handlePresensiChange(select);
-        });
-        // INPUT
-        document.addEventListener('input', function(e) {
-            const input = e.target;
-            if (!input.matches('.nilai-controls input[type="number"]')) return;
-
-            clearTimeout(nilaiDebounce);
-            nilaiDebounce = setTimeout(() => {
-                updateNilaiInput(input);
-            }, 500); // debounce 500ms
-        });
-        document.addEventListener('change', function(e) {
-            const input = e.target;
-            if (!input.matches('.nilai-controls input[type="number"]')) return;
-
-            updateNilaiInput(input);
-        });
-
-        document.addEventListener('blur', function(e) {
-            const input = e.target;
-            if (!input.matches('.nilai-controls input[type="number"]')) return;
-
-            updateNilaiInput(input);
-        }, true);
-        /* =========================================
-         * CLICK + TOUCH HANDLER (ANTI DOUBLE TAP)
-         * ========================================= */
-        document.addEventListener('pointerdown', function(e) {
-            const now = Date.now();
-            if (now - lastTapTime < 300) return;
-            lastTapTime = now;
-            /*=========================* PRESENSI BUTTON
-             *=========================*/
-            updatePresensi(e)
-            /*=========================* NILAI BUTTON
-             *=========================*/
-            updateNilai(e)
         });
     </script>
 @endpush
@@ -356,6 +318,25 @@
         .nilai-controls .btn-preset.active {
             box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .3);
             transform: scale(0.95);
+        }
+
+        tr.is-saving {
+            opacity: .6;
+            position: relative;
+            pointer-events: none;
+        }
+
+        tr.is-saving::after {
+            content: '⏳';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+        }
+
+        tr.is-error {
+            background: #ffe6e6;
         }
     </style>
 @endpush
