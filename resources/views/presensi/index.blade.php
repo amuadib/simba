@@ -68,7 +68,7 @@
                         <tr>
                             <td data-siswa="{{ $r['id'] }}">{{ $r['nama'] }}</td>
                             @foreach ($tglList as $t)
-                                <td class="{{ $statusColor[$r['tgl'][$t] ?? '-'] }} sel"
+                                <td class="status-{{ $r['tgl'][$t] ?? '-' }} sel presensi"
                                     data-tanggal="{{ $t }}">
                                     {{ $r['tgl'][$t] ?? '-' }}</td>
                             @endforeach
@@ -92,6 +92,113 @@
             cursor: pointer;
             text-align: center;
             touch-action: manipulation;
+        }
+
+        /* BASE */
+        .presensi {
+            text-align: center;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all .15s ease;
+        }
+
+        /* HADIR */
+        .status-H {
+            color: #22c55e !important;
+            background: rgba(34, 197, 94, .12);
+            box-shadow: inset 0 0 0 1px rgba(34, 197, 94, .35);
+        }
+
+        /* IZIN */
+        .status-I {
+            color: #38bdf8 !important;
+            background: rgba(56, 189, 248, .12);
+            box-shadow: inset 0 0 0 1px rgba(56, 189, 248, .35);
+        }
+
+        /* SAKIT */
+        .status-S {
+            color: #facc15 !important;
+            background: rgba(250, 204, 21, .12);
+            box-shadow: inset 0 0 0 1px rgba(250, 204, 21, .35);
+        }
+
+        /* ALPA */
+        .status-A {
+            color: #ef4444 !important;
+            background: rgba(239, 68, 68, .14);
+            box-shadow: inset 0 0 0 1px rgba(239, 68, 68, .4);
+        }
+
+        .presensi:hover,
+        .presensi:focus-visible {
+            transform: scale(1.03);
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, .15),
+                0 0 12px currentColor;
+        }
+
+        /* Mobile tap feedback */
+        .presensi:active {
+            transform: scale(.97);
+            filter: brightness(1.1);
+        }
+
+        .presensi.saved {
+            animation: pulse 0.6s ease;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 currentColor;
+            }
+
+            100% {
+                box-shadow: 0 0 0 12px transparent;
+            }
+        }
+
+        @media print {
+
+            /* Paksa light mode */
+            :root,
+            [data-theme="dark"] {
+                --bg-main: #ffffff !important;
+                --bg-card: #ffffff !important;
+                --text-main: #000000 !important;
+            }
+
+            body {
+                background: #fff !important;
+                color: #000 !important;
+            }
+
+            /* Table */
+            table {
+                background: #fff !important;
+                color: #000 !important;
+            }
+
+            th,
+            td {
+                color: #000 !important;
+                box-shadow: none !important;
+            }
+
+            /* Matikan glow */
+            .presensi {
+                background: transparent !important;
+                box-shadow: none !important;
+                color: #000 !important;
+                transform: none !important;
+            }
+
+            /* Hilangkan hover/klik UI */
+            button,
+            .btn,
+            .presensi-controls {
+                display: none !important;
+            }
         }
     </style>
 @endpush
@@ -143,10 +250,11 @@
         });
 
         function updateCellUI(cell, status) {
-            const styleMap = {!! json_encode($statusColor) !!};
             cell.textContent = status;
-            cell.classList.remove(styleMap['H'], styleMap['I'], styleMap['S'], styleMap['A']);
-            cell.classList.add(styleMap[status] || '');
+            cell.classList.remove('status-H', 'status-S', 'status-I', 'status-A', 'status--');
+            cell.classList.add('status-' + status || '');
+            cell.classList.add('saved');
+            setTimeout(() => cell.classList.remove('saved'), 600);
         }
 
         function updateTotals(siswaId, oldStatus, newStatus) {

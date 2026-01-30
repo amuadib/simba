@@ -17,7 +17,6 @@
     <title>@yield('title', 'Presensi Sekolah')</title>
     <link href="{{ asset('bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('bootstrap-icons.css') }}" rel="stylesheet">
-    @stack('styles')
     <style>
         .breadcrumb a {
             text-decoration: none;
@@ -35,6 +34,20 @@
             --bg-card: #ffffff;
             --bg-sidebar: #0d6efd;
             --text-main: #212529;
+            /*sidebar*/
+            --sidebar-bg: #f1f5f9;
+            --sidebar-border: #e2e8f0;
+            --sidebar-text: #334155;
+            --sidebar-muted: #64748b;
+            --sidebar-active-bg: #e0f2fe;
+            --sidebar-active-text: #0284c7;
+            /*table*/
+            --table-bg: #ffffff;
+            --table-border: #dee2e6;
+            --table-head-bg: #f8f9fa;
+            --table-row-hover: #f1f3f5;
+            --table-text: #212529;
+            --table-text-muted: #6c757d;
         }
 
         [data-theme="dark"] {
@@ -42,6 +55,17 @@
             --bg-card: #020617;
             --bg-sidebar: #020617;
             --text-main: #e5e7eb;
+            --table-bg: #020617;
+            --table-border: #1e293b;
+            --table-head-bg: #020617;
+            --table-row-hover: #020617;
+            --table-text: #f1f5f9;
+            --table-text-muted: #94a3b8;
+            /* override */
+            --bs-table-color: #f8fafc;
+            --bs-table-bg: transparent;
+            --bs-table-striped-color: #f8fafc;
+            --bs-table-hover-color: #ffffff;
         }
 
         /* =====================
@@ -103,14 +127,7 @@
         /* =====================
    LIGHT MODE SIDEBAR FIX
 ===================== */
-        :root {
-            --sidebar-bg: #f1f5f9;
-            --sidebar-border: #e2e8f0;
-            --sidebar-text: #334155;
-            --sidebar-muted: #64748b;
-            --sidebar-active-bg: #e0f2fe;
-            --sidebar-active-text: #0284c7;
-        }
+        :root {}
 
         [data-theme="light"] .sidebar {
             background: var(--sidebar-bg);
@@ -153,6 +170,65 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
         }
 
+        /* TABEL */
+        .table {
+            color: var(--table-text) !important;
+            background-color: var(--table-bg);
+        }
+
+        .table th,
+        .table td {
+            border-color: var(--table-border) !important;
+            background-color: var(--table-bg);
+        }
+
+        .table thead th {
+            background-color: var(--table-head-bg);
+            color: var(--table-text) !important;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        [data-theme="dark"] .table thead th {
+            color: #ffffff !important;
+            font-weight: 600;
+            letter-spacing: .04em;
+        }
+
+        [data-theme="dark"] .table td,
+        [data-theme="dark"] .table th {
+            color: #f8fafc;
+            opacity: 1 !important;
+        }
+
+        [data-theme="dark"] .table td:first-child {
+            color: #ffffff !important;
+            font-weight: 500;
+        }
+
+        .table-bordered {
+            border-color: var(--table-border);
+        }
+
+        .table tbody tr:hover td {
+            background-color: var(--table-row-hover);
+        }
+
+        .table tbody tr:nth-child(even) td {
+            background-color: color-mix(in srgb, var(--table-bg) 90%, #000 10%);
+        }
+
+        [data-theme="dark"] .table tbody tr:nth-child(even) td {
+            background-color: #020617;
+        }
+
+        .table-sm th,
+        .table-sm td {
+            padding: .4rem .5rem;
+            font-size: .85rem;
+        }
+
         .table td.ellipsis,
         .table th.ellipsis {
             max-width: 100px;
@@ -161,6 +237,7 @@
             text-overflow: ellipsis;
         }
 
+        /* TOAST */
         .toast-msg {
             position: fixed;
             bottom: 20px;
@@ -202,6 +279,8 @@
             }
         }
     </style>
+
+    @stack('styles')
 </head>
 
 <body data-theme="dark">

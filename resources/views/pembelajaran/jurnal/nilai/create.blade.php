@@ -94,10 +94,26 @@
             locks: new Set(), // siswa_id yang sedang disave
         };
 
+        const DIFF_STATE = {
+            presensi: {},
+            nilai: {}
+        };
+
+        //INIT
+        document.querySelectorAll('.presensi-controls select').forEach(select => {
+            const siswaId = select.name.match(/\[(.*)\]/)[1];
+            DIFF_STATE.presensi[siswaId] = select.value;
+        });
+
+        document.querySelectorAll('.nilai-controls input[type="number"]').forEach(input => {
+            const siswaId = input.name.match(/\[(.*)\]/)[1];
+            DIFF_STATE.nilai[siswaId] = input.value;
+        });
+
         let ajaxQueue = [];
         let isSaving = false;
         let lastTapTime = 0;
-        let nilaiDebounce = null;
+        let nilaiDebounce = {};
 
         const csrfToken = () =>
             document.querySelector('meta[name="csrf-token"]').content;
@@ -105,11 +121,21 @@
         const getIdFromName = (name) =>
             name.match(/\[(.*)\]/)?.[1] ?? null;
 
-        function enqueueSave(url, payload, siswaId) {
+        function hasDiff(type, siswaId, newValue) {
+            return DIFF_STATE[type][siswaId] !== newValue;
+        }
+
+        function commitDiff(type, siswaId, value) {
+            DIFF_STATE[type][siswaId] = value;
+        }
+
+
+        function enqueueSave(url, payload, siswaId, onSuccess) {
             QUEUE.jobs.push({
                 url,
                 payload,
                 siswaId,
+                onSuccess,
                 attempt: 0,
                 maxRetry: 3,
             });
@@ -129,8 +155,12 @@
             QUEUE.locks.add(job.siswaId);
             setRowLoading(job.siswaId, true);
 
+            QUEUE.jobs = QUEUE.jobs.filter(j =>
+                !(j.siswaId === siswaId && j.url === url)
+            );
             try {
                 await sendRequest(job);
+                job.onSuccess?.();
                 showToast('Tersimpan ✔');
             } catch (err) {
                 job.attempt++;
@@ -184,15 +214,17 @@
         function savePresensi(select) {
             const siswaId = getIdFromName(select.name);
             if (!siswaId) return;
-
+            const value = select.value;
+            if (!hasDiff('presensi', siswaId, value)) return;
             enqueueSave(
                 CONFIG.presensiUrl, {
                     siswa_id: siswaId,
-                    status: select.value,
+                    status: value,
                     pembelajaran_id: CONFIG.pembelajaranId,
                     tanggal: CONFIG.tanggal
                 },
-                siswaId
+                siswaId,
+                () => commitDiff('presensi', siswaId, value)
             );
         }
 
@@ -207,14 +239,18 @@
             const siswaId = getIdFromName(input.name);
             if (!siswaId) return;
 
+            const value = input.value;
+            if (!hasDiff('nilai', siswaId, value)) return;
+
             enqueueSave(
                 CONFIG.nilaiUrl, {
                     siswa_id: siswaId,
                     jurnal_id: CONFIG.jurnalId,
                     jenis_nilai_id: CONFIG.jenisNilaiId,
-                    nilai: input.value,
+                    nilai: value,
                 },
-                siswaId
+                siswaId,
+                () => commitDiff('nilai', siswaId, value)
             );
 
         }
@@ -241,8 +277,10 @@
             const input = e.target.closest('.nilai-controls input[type="number"]');
             if (!input) return;
 
-            clearTimeout(nilaiDebounce);
-            nilaiDebounce = setTimeout(() => {
+            const siswaId = input.name.match(/\[(.*)\]/)[1];
+            clearTimeout(nilaiDebounce[siswaId]);
+
+            nilaiDebounce[siswaId] = setTimeout(() => {
                 syncNilaiButtons(input);
                 saveNilai(input);
             }, 500);

@@ -69,13 +69,13 @@ class PresensiController extends Controller
                 ->get(),
             'tglList' => $tglList,
             'rekap' => $rekap,
-            'statusColor' => [
-                '-' => 'table-default',
-                'H' => 'table-success',
-                'I' => 'table-warning',
-                'S' => 'table-info',
-                'A' => 'table-danger'
-            ],
+            // 'statusColor' => [
+            //     '-' => 'table-default',
+            //     'H' => 'status-H',
+            //     'I' => 'table-warning',
+            //     'S' => 'table-info',
+            //     'A' => 'table-danger'
+            // ],
             'bulan' => $bulan,
         ]);
     }
