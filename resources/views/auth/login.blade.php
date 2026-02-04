@@ -11,8 +11,33 @@
     <link href="{{ asset('bootstrap-icons') }}" rel="stylesheet">
 
     <style>
+        /* ======================
+           THEME VARIABLES
+        ====================== */
         body {
-            background: linear-gradient(135deg, #e9f0ff, #f8f9fa);
+            --bg-gradient: linear-gradient(135deg, #e9f0ff, #f8f9fa);
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --muted-text: #6c757d;
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+        }
+
+        body[data-theme="dark"] {
+            --bg-gradient: linear-gradient(135deg, #0f172a, #020617);
+            --card-bg: #020617;
+            --text-color: #e5e7eb;
+            --muted-text: #9ca3af;
+            --input-bg: #020617;
+            --input-border: #1e293b;
+        }
+
+        /* ======================
+           GLOBAL
+        ====================== */
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-color);
             min-height: 100vh;
         }
 
@@ -22,7 +47,34 @@
             padding: 1rem;
         }
 
+        .card {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .text-muted {
+            color: var(--muted-text) !important;
+        }
+
         .form-control,
+        .form-check-input,
+        .input-group-text {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-color);
+        }
+
+        .form-control::placeholder {
+            color: var(--muted-text);
+        }
+
+        .form-control:focus {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-color: #3b82f6;
+            box-shadow: none;
+        }
+
         .btn {
             min-height: 48px;
             font-size: 1rem;
@@ -86,7 +138,7 @@
 
 </head>
 
-<body class="d-flex align-items-center">
+<body class="d-flex align-items-center" data-theme="light">
 
     <div class="login-box w-100">
         <div class="card border-0 shadow-sm">
@@ -165,7 +217,20 @@
                 '<span class="bi">🐵</span>';
         });
     </script>
+    <script>
+        const body = document.body;
 
+        const applyTheme = () => {
+            const theme = body.getAttribute('data-theme') || 'light';
+            body.setAttribute('data-theme', theme);
+        };
+
+        // initial
+        applyTheme();
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) body.setAttribute('data-theme', savedTheme);
+    </script>
 </body>
 
 </html>
