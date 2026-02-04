@@ -21,7 +21,7 @@
                     </tr>
                     <tr>
                         @foreach ($jurnals as $j)
-                            <td>{{ $j['materi'] }}</td>
+                            <th>{{ $j['materi'] }}</th>
                         @endforeach
                     </tr>
                 </thead>

@@ -329,6 +329,7 @@
             <footer class="text-muted mt-4 text-center">
                 © 2026 Sistem Presensi
             </footer>
+            <div class="d-none">عروة البارقي</div>
         </div>
     </div>
 
