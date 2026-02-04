@@ -97,40 +97,44 @@
                 <div class="col-auto"><button class="btn btn-success">Filter</button></div>
             </form>
             <table class="table-bordered table">
-                <tr>
-                    <th>Nama</th>
-                    <th>NISN</th>
-                    <th>Rombel</th>
-                    <th>Tag</th>
-                    <th>Aksi</th>
-                </tr>
-                @foreach ($siswa as $s)
+                <thead>
                     <tr>
-                        <td>{{ $s->nama }}</td>
-                        <td>{{ $s->nisn }}</td>
-                        <td>{{ $s->rombel->nama }}</td>
-                        <td>
-                            @forelse ($s->tags as $tag)
-                                <span class="badge bg-info text-dark me-1">
-                                    {{ $tag->nama }}
-                                </span>
-                            @empty
-                                <span class="text-muted">-</span>
-                            @endforelse
-                        </td>
-
-                        <td width="200">
-                            <a href="{{ route('siswa.edit', $s->id) }}" class="btn btn-sm btn-outline-warning"><i
-                                    class="bi bi-pencil"></i></a>
-                            <form action="{{ route('siswa.destroy', $s->id) }}" method="post" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger"
-                                    onclick="return confirm('Hapus data ini?')"><i class="bi bi-trash"></i></button>
-                            </form>
-                        </td>
+                        <th>Nama</th>
+                        <th>NISN</th>
+                        <th>Rombel</th>
+                        <th>Tag</th>
+                        <th>Aksi</th>
                     </tr>
-                @endforeach
+                </thead>
+                <tbody>
+                    @foreach ($siswa as $s)
+                        <tr>
+                            <td>{{ $s->nama }}</td>
+                            <td>{{ $s->nisn }}</td>
+                            <td>{{ $s->rombel->nama }}</td>
+                            <td>
+                                @forelse ($s->tags as $tag)
+                                    <span class="badge bg-info text-dark me-1">
+                                        {{ $tag->nama }}
+                                    </span>
+                                @empty
+                                    <span class="text-muted">-</span>
+                                @endforelse
+                            </td>
+
+                            <td width="200">
+                                <a href="{{ route('siswa.edit', $s->id) }}" class="btn btn-sm btn-outline-warning"><i
+                                        class="bi bi-pencil"></i></a>
+                                <form action="{{ route('siswa.destroy', $s->id) }}" method="post" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Hapus data ini?')"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
             </table>
 
             <nav>
