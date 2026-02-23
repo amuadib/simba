@@ -15,6 +15,7 @@ use App\Http\Controllers\TagController;
 use App\Http\Controllers\DatabaseController;
 use App\Http\Controllers\JurnalController;
 use App\Http\Controllers\NilaiController;
+use App\Http\Controllers\SettingController;
 
 Route::get('/csrf-refresh', fn() => ['token' => csrf_token()]);
 Route::get('/login', [AuthController::class, 'form'])->name('login');
@@ -45,6 +46,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/database', [DatabaseController::class, 'index'])->name('database.index');
         Route::post('/database/export', [DatabaseController::class, 'export'])->name('database.export');
         Route::post('/database/import', [DatabaseController::class, 'import'])->name('database.import');
+        Route::get('/settings', [SettingController::class, 'index'])
+            ->name('settings.index');
+
+        Route::post('/settings', [SettingController::class, 'update'])
+            ->name('settings.update');
     });
 
     Route::prefix('tags')->group(function () {
@@ -60,8 +66,12 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-    Route::resource('siswa', SiswaController::class);
+    Route::post('siswa/pilih', [SiswaController::class, 'pilih'])->name('siswa.pilih');
+    Route::get('siswa/preview-export', [SiswaController::class, 'previewExport'])->name('siswa.preview-export');
+    Route::get('siswa/hapus-preview-export/{id}', [SiswaController::class, 'hapusPreviewExport'])->name('siswa.hapus-preview-export');
+    Route::get('siswa/export', [SiswaController::class, 'export'])->name('siswa.export');
     Route::post('siswa/import', [SiswaController::class, 'import'])->name('siswa.import');
+    Route::resource('siswa', SiswaController::class);
     Route::resource('pelajaran', PelajaranController::class);
     Route::resource('rombel', RombelController::class);
     Route::resource('pembelajaran', PembelajaranController::class);

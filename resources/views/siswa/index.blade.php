@@ -69,11 +69,16 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-auto"><button class="btn btn-outline-warning">Impor</button></div>
+                <div class="col-auto"><button class="btn btn-outline-warning"><i class="bi bi-upload"></i> Impor</button>
+                </div>
             </form>
 
-            <form method="get" action="{{ route('siswa.index') }}" class="row g-2 mb-3" id='filterForm'>
+            <form method="get" action="{{ route('siswa.index') }}" class="row g-3 mb-3" id='filterForm'>
                 @csrf
+                <div class="col">
+                    <input type="text" name="q" class="form-control" placeholder="Cari nama siswa..."
+                        value="{{ request('q') }}">
+                </div>
                 <div class="col">
                     <select name="rombel_id" class="form-select" onchange="document.getElementById('filterForm').submit()">
                         <option value="">--Pilih Rombel--</option>
@@ -94,8 +99,21 @@
                     </select>
                 </div>
 
-                <div class="col-auto"><button class="btn btn-success">Filter</button></div>
+                <div class="col-auto">
+                    <button class="btn btn-success">
+                        <i class="bi bi-filter"></i>
+                        Filter
+                    </button>
+                </div>
             </form>
+            <div class="mb-3">
+                <button type="button" class="btn btn-outline-info" data-bs-toggle="modal"
+                    data-bs-target="#modalPreviewExport" onclick="loadPreviewExport()">
+                    <i class="bi bi-eye"></i>
+                    Preview Ekspor Siswa
+                </button>
+            </div>
+
             <table class="table-bordered table">
                 <thead>
                     <tr>
@@ -123,6 +141,11 @@
                             </td>
 
                             <td width="200">
+                                <button type="button" onclick="pilihSiswa(event, this, '{{ $s->id }}')"
+                                    class="btn btn-sm btn-outline-primary" title="Pilih untuk Ekspor">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+
                                 <a href="{{ route('siswa.edit', $s->id) }}" class="btn btn-sm btn-outline-warning"><i
                                         class="bi bi-pencil"></i></a>
                                 <form action="{{ route('siswa.destroy', $s->id) }}" method="post" class="d-inline">
@@ -142,19 +165,43 @@
             </nav>
         </div>
     </div>
+
+    <div class="modal fade" id="modalPreviewExport" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Preview Ekspor Siswa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalPreviewExportBody">
+                    <div class="py-4 text-center">
+                        <div class="spinner-border text-primary"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        // ── DOM References ────────────────────────────────────────────
         const tagInput = document.getElementById('tagInput');
         const tagBox = document.getElementById('tagBox');
         const dropdown = document.getElementById('tagDropdown');
 
+        // ── Tag Search State ──────────────────────────────────────────
         let debounceTimer = null;
         let selectedIndex = -1;
         let results = [];
 
+        // ── Event Listeners ───────────────────────────────────────────
         tagBox.addEventListener('click', () => tagInput.focus());
+
+        document.addEventListener('click', e => {
+            if (!e.target.closest('#tagBox')) hideDropdown();
+        });
 
         tagInput.addEventListener('input', function() {
             const q = this.value.trim();
@@ -164,25 +211,17 @@
             debounceTimer = setTimeout(() => searchTag(q), 250);
         });
 
-        // tagInput.addEventListener('blur', () => {
-        //     const value = tagInput.value.trim();
-        //     if (value) {
-        //         addNewTag(value);
-        //         tagInput.value = '';
-        //     }
-        // });
         tagInput.addEventListener('keydown', function(e) {
             if (e.key === ',') {
                 e.preventDefault();
-
                 const value = this.value.replace(',', '').trim();
                 if (!value) return;
-
                 addNewTag(value);
                 this.value = '';
                 hideDropdown();
                 return;
             }
+
             if (dropdown.classList.contains('d-none')) return;
 
             if (e.key === 'ArrowDown') {
@@ -196,20 +235,76 @@
                 selectedIndex = Math.max(selectedIndex - 1, 0);
                 highlight();
             }
+
             if (e.key === 'Enter') {
                 e.preventDefault();
-
-                if (selectedIndex >= 0) {
-                    selectTag(results[selectedIndex]);
-                }
+                if (selectedIndex >= 0) selectTag(results[selectedIndex]);
             }
-
         });
 
-        document.addEventListener('click', e => {
-            if (!e.target.closest('#tagBox')) hideDropdown();
-        });
+        // ── Preview & Export ──────────────────────────────────────────
+        function loadPreviewExport() {
+            const body = document.getElementById('modalPreviewExportBody');
+            fetch("{{ route('siswa.preview-export') }}")
+                .then(res => res.text())
+                .then(html => body.innerHTML = html)
+                .catch(() => body.innerHTML = '<div class="alert alert-danger">Gagal memuat data.</div>');
+        }
 
+        function hapusSiswaPreviewExport(id, btn) {
+            if (!confirm('Yakin hapus?')) return;
+
+            fetch('{{ route('siswa.hapus-preview-export', ':id') }}'.replace(':id', id), {
+                    method: 'get',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success == true) {
+                        if (id != 'all') {
+                            btn.closest('tr').remove();
+                        } else {
+                            bootstrap.Modal.getInstance(document.getElementById('modalPreviewExport')).hide();
+                        }
+                        showToast(data.message + '. Tersisa ' + data.count + ' siswa di daftar sementara');
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+
+        function pilihSiswa(event, btn, siswaId) {
+            event.preventDefault();
+
+            fetch("{{ route('siswa.pilih') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        siswa_id: siswaId
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message + '. Terdapat ' + data.count + ' siswa di daftar sementara');
+                        loadPreviewExport();
+                        btn.disabled = true;
+                        btn.querySelector('i').className = 'bi bi-check-lg';
+                        btn.classList.remove('btn-outline-primary');
+                        btn.classList.add('disabled', 'cursor-not-allowed', 'btn-success');
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+
+        // ── Tag Search ────────────────────────────────────────────────
         function searchTag(q) {
             fetch(`/tags/search?q=${encodeURIComponent(q)}`)
                 .then(res => res.json())
@@ -224,12 +319,12 @@
             if (!results.length) return hideDropdown();
 
             dropdown.innerHTML = results.map((t, i) => `
-        <button type="button"
-                class="list-group-item list-group-item-action"
-                onclick="selectTag(${i})">
-            <span class="badge bg-primary me-2">${t.nama}</span>
-        </button>
-    `).join('');
+                <button type="button"
+                        class="list-group-item list-group-item-action"
+                        onclick="selectTag(${i})">
+                    <span class="badge bg-primary me-2">${t.nama}</span>
+                </button>
+            `).join('');
 
             dropdown.classList.remove('d-none');
         }
@@ -247,18 +342,23 @@
             hideDropdown();
         }
 
+        function hideDropdown() {
+            dropdown.classList.add('d-none');
+        }
+
+        // ── Tag Management ────────────────────────────────────────────
         function addExistingTag(tag) {
             if (document.querySelector(`.tag-chip[data-id="${tag.id}"]`)) return;
 
             const span = document.createElement('span');
-            span.className = `tag-chip bg-primary text-white`;
+            span.className = 'tag-chip bg-primary text-white';
             span.dataset.id = tag.id;
             span.dataset.name = tag.nama.toLowerCase();
             span.innerHTML = `
-        ${tag.nama}
-        <button type="button" onclick="removeTag(this)">×</button>
-        <input type="hidden" name="tags[]" value="${tag.id}">
-    `;
+                ${tag.nama}
+                <button type="button" onclick="removeTag(this)">×</button>
+                <input type="hidden" name="tags[]" value="${tag.id}">
+            `;
             tagBox.insertBefore(span, tagInput);
         }
 
@@ -273,19 +373,15 @@
             span.className = 'tag-chip bg-primary text-white';
             span.dataset.name = name.toLowerCase();
             span.innerHTML = `
-        ${name}
-        <button type="button" onclick="removeTag(this)">×</button>
-        <input type="hidden" name="tags_new[]" value="${name}">
-    `;
+                ${name}
+                <button type="button" onclick="removeTag(this)">×</button>
+                <input type="hidden" name="tags_new[]" value="${name}">
+            `;
             tagBox.insertBefore(span, tagInput);
         }
 
         function removeTag(btn) {
             btn.parentElement.remove();
-        }
-
-        function hideDropdown() {
-            dropdown.classList.add('d-none');
         }
     </script>
 @endpush

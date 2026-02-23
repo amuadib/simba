@@ -7,11 +7,82 @@ use App\Models\Tag;
 use App\Imports\SiswaImport;
 use App\Models\Rombel;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SiswaController extends Controller
 {
     protected $paginate = 25;
+ 
+    public function export(){
+        $selected = session('selected_siswa', []);
+        session()->forget('selected_siswa');
+        return Excel::download(new \App\Exports\SiswaExport($selected), 'siswa-' . now()->format('YmdHis') . '.xlsx');
+    }
+    public function hapusPreviewExport($id): JsonResponse
+    {
+        if ($id == 'all') {
+            if(count(session('selected_siswa', [])) == 0){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Belum ada data siswa'
+                ], 422);
+            }
+            session()->forget('selected_siswa');
+            return response()->json([
+                'success' => true,
+                'message' => 'Semua siswa berhasil dihapus',
+                'count' => 0
+            ], 200);
+        }
+        if (!in_array($id, session('selected_siswa', []))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Siswa tidak ditemukan dalam daftar pilihan'
+            ], 422);
+        }
+
+        $selected = session('selected_siswa', []);
+        $selected = array_values(array_diff($selected, [$id]));
+        session(['selected_siswa' => $selected]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Siswa berhasil dihapus',
+            'count' => count($selected)
+        ]);
+    }
+    public function previewExport()
+    {
+        $selected = session('selected_siswa', []);
+        $siswa = Siswa::with('rombel')
+            ->whereIn('id', $selected)
+            ->orderBy('nama')
+            ->get();
+
+        if (request()->ajax()) {
+            return response()->json([
+                'html' => view('siswa.preview-export', compact('siswa'))->render()
+            ]);
+        }
+
+        return view('siswa.preview-export', compact('siswa'));
+    }
+    public function pilih(Request $request)
+    {
+        $siswa = $request->validate([
+            'siswa_id' => 'required|exists:siswa,id'
+        ]);
+
+        session()->push('selected_siswa', $siswa['siswa_id']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Siswa berhasil dipilih',
+            'count' => count(session('selected_siswa'))
+        ]);
+
+    }
     public function index()
     {
         return view('siswa.index', [
@@ -24,6 +95,9 @@ class SiswaController extends Controller
                     $q->whereHas('tags', function ($q) use ($tag_id) {
                         $q->where('tag_id', $tag_id);
                     });
+                })
+                ->when(request('q'), function ($query, $q) {
+                    $query->where('nama', 'like', "%{$q}%");
                 })
                 ->paginate($this->paginate)
                 ->withQueryString(),
