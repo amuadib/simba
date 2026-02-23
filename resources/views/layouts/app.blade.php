@@ -48,6 +48,9 @@
             --table-row-hover: #f1f3f5;
             --table-text: #212529;
             --table-text-muted: #6c757d;
+            --form-label-color: #212529;
+            /* dark text for light mode */
+            --form-label-weight: 600;
         }
 
         [data-theme="dark"] {
@@ -66,6 +69,7 @@
             --bs-table-bg: transparent;
             --bs-table-striped-color: #f8fafc;
             --bs-table-hover-color: #ffffff;
+            --form-label-color: #f1f3f5;
         }
 
         /* =====================
@@ -235,6 +239,26 @@
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
+        }
+
+        /*form*/
+        form label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: var(--form-label-weight);
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            color: var(--form-label-color);
+            transition: color 0.2s ease-in-out;
+        }
+
+        /* Optional: small helper text */
+        form small {
+            color: #6c757d;
+        }
+
+        [data-theme="dark"] form small {
+            color: #adb5bd;
         }
 
         /* TOAST */

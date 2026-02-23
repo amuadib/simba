@@ -42,6 +42,12 @@
             'label' => 'Tahun Ajaran',
         ],
         [
+            'route' => 'settings.*',
+            'url' => 'settings.index',
+            'icon' => 'bi-gear',
+            'label' => 'Pengaturan',
+        ],
+        [
             'route' => 'database.*',
             'url' => 'database.index',
             'icon' => 'bi-database',
