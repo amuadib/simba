@@ -315,7 +315,15 @@
             <i class="bi bi-list"></i>
         </button>
 
-        <span class="fw-bold ms-2">📘 Sistem Presensi</span>
+        <span class="fw-bold d-flex align-items-center ms-2 gap-2">
+            @if (setting('logo'))
+                <img src="{{ asset('storage/' . setting('logo')) }}" alt="logo"
+                    style="height:28px;width:28px;object-fit:contain;border-radius:6px;">
+            @else
+                📘
+            @endif
+            {{ setting('nama_aplikasi', 'Sistem Presensi') }}
+        </span>
         <div class="d-flex align-items-center ms-auto">
             <div class="text-muted mx-2" id="tanggal_live">
                 loading ...
@@ -351,7 +359,7 @@
 
             @yield('content')
             <footer class="text-muted mt-4 text-center">
-                © 2026 Sistem Presensi
+                © {{ date('Y') }} {{ setting('nama_lembaga', 'Sistem Presensi') }}
             </footer>
             <div class="d-none">عروة البارقي</div>
         </div>
