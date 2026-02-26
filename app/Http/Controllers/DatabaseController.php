@@ -22,6 +22,7 @@ class DatabaseController extends Controller
             'siswa_tag',
             'jurnal',
             'nilai',
+            'settings',
             'users',
         ];
 
