@@ -10,21 +10,20 @@ class DatabaseController extends Controller
 {
     public function index()
     {
-        $tables = [
-            'tahun_ajaran',
-            'pelajaran',
-            'rombel',
-            'tag',
-            'siswa',
-            'pembelajaran',
-            'anggota_pembelajaran',
-            'presensi',
-            'siswa_tag',
-            'jurnal',
-            'nilai',
-            'settings',
-            'users',
+
+        $whitelists = [
+            'cache', 'cache_locks', 'failed_jobs',
+            'jobs', 'job_batches',
+            'migrations',
+            'password_reset_tokens',
+            'sessions', 'users',
         ];
+
+        $tables = collect(DB::connection()->getSchemaBuilder()->getTableListing())
+            ->map(fn($t) => str_contains($t, '.') ? explode('.', $t, 2)[1] : $t)
+            ->diff($whitelists)
+            ->values()
+            ->all();
 
         return view('admin.database', compact('tables'));
     }
