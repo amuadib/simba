@@ -18,4 +18,12 @@ return [
             'bobot' => 3
         ],
     ],
+    'status_siswa' => [
+        1 => 'Aktif',
+        2 => 'Lulus',
+        3 => 'Mutasi',
+        4 => 'Non-Aktif',
+        5 => 'Almarhum',
+        6 => 'Keluar',
+    ],
 ];

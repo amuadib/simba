@@ -66,11 +66,13 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-    Route::post('siswa/pilih', [SiswaController::class, 'pilih'])->name('siswa.pilih');
-    Route::get('siswa/preview-export', [SiswaController::class, 'previewExport'])->name('siswa.preview-export');
-    Route::get('siswa/hapus-preview-export/{id}', [SiswaController::class, 'hapusPreviewExport'])->name('siswa.hapus-preview-export');
-    Route::get('siswa/export', [SiswaController::class, 'export'])->name('siswa.export');
-    Route::post('siswa/import', [SiswaController::class, 'import'])->name('siswa.import');
+    Route::prefix('siswa')->group(function () {
+        Route::post('/pilih', [SiswaController::class, 'pilih'])->name('siswa.pilih');
+        Route::get('/preview-export', [SiswaController::class, 'previewExport'])->name('siswa.preview-export');
+        Route::get('/hapus-preview-export/{id}', [SiswaController::class, 'hapusPreviewExport'])->name('siswa.hapus-preview-export');
+        Route::get('/export/{from?}', [SiswaController::class, 'export'])->name('siswa.export');
+        Route::post('/import', [SiswaController::class, 'import'])->name('siswa.import');
+    });
     Route::resource('siswa', SiswaController::class);
     Route::resource('pelajaran', PelajaranController::class);
     Route::resource('rombel', RombelController::class);

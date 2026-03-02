@@ -14,9 +14,28 @@ class SiswaController extends Controller
 {
     protected $paginate = 25;
  
-    public function export(){
-        $selected = session('selected_siswa', []);
-        session()->forget('selected_siswa');
+    public function export($from = 'session'){
+        if($from=='session'){
+            $selected = session('selected_siswa', []);
+            session()->forget('selected_siswa');
+        }else{
+            $selected = Siswa::with('rombel')
+                ->when(request('rombel_id'), function ($q, $rombel_id) {
+                    $q->where('rombel_id', $rombel_id);
+                })
+                ->when(request('tag_id'), function ($q, $tag_id) {
+                    $q->whereHas('tags', function ($q) use ($tag_id) {
+                        $q->where('tag_id', $tag_id);
+                    });
+                })
+                ->when(request('status'), function ($q, $status) {
+                    $q->where('status', $status);
+                })
+                ->when(request('q'), function ($query, $q) {
+                    $query->where('nama', 'like', "%{$q}%");
+                })
+                ->pluck('id')->toArray();
+        }
         return Excel::download(new \App\Exports\SiswaExport($selected), 'siswa-' . now()->format('YmdHis') . '.xlsx');
     }
     public function hapusPreviewExport($id): JsonResponse
@@ -96,6 +115,9 @@ class SiswaController extends Controller
                         $q->where('tag_id', $tag_id);
                     });
                 })
+                ->when(request('status'), function ($q, $status) {
+                    $q->where('status', $status);
+                })
                 ->when(request('q'), function ($query, $q) {
                     $query->where('nama', 'like', "%{$q}%");
                 })
@@ -112,6 +134,7 @@ class SiswaController extends Controller
         $siswa = Siswa::create($request->validate([
             'nama' => 'required',
             'nisn' => 'nullable',
+            'status' => 'required|in:1,2,3,4,5,6',
             'rombel_id' => 'required'
         ]));
         $siswa->tags()->sync($request->tags ?? []);
@@ -142,6 +165,7 @@ class SiswaController extends Controller
         $siswa->update($request->validate([
             'nama' => 'required',
             'nisn' => 'nullable',
+            'status' => 'required|in:1,2,3,4,5,6',
             'rombel_id' => 'required'
         ]));
 

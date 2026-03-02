@@ -31,7 +31,15 @@
                             @endforeach
                         </select>
                     </div>
+<div class="col">
+<select name="status" class="form-select">
+    <option value="">--Pilih Status--</option>
+    @foreach (config('local.status_siswa') as $k => $v)
+        <option value="{{ $k }}" {{ $data->status == $k ? 'selected' : '' }}>{{ $v }}</option>
+    @endforeach
+</select>
 
+</div>
                     @include('siswa._tag')
 
                     <div class="col-auto"><button class="btn btn-warning">Edit</button></div>
@@ -49,6 +57,14 @@
                             @endforeach
                         </select>
                     </div>
+<div class="col">
+<select name="status" class="form-select">
+    <option value="">--Pilih Status--</option>
+    @foreach (config('local.status_siswa') as $k => $v)
+        <option value="{{ $k }}" {{ 1 == $k ? 'selected' : '' }}>{{ $v }}</option>
+    @endforeach
+</select>
+</div>
 
                     @include('siswa._tag')
 
@@ -89,6 +105,14 @@
                     </select>
                 </div>
                 <div class="col">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="">--Pilih Status--</option>
+                        @foreach (config('local.status_siswa') as $k => $v)
+                            <option value="{{ $k }}" {{ request('status') == $k ? 'selected' : '' }}>{{ $v }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col">
                     <select name="tag_id" class="form-select" onchange="this.form.submit()">
                         <option value="">-- Pilih Tag --</option>
                         @foreach ($tags as $tag)
@@ -112,6 +136,12 @@
                     <i class="bi bi-eye"></i>
                     Preview Ekspor Siswa
                 </button>
+                @if ($siswa->count() > 0 && (request('q') != '' || request('rombel_id') != '' || request('tag_id') != ''))
+                    <a href="{{ route('siswa.export', 'filter') }}?{{ http_build_query(request()->except('_token')) }}" class="btn btn-success">
+                        <i class="bi bi-download"></i>
+                        Ekspor
+                    </a>
+                @endif
             </div>
 
             <table class="table-bordered table">
@@ -120,43 +150,66 @@
                         <th>Nama</th>
                         <th>NISN</th>
                         <th>Rombel</th>
+                        <th>Status</th>
                         <th>Tag</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($siswa as $s)
+                    @if (!$siswa->count())
                         <tr>
-                            <td>{{ $s->nama }}</td>
-                            <td>{{ $s->nisn }}</td>
-                            <td>{{ $s->rombel->nama }}</td>
-                            <td>
-                                @forelse ($s->tags as $tag)
-                                    <span class="badge bg-info text-dark me-1">
-                                        {{ $tag->nama }}
-                                    </span>
-                                @empty
-                                    <span class="text-muted">-</span>
-                                @endforelse
-                            </td>
-
-                            <td width="200">
-                                <button type="button" onclick="pilihSiswa(event, this, '{{ $s->id }}')"
-                                    class="btn btn-sm btn-outline-primary" title="Pilih untuk Ekspor">
-                                    <i class="bi bi-plus-lg"></i>
-                                </button>
-
-                                <a href="{{ route('siswa.edit', $s->id) }}" class="btn btn-sm btn-outline-warning"><i
-                                        class="bi bi-pencil"></i></a>
-                                <form action="{{ route('siswa.destroy', $s->id) }}" method="post" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"
-                                        onclick="return confirm('Hapus data ini?')"><i class="bi bi-trash"></i></button>
-                                </form>
-                            </td>
+                            <td colspan="5" class="text-center">Tidak ada data</td>
                         </tr>
-                    @endforeach
+                    @else
+                        @foreach ($siswa as $s)
+                            <tr>
+                                <td>{{ $s->nama }}</td>
+                                <td>{{ $s->nisn }}</td>
+                                <td>{{ $s->rombel->nama }}</td>
+                                <td>
+                                    @if ($s->status == 1)
+                                        <span class="badge bg-success">Aktif</span>
+                                    @elseif ($s->status == 2)
+                                        <span class="badge bg-info">Lulus</span>
+                                    @elseif ($s->status == 3)
+                                        <span class="badge bg-warning">Mutasi</span>
+                                    @elseif ($s->status == 4)
+                                        <span class="badge bg-secondary">Non-Aktif</span>
+                                    @elseif ($s->status == 5)
+                                        <span class="badge bg-dark">Almarhum</span>
+                                    @elseif ($s->status == 6)
+                                        <span class="badge bg-danger">Keluar</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @forelse ($s->tags as $tag)
+                                        <span class="badge bg-info me-1">
+                                            {{ $tag->nama }}
+                                        </span>
+                                    @empty
+                                        <span class="text-muted">-</span>
+                                    @endforelse
+                                </td>
+
+                                <td width="200">
+                                    <button type="button" onclick="pilihSiswa(event, this, '{{ $s->id }}')"
+                                        class="btn btn-sm btn-outline-primary" title="Pilih untuk Ekspor">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+
+                                    <a href="{{ route('siswa.edit', $s->id) }}" class="btn btn-sm btn-outline-warning"><i
+                                            class="bi bi-pencil"></i></a>
+                                    <form action="{{ route('siswa.destroy', $s->id) }}" method="post" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Hapus data ini?')"><i
+                                                class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endif
                 </tbody>
             </table>
 
