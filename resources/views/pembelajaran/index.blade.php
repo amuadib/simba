@@ -93,13 +93,15 @@
                             <td>{{ $s->tahunAjaran->nama }}</td>
                             <td>{{ $s->pelajaran->nama }}</td>
                             <td>{{ $s->anggota->count() }}</td>
-                            <td width="350">
+                            <td>
+                                <a href="{{ route('pembelajaran.jurnal.nilai.index', $s->id) }}"
+                                    class="btn btn-sm btn-outline-danger"><i class="bi bi-star"></i> Nilai</a>
                                 <a href="{{ route('pembelajaran.jurnal.index', $s->id) }}?tanggal={{ date('Y-m-d') }}"
-                                    class="btn btn-sm btn-outline-warning">Jurnal</a>
+                                    class="btn btn-sm btn-outline-warning"><i class="bi bi-book"></i> Jurnal</a>
                                 <a href="{{ route('pembelajaran.presensi.create', $s->id) }}?tanggal={{ date('Y-m-d') }}"
-                                    class="btn btn-sm btn-outline-primary">Presensi</a>
+                                    class="btn btn-sm btn-outline-primary"><i class="bi bi-calendar"></i> Presensi</a>
                                 <a href="{{ route('pembelajaran.anggota.index', $s->id) }}"
-                                    class="btn btn-sm btn-outline-success">Anggota</a>
+                                    class="btn btn-sm btn-outline-success"><i class="bi bi-people"></i> Anggota</a>
                                 <a href="{{ route('pembelajaran.edit', $s->id) }}"
                                     class="btn btn-sm btn-outline-warning">&nbsp;<i class="bi bi-pencil"></i>&nbsp;</a>
                                 <form action="{{ route('pembelajaran.destroy', $s->id) }}" method="post" class="d-inline">
