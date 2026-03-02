@@ -26,7 +26,8 @@ class Pembelajaran extends Model
     }
     public function anggota()
     {
-        return $this->hasMany(AnggotaPembelajaran::class)->where('status', 1);
+        return $this->hasMany(AnggotaPembelajaran::class)
+                    ->whereHas('siswa', fn($q) => $q->where('status', 1));
     }
 
     public function anggotaSemua()

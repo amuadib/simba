@@ -84,7 +84,7 @@
                 </tr>
                 @if ($pembelajaran->isEmpty())
                     <tr>
-                        <td colspan="4" class="text-center">Tidak ada data</td>
+                        <td colspan="5" class="text-center">Tidak ada data</td>
                     </tr>
                 @else
                     @foreach ($pembelajaran as $s)
