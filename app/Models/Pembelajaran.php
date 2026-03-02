@@ -26,6 +26,11 @@ class Pembelajaran extends Model
     }
     public function anggota()
     {
+        return $this->hasMany(AnggotaPembelajaran::class)->where('status', 1);
+    }
+
+    public function anggotaSemua()
+    {
         return $this->hasMany(AnggotaPembelajaran::class);
     }
     public function presensi()
