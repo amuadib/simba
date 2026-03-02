@@ -18,8 +18,8 @@
             <table class="table-bordered table" id="table-jurnal">
                 <thead>
                     <tr>
-                        <th style="max-width:200px;">Tanggal</th>
-                        <th style="max-width:500px;">Materi</th>
+                        <th style="max-width:200px;">Tanggal*</th>
+                        <th style="max-width:500px;">Materi*</th>
                         <th width="250">Aksi</th>
                     </tr>
                 </thead>
@@ -62,6 +62,10 @@
             </table>
 
             {{ $jurnals->links() }}
+
+            <div class="help-text">
+                <small class="text-muted">*) Edit langsung pada kolom yang ingin diubah</small>
+            </div>
         </div>
     </div>
 @endsection
