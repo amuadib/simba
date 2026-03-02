@@ -13,6 +13,7 @@ class Siswa extends Model
     protected $fillable = [
         'nama',
         'nisn',
+        'status',
         'rombel_id',
     ];
     public function tags()
