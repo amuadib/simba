@@ -17,10 +17,9 @@ class SiswaController extends Controller
     public function export($from = 'session'){
         if($from=='session'){
             $selected = session('selected_siswa', []);
-            session()->forget('selected_siswa');
+            // session()->forget('selected_siswa');
         }else{
-            $selected = Siswa::with('rombel')
-                ->when(request('rombel_id'), function ($q, $rombel_id) {
+            $selected = Siswa::when(request('rombel_id'), function ($q, $rombel_id) {
                     $q->where('rombel_id', $rombel_id);
                 })
                 ->when(request('tag_id'), function ($q, $tag_id) {
