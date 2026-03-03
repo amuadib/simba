@@ -14,6 +14,30 @@ class SiswaController extends Controller
 {
     protected $paginate = 25;
  
+    public function bulkAddTag(Request $request){
+        $request->validate([
+            'tag_id' => 'required',
+            'rombel_id' => 'nullable',
+            'status' => 'nullable',
+            'q' => 'nullable',
+        ]);
+        
+        foreach (Siswa::when($request->rombel_id, function ($q, $rombel_id) {
+                    $q->where('rombel_id', $rombel_id);
+                })
+                ->when($request->status, function ($q, $status) {
+                    $q->where('status', $status);
+                })
+                ->when($request->q, function ($query, $q) {
+                    $query->where('nama', 'like', "%{$q}%");
+                })->get() as $s) {
+            if($s->tags()->where('tag_id', $request->tag_id)->exists()){
+                continue;
+            }
+            $s->tags()->attach($request->tag_id);
+        }
+        return back()->with('success', 'Tag berhasil ditambahkan ke siswa');
+    }  
     public function export($from = 'session'){
         if($from=='session'){
             $selected = session('selected_siswa', []);

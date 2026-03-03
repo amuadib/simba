@@ -42,7 +42,7 @@
 </div>
                     @include('siswa._tag')
 
-                    <div class="col-auto"><button class="btn btn-warning">Edit</button></div>
+                    <div class="col-auto"><button class="btn btn-warning"><i class="bi bi-pencil"></i>Edit</button></div>
                 </form>
             @else
                 <form method="post" action="{{ route('siswa.store') }}" class="row g-2 mb-3">
@@ -72,6 +72,9 @@
                     </div>
                 </form>
             @endif
+
+            <div class="mb-2">
+                <h6 class="fw-bold text-primary"><i class="bi bi-upload me-1"></i> Impor Data Siswa</h6>
             <form method="post" action="{{ route('siswa.import') }}" class="row g-2 mb-3" enctype="multipart/form-data">
                 @csrf
                 <div class="col">
@@ -88,7 +91,10 @@
                 <div class="col-auto"><button class="btn btn-outline-warning"><i class="bi bi-upload"></i> Impor</button>
                 </div>
             </form>
-
+            </div>
+            <hr>
+            <div class="mb-2">
+                <h6 class="fw-bold text-primary"><i class="bi bi-filter-circle me-1"></i> Filter Data Siswa</h6>    
             <form method="get" action="{{ route('siswa.index') }}" class="row g-3 mb-3" id='filterForm'>
                 @csrf
                 <div class="col">
@@ -141,9 +147,18 @@
                         <i class="bi bi-download"></i>
                         Ekspor
                     </a>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalBulkAddTag">
+                        <i class="bi bi-tags"></i>
+                        Tambah Tag
+                    </button>
                 @endif
             </div>
+            </div>
+            <hr>
 
+            <nav>
+                {{ $siswa->links() }}
+            </nav>
             <table class="table-bordered table">
                 <thead>
                     <tr>
@@ -230,6 +245,34 @@
                     <div class="py-4 text-center">
                         <div class="spinner-border text-primary"></div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalBulkAddTag" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Tag ke Siswa Terpilih</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formBulkAddTag" action="{{ route('siswa.bulk-add-tag') }}" method="POST">
+                        @csrf
+                        <div class="mb-3">
+                            <select name="tag_id" id="tag_id" class="form-select">
+                                <option value="">Pilih Tag</option>
+                                @foreach ($tags as $tag)
+                                    <option value="{{ $tag->id }}">{{ $tag->nama }}</option>
+                                @endforeach
+                            </select>
+                            <input type="hidden" name="rombel_id" value="{{ request('rombel_id') }}">
+                            <input type="hidden" name="status" value="{{ request('status') }}">
+                            <input type="hidden" name="q" value="{{ request('q') }}">
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Simpan</button>
+                    </form>
                 </div>
             </div>
         </div>

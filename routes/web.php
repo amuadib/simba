@@ -72,6 +72,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/hapus-preview-export/{id}', [SiswaController::class, 'hapusPreviewExport'])->name('siswa.hapus-preview-export');
         Route::get('/export/{from?}', [SiswaController::class, 'export'])->name('siswa.export');
         Route::post('/import', [SiswaController::class, 'import'])->name('siswa.import');
+        Route::post('/bulk-add-tag', [SiswaController::class, 'bulkAddTag'])->name('siswa.bulk-add-tag');
     });
     Route::resource('siswa', SiswaController::class);
     Route::resource('pelajaran', PelajaranController::class);
