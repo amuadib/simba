@@ -137,10 +137,14 @@
                 </div>
             </form>
             <div class="mb-3">
-                <button type="button" class="btn btn-outline-info" data-bs-toggle="modal"
+                
+                <button type="button" class="btn btn-outline-info position-relative" data-bs-toggle="modal"
                     data-bs-target="#modalPreviewExport" onclick="loadPreviewExport()">
                     <i class="bi bi-eye"></i>
                     Preview Ekspor Siswa
+                    <span class="@if(count(session('selected_siswa', [])) <1)d-none @endif position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="selected-siswa-count">
+                        {{ count(session('selected_siswa', [])) }}
+                    </span>
                 </button>
                 @if ($siswa->count() > 0 && (request('q') != '' || request('rombel_id') != '' || request('tag_id') != ''))
                     <a href="{{ route('siswa.export', 'filter') }}?{{ http_build_query(request()->except('_token')) }}" class="btn btn-success">
@@ -365,6 +369,11 @@
                         } else {
                             bootstrap.Modal.getInstance(document.getElementById('modalPreviewExport')).hide();
                         }
+                        if(data.count<1){
+                            document.getElementById('selected-siswa-count').classList.add('d-none');
+                        }else{
+                            document.getElementById('selected-siswa-count').innerText = data.count;
+                        }
                         showToast(data.message + '. Tersisa ' + data.count + ' siswa di daftar sementara');
                     } else {
                         alert(data.message);
@@ -389,6 +398,12 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
+                        if(data.count>0){
+                            document.getElementById('selected-siswa-count').classList.remove('d-none');
+                            document.getElementById('selected-siswa-count').innerText = data.count;
+                        }else{
+                            document.getElementById('selected-siswa-count').classList.add('d-none');
+                        }
                         showToast(data.message + '. Terdapat ' + data.count + ' siswa di daftar sementara');
                         loadPreviewExport();
                         btn.disabled = true;
