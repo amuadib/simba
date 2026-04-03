@@ -21,7 +21,7 @@
                     <div class="col"><input name="nama" class="form-control" placeholder="Nama Lengkap" required
                             value="{{ $data->nama }}"></div>
                     <div class="col"><input name="panggilan" class="form-control" placeholder="Panggilan"
-                            value="{{ $data->panggilan }}">
+                            value="{{ $data->panggilan ?? $data->nama }}">
                     </div>
                     <div class="col">
                         @foreach (['L','P'] as $k)
