@@ -14,7 +14,7 @@
                 });
         }, 5 * 60 * 1000);
     </script>
-    <title>@yield('title', 'Presensi Sekolah')</title>
+    <title>@yield('title', setting('nama_aplikasi') ?? env('APP_NAME'))</title>
     <link href="{{ asset('bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('bootstrap-icons.css') }}" rel="stylesheet">
     <style>
@@ -359,7 +359,7 @@
 
             @yield('content')
             <footer class="text-muted mt-4 text-center">
-                © {{ date('Y') }} {{ setting('nama_lembaga', 'Sistem Presensi') }}
+                © {{ date('Y') }} {{ setting('nama_lembaga') ?? env('APP_NAME') }}
             </footer>
             <div class="d-none">عروة البارقي</div>
         </div>

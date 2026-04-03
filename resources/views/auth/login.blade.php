@@ -145,7 +145,7 @@
             <div class="card-body p-4">
 
                 <h4 class="fw-semibold mb-1 text-center">
-                    Sistem Presensi
+                    {{ setting('nama_aplikasi') ?? env('APP_NAME') }}
                 </h4>
                 <p class="text-muted mb-4 text-center">
                     Silakan login
@@ -199,7 +199,7 @@
         </div>
 
         <p class="text-muted small mt-3 text-center">
-            © {{ date('Y') }} Sistem Presensi
+            © {{ date('Y') }} {{ setting('nama_lembaga') ?? env('APP_NAME') }}
         </p>
     </div>
 

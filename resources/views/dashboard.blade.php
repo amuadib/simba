@@ -15,8 +15,8 @@
                 </div>
             @endif
             <div class="flex-fill">
-                <div class="identity-lembaga">{{ setting('nama_lembaga', 'Nama Lembaga') }}</div>
-                <div class="identity-app">{{ setting('nama_aplikasi', 'Sistem Presensi') }}</div>
+                <div class="identity-app">{{ setting('nama_aplikasi') ?? env('APP_NAME') }}</div>
+                <div class="identity-lembaga">{{ setting('nama_lembaga') ?? env('APP_NAME') }}</div>
                 <div class="identity-contacts d-flex mt-1 flex-wrap gap-3">
                     @if (setting('alamat'))
                         <span><i class="bi bi-geo-alt-fill me-1"></i>{{ setting('alamat') }}</span>
