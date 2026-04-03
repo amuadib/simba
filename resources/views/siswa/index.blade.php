@@ -202,7 +202,7 @@
                         </tr>
                     @else
                         @foreach ($siswa as $s)
-                            <tr>
+                            <tr id="tr-{{ $s->id }}">
                                 <td>
                                     {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
                                 </td>

@@ -207,7 +207,8 @@ class SiswaController extends Controller
             }
         }
 
-        return redirect()->route('siswa.index')->with('success', 'Siswa berhasil diperbarui');
+        return redirect(route('siswa.index', ['page' => request('page'), 'rombel_id' => request('rombel_id'), 'tag_id' => request('tag_id'), 'status' => request('status'), 'q' => request('q')]) . '#tr-' . $siswa->id)
+        ->with('success', 'Siswa berhasil diperbarui');
     }
     public function destroy(Siswa $siswa)
     {
