@@ -156,6 +156,8 @@ class SiswaController extends Controller
     {
         $siswa = Siswa::create($request->validate([
             'nama' => 'required',
+            'panggilan' => 'nullable',
+            'jenis_kelamin' => 'nullable',
             'nisn' => 'nullable',
             'status' => 'required|in:1,2,3,4,5,6',
             'rombel_id' => 'required'
@@ -187,6 +189,8 @@ class SiswaController extends Controller
     {
         $siswa->update($request->validate([
             'nama' => 'required',
+            'panggilan' => 'nullable',
+            'jenis_kelamin' => 'nullable',
             'nisn' => 'nullable',
             'status' => 'required|in:1,2,3,4,5,6',
             'rombel_id' => 'required'

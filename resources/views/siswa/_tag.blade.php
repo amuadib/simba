@@ -1,4 +1,4 @@
-<div class="position-relative mb-3">
+<div class="position-relative">
     <div id="tagBox" class="form-control d-flex flex-wrap gap-2" style="min-height:48px; cursor:text">
 
         @isset($data)

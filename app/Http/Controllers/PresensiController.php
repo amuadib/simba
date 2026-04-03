@@ -49,7 +49,7 @@ class PresensiController extends Controller
                     ->get() as $p
             ) {
                 $id = $p->siswa_id;
-                $rekap[$p->siswa_id]['nama'] = $p->nama;
+                $rekap[$p->siswa_id]['nama'] = setNama($p->nama, $p->panggilan, $p->jenis_kelamin);
                 $rekap[$p->siswa_id]['id'] = $p->siswa_id;
                 foreach (['H', 'I', 'S', 'A'] as $s) {
                     $rekap[$id][$s] = $rekap[$id][$s] ?? 0;
@@ -103,7 +103,7 @@ class PresensiController extends Controller
         $data = collect($pembelajaran->anggota)->map(function ($anggota) use ($presensi) {
             return [
                 'id' => $anggota->siswa->id,
-                'nama' => $anggota->siswa->nama,
+                'nama' => setNama($anggota->siswa->nama, $anggota->siswa->panggilan, $anggota->siswa->jenis_kelamin),
                 'status' => $presensi[$anggota->siswa->id]->status ?? 'A', // DEFAULT A
                 'keterangan' => $presensi[$anggota->siswa->id]->keterangan ?? '',
             ];

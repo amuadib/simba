@@ -15,10 +15,22 @@
     <div class="card shadow-sm">
         <div class="card-body">
             @if ($action == 'edit')
+            <h6 class="fw-bold text-primary"><i class="bi bi-pencil-square me-1"></i> Edit Data Siswa</h6>
                 <form method="post" action="{{ route('siswa.update', $data) }}" class="row g-2 mb-3">
                     @csrf @method('PUT')
-                    <div class="col"><input name="nama" class="form-control" placeholder="Nama" required
+                    <div class="col"><input name="nama" class="form-control" placeholder="Nama Lengkap" required
                             value="{{ $data->nama }}"></div>
+                    <div class="col"><input name="panggilan" class="form-control" placeholder="Panggilan"
+                            value="{{ $data->panggilan }}">
+                    </div>
+                    <div class="col">
+                        @foreach (['L','P'] as $k)
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="jenis_kelamin" id="jenis_kelamin_{{ $k }}" value="{{ $k }}" {{ $data->jenis_kelamin == $k ? 'checked' : '' }}>
+                            <label class="form-check-label" for="jenis_kelamin_{{ $k }}">{{ $k }}</label>
+                        </div>
+                        @endforeach
+                    </div>
                     <div class="col"><input name="nisn" class="form-control" placeholder="NISN"
                             value="{{ $data->nisn }}">
                     </div>
@@ -31,23 +43,32 @@
                             @endforeach
                         </select>
                     </div>
-<div class="col">
-<select name="status" class="form-select">
-    <option value="">--Pilih Status--</option>
-    @foreach (config('local.status_siswa') as $k => $v)
-        <option value="{{ $k }}" {{ $data->status == $k ? 'selected' : '' }}>{{ $v }}</option>
-    @endforeach
-</select>
-
-</div>
+                    <div class="col">
+                    <select name="status" class="form-select">
+                        <option value="">--Pilih Status--</option>
+                        @foreach (config('local.status_siswa') as $k => $v)
+                            <option value="{{ $k }}" {{ $data->status == $k ? 'selected' : '' }}>{{ $v }}</option>
+                        @endforeach
+                    </select>
+                    </div>
                     @include('siswa._tag')
 
                     <div class="col-auto"><button class="btn btn-warning"><i class="bi bi-pencil"></i>Edit</button></div>
                 </form>
             @else
+            <h6 class="fw-bold text-primary"><i class="bi bi-plus-circle me-1"></i> Tambah Data Siswa</h6>
                 <form method="post" action="{{ route('siswa.store') }}" class="row g-2 mb-3">
                     @csrf
-                    <div class="col"><input name="nama" class="form-control" placeholder="Nama" required></div>
+                    <div class="col"><input name="nama" class="form-control" placeholder="Nama Lengkap" required></div>
+                    <div class="col"><input name="panggilan" class="form-control" placeholder="Panggilan"></div>
+                    <div class="col">
+                        @foreach (['L','P'] as $k)
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="jenis_kelamin" id="jenis_kelamin_{{ $k }}" value="{{ $k }}">
+                            <label class="form-check-label" for="jenis_kelamin_{{ $k }}">{{ $k }}</label>
+                        </div>
+                        @endforeach
+                    </div>
                     <div class="col"><input name="nisn" class="form-control" placeholder="NISN"></div>
                     <div class="col">
                         <select name="rombel_id" class="form-select">
@@ -57,18 +78,18 @@
                             @endforeach
                         </select>
                     </div>
-<div class="col">
-<select name="status" class="form-select">
-    <option value="">--Pilih Status--</option>
-    @foreach (config('local.status_siswa') as $k => $v)
-        <option value="{{ $k }}" {{ 1 == $k ? 'selected' : '' }}>{{ $v }}</option>
-    @endforeach
-</select>
-</div>
-
+                    <div class="col">
+                    <select name="status" class="form-select">
+                        <option value="">--Pilih Status--</option>
+                        @foreach (config('local.status_siswa') as $k => $v)
+                            <option value="{{ $k }}" {{ 1 == $k ? 'selected' : '' }}>{{ $v }}</option>
+                        @endforeach
+                    </select>
+                    </div>
                     @include('siswa._tag')
 
-                    <div class="col-auto"><button class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah</button>
+                    <div class="col-auto">
+                        <button class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah</button>
                     </div>
                 </form>
             @endif
@@ -182,7 +203,9 @@
                     @else
                         @foreach ($siswa as $s)
                             <tr>
-                                <td>{{ $s->nama }}</td>
+                                <td>
+                                    {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
+                                </td>
                                 <td>{{ $s->nisn }}</td>
                                 <td>{{ $s->rombel->nama }}</td>
                                 <td>
@@ -212,7 +235,7 @@
 
                                 <td width="200">
                                     <button type="button" onclick="pilihSiswa(event, this, '{{ $s->id }}')"
-                                        class="btn btn-sm btn-outline-primary" title="Pilih untuk Ekspor">
+                                        class="btn btn-sm btn-outline-info" title="Pilih untuk Ekspor">
                                         <i class="bi bi-plus-lg"></i>
                                     </button>
 

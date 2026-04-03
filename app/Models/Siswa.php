@@ -15,6 +15,8 @@ class Siswa extends Model
         'nisn',
         'status',
         'rombel_id',
+        'panggilan',
+        'jenis_kelamin',
     ];
     public function tags()
     {

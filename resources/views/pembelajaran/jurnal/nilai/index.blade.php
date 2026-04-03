@@ -29,7 +29,7 @@
                     @foreach ($anggota as $a)
                         <tr>
                             <td>{{ $loop->index + 1 }}</td>
-                            <td>{{ $a->siswa->nama }} ({{ $a->siswa->rombel->nama }})</td>
+                            <td>{!! setNama($a->siswa->nama, $a->siswa->panggilan, $a->siswa->jenis_kelamin) !!} ({{ $a->siswa->rombel->nama }})</td>
                             @foreach ($jurnals as $key => $j)
                                 <td>{{ $nilai[$a->siswa->id][$key] ?? 0 }}</td>
                             @endforeach

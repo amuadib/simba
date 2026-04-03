@@ -66,7 +66,7 @@
                     </tr>
                     @foreach ($rekap as $r)
                         <tr>
-                            <td data-siswa="{{ $r['id'] }}">{{ $r['nama'] }}</td>
+                            <td data-siswa="{{ $r['id'] }}">{!! $r['nama'] !!}</td>
                             @foreach ($tglList as $t)
                                 <td class="status-{{ $r['tgl'][$t] ?? '-' }} sel presensi"
                                     data-tanggal="{{ $t }}">

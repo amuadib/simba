@@ -302,6 +302,19 @@
                 text-align: center;
             }
         }
+
+        .nickname {
+            color: #ffffff;
+            display: inline-block;
+        }
+
+        .nickname-L {
+            background-color: #007bff;
+        }
+
+        .nickname-P {
+            background-color: rgba(243, 6, 223, 0.856);
+        }
     </style>
 
     @stack('styles')
