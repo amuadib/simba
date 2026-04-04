@@ -18,12 +18,12 @@
             <h6 class="fw-bold text-primary"><i class="bi bi-pencil-square me-1"></i> Edit Data Siswa</h6>
                 <form method="post" action="{{ route('siswa.update', $data) }}" class="row g-2 mb-3">
                     @csrf @method('PUT')
-                    <div class="col"><input name="nama" class="form-control" placeholder="Nama Lengkap" required
+                    <div class="col-lg-2 col-md-6"><input name="nama" class="form-control" placeholder="Nama Lengkap" required
                             value="{{ $data->nama }}"></div>
-                    <div class="col"><input name="panggilan" class="form-control" placeholder="Panggilan"
+                    <div class="col-lg-2 col-md-6"><input name="panggilan" class="form-control" placeholder="Panggilan"
                             value="{{ $data->panggilan ?? $data->nama }}">
                     </div>
-                    <div class="col">
+                    <div class="col-lg-2 col-md-6">
                         @foreach (['L','P'] as $k)
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="jenis_kelamin" id="jenis_kelamin_{{ $k }}" value="{{ $k }}" {{ $data->jenis_kelamin == $k ? 'checked' : '' }}>
@@ -31,10 +31,10 @@
                         </div>
                         @endforeach
                     </div>
-                    <div class="col"><input name="nisn" class="form-control" placeholder="NISN"
+                    <div class="col-lg-2 col-md-6"><input name="nisn" class="form-control" placeholder="NISN"
                             value="{{ $data->nisn }}">
                     </div>
-                    <div class="col">
+                    <div class="col-lg-2 col-md-6">
                         <select name="rombel_id" class="form-select">
                             <option value="">--Pilih Rombel--</option>
                             @foreach ($rombel as $k)
@@ -43,7 +43,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col">
+                    <div class="col-lg-2 col-md-6">
                     <select name="status" class="form-select">
                         <option value="">--Pilih Status--</option>
                         @foreach (config('local.status_siswa') as $k => $v)
@@ -59,9 +59,9 @@
             <h6 class="fw-bold text-primary"><i class="bi bi-plus-circle me-1"></i> Tambah Data Siswa</h6>
                 <form method="post" action="{{ route('siswa.store') }}" class="row g-2 mb-3">
                     @csrf
-                    <div class="col"><input name="nama" class="form-control" placeholder="Nama Lengkap" required></div>
-                    <div class="col"><input name="panggilan" class="form-control" placeholder="Panggilan"></div>
-                    <div class="col">
+                    <div class="col-lg-2 col-md-6"><input name="nama" class="form-control" placeholder="Nama Lengkap" required></div>
+                    <div class="col-lg-2 col-md-6"><input name="panggilan" class="form-control" placeholder="Panggilan"></div>
+                    <div class="col-lg-2 col-md-6">
                         @foreach (['L','P'] as $k)
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="jenis_kelamin" id="jenis_kelamin_{{ $k }}" value="{{ $k }}">
@@ -69,8 +69,8 @@
                         </div>
                         @endforeach
                     </div>
-                    <div class="col"><input name="nisn" class="form-control" placeholder="NISN"></div>
-                    <div class="col">
+                    <div class="col-lg-2 col-md-6"><input name="nisn" class="form-control" placeholder="NISN"></div>
+                    <div class="col-lg-2 col-md-6">
                         <select name="rombel_id" class="form-select">
                             <option value="">--Pilih Rombel--</option>
                             @foreach ($rombel as $k)
@@ -78,7 +78,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col">
+                    <div class="col-lg-2 col-md-6">
                     <select name="status" class="form-select">
                         <option value="">--Pilih Status--</option>
                         @foreach (config('local.status_siswa') as $k => $v)
