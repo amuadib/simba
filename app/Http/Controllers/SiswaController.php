@@ -13,39 +13,43 @@ use Illuminate\Http\Request;
 class SiswaController extends Controller
 {
     protected $paginate = 25;
- 
-    public function bulkAddTag(Request $request){
+
+    public function bulkAddTag(Request $request)
+    {
         $request->validate([
             'tag_id' => 'required',
             'rombel_id' => 'nullable',
             'status' => 'nullable',
             'q' => 'nullable',
         ]);
-        
-        foreach (Siswa::when($request->rombel_id, function ($q, $rombel_id) {
-                    $q->where('rombel_id', $rombel_id);
-                })
+
+        foreach (
+            Siswa::when($request->rombel_id, function ($q, $rombel_id) {
+                $q->where('rombel_id', $rombel_id);
+            })
                 ->when($request->status, function ($q, $status) {
                     $q->where('status', $status);
                 })
                 ->when($request->q, function ($query, $q) {
                     $query->where('nama', 'like', "%{$q}%");
-                })->get() as $s) {
-            if($s->tags()->where('tag_id', $request->tag_id)->exists()){
+                })->get() as $s
+        ) {
+            if ($s->tags()->where('tag_id', $request->tag_id)->exists()) {
                 continue;
             }
             $s->tags()->attach($request->tag_id);
         }
         return back()->with('success', 'Tag berhasil ditambahkan ke siswa');
-    }  
-    public function export($from = 'session'){
-        if($from=='session'){
+    }
+    public function export($from = 'session')
+    {
+        if ($from == 'session') {
             $selected = session('selected_siswa', []);
             // session()->forget('selected_siswa');
-        }else{
+        } else {
             $selected = Siswa::when(request('rombel_id'), function ($q, $rombel_id) {
-                    $q->where('rombel_id', $rombel_id);
-                })
+                $q->where('rombel_id', $rombel_id);
+            })
                 ->when(request('tag_id'), function ($q, $tag_id) {
                     $q->whereHas('tags', function ($q) use ($tag_id) {
                         $q->where('tag_id', $tag_id);
@@ -64,7 +68,7 @@ class SiswaController extends Controller
     public function hapusPreviewExport($id): JsonResponse
     {
         if ($id == 'all') {
-            if(count(session('selected_siswa', [])) == 0){
+            if (count(session('selected_siswa', [])) == 0) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Belum ada data siswa'
@@ -123,7 +127,6 @@ class SiswaController extends Controller
             'message' => 'Siswa berhasil dipilih',
             'count' => count(session('selected_siswa'))
         ]);
-
     }
     public function index()
     {
@@ -208,7 +211,18 @@ class SiswaController extends Controller
         }
 
         return redirect(route('siswa.index', ['page' => request('page'), 'rombel_id' => request('rombel_id'), 'tag_id' => request('tag_id'), 'status' => request('status'), 'q' => request('q')]) . '#tr-' . $siswa->id)
-        ->with('success', 'Siswa berhasil diperbarui');
+            ->with('success', 'Siswa berhasil diperbarui');
+    }
+
+    public function show(Siswa $siswa)
+    {
+        return view('siswa.index', [
+            'data' => $siswa,
+            'action' => 'show',
+            'rombel' => Rombel::orderBy('tingkat')->get(),
+            'tags' => Tag::orderBy('nama')->get(),
+            'siswa' => Siswa::with('rombel')->orderBy('nama')->paginate($this->paginate),
+        ]);
     }
     public function destroy(Siswa $siswa)
     {

@@ -67,6 +67,8 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('siswa')->group(function () {
+        //route shown di SiswaController dengan nama siswa.show
+        Route::get('/{siswa}', [SiswaController::class, 'show'])->name('siswa.show');
         Route::post('/pilih', [SiswaController::class, 'pilih'])->name('siswa.pilih');
         Route::get('/preview-export', [SiswaController::class, 'previewExport'])->name('siswa.preview-export');
         Route::get('/hapus-preview-export/{id}', [SiswaController::class, 'hapusPreviewExport'])->name('siswa.hapus-preview-export');

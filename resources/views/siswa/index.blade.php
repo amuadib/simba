@@ -15,20 +15,23 @@
     <div class="card shadow-sm">
         <div class="card-body">
             @if ($action == 'edit')
-            <h6 class="fw-bold text-primary"><i class="bi bi-pencil-square me-1"></i> Edit Data Siswa</h6>
+                <h6 class="fw-bold text-primary"><i class="bi bi-pencil-square me-1"></i> Edit Data Siswa</h6>
                 <form method="post" action="{{ route('siswa.update', $data) }}" class="row g-2 mb-3">
                     @csrf @method('PUT')
-                    <div class="col-lg-2 col-md-6"><input name="nama" class="form-control" placeholder="Nama Lengkap" required
-                            value="{{ $data->nama }}"></div>
+                    <div class="col-lg-2 col-md-6"><input name="nama" class="form-control" placeholder="Nama Lengkap"
+                            required value="{{ $data->nama }}"></div>
                     <div class="col-lg-2 col-md-6"><input name="panggilan" class="form-control" placeholder="Panggilan"
                             value="{{ $data->panggilan ?? $data->nama }}">
                     </div>
                     <div class="col-lg-2 col-md-6">
-                        @foreach (['L','P'] as $k)
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="jenis_kelamin" id="jenis_kelamin_{{ $k }}" value="{{ $k }}" {{ $data->jenis_kelamin == $k ? 'checked' : '' }}>
-                            <label class="form-check-label" for="jenis_kelamin_{{ $k }}">{{ $k }}</label>
-                        </div>
+                        @foreach (['L', 'P'] as $k)
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="jenis_kelamin"
+                                    id="jenis_kelamin_{{ $k }}" value="{{ $k }}"
+                                    {{ $data->jenis_kelamin == $k ? 'checked' : '' }}>
+                                <label class="form-check-label"
+                                    for="jenis_kelamin_{{ $k }}">{{ $k }}</label>
+                            </div>
                         @endforeach
                     </div>
                     <div class="col-lg-2 col-md-6"><input name="nisn" class="form-control" placeholder="NISN"
@@ -44,29 +47,68 @@
                         </select>
                     </div>
                     <div class="col-lg-2 col-md-6">
-                    <select name="status" class="form-select">
-                        <option value="">--Pilih Status--</option>
-                        @foreach (config('local.status_siswa') as $k => $v)
-                            <option value="{{ $k }}" {{ $data->status == $k ? 'selected' : '' }}>{{ $v }}</option>
-                        @endforeach
-                    </select>
+                        <select name="status" class="form-select">
+                            <option value="">--Pilih Status--</option>
+                            @foreach (config('local.status_siswa') as $k => $v)
+                                <option value="{{ $k }}" {{ $data->status == $k ? 'selected' : '' }}>
+                                    {{ $v }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     @include('siswa._tag')
 
                     <div class="col-auto"><button class="btn btn-warning"><i class="bi bi-pencil"></i>Edit</button></div>
                 </form>
+            @elseif($action == 'show')
+                <h6 class="fw-bold text-primary"><i class="bi bi-eye me-1"></i> Detail Data Siswa</h6>
+                <div class="row g-2 mb-3">
+                    <div class="col-lg-2 col-md-6"><strong>Nama Lengkap</strong><br>{{ $data->nama }}</div>
+                    <div class="col-lg-2 col-md-6"><strong>Panggilan</strong><br>{{ $data->panggilan ?? '-' }}</div>
+                    <div class="col-lg-2 col-md-6"><strong>Jenis
+                            Kelamin</strong><br>{{ $data->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}</div>
+                    <div class="col-lg-2 col-md-6"><strong>NISN</strong><br>{{ $data->nisn ?? '-' }}</div>
+                    <div class="col-lg-2 col-md-6"><strong>Rombel</strong><br>{{ $data->rombel->nama }}</div>
+                    <div class="col-lg-2 col-md-6"><strong>Status</strong><br>
+                        @if ($data->status == 1)
+                            <span class="badge bg-success">Aktif</span>
+                        @elseif ($data->status == 2)
+                            <span class="badge bg-info">Lulus</span>
+                        @elseif ($data->status == 3)
+                            <span class="badge bg-warning">Mutasi</span>
+                        @elseif ($data->status == 4)
+                            <span class="badge bg-secondary">Non-Aktif</span>
+                        @elseif ($data->status == 5)
+                            <span class="badge bg-dark">Almarhum</span>
+                        @elseif ($data->status == 6)
+                            <span class="badge bg-danger">Keluar</span>
+                        @endif
+                    </div>
+                    <div class="col-12"><strong>Tag</strong><br>
+                        @forelse ($data->tags as $tag)
+                            <span class="badge bg-info me-1">
+                                {{ $tag->nama }}
+                            </span>
+                        @empty
+                            <span class="text-muted">-</span>
+                        @endforelse
+                    </div>
+                </div>
             @else
-            <h6 class="fw-bold text-primary"><i class="bi bi-plus-circle me-1"></i> Tambah Data Siswa</h6>
+                <h6 class="fw-bold text-primary"><i class="bi bi-plus-circle me-1"></i> Tambah Data Siswa</h6>
                 <form method="post" action="{{ route('siswa.store') }}" class="row g-2 mb-3">
                     @csrf
-                    <div class="col-lg-2 col-md-6"><input name="nama" class="form-control" placeholder="Nama Lengkap" required></div>
-                    <div class="col-lg-2 col-md-6"><input name="panggilan" class="form-control" placeholder="Panggilan"></div>
+                    <div class="col-lg-2 col-md-6"><input name="nama" class="form-control" placeholder="Nama Lengkap"
+                            required></div>
+                    <div class="col-lg-2 col-md-6"><input name="panggilan" class="form-control" placeholder="Panggilan">
+                    </div>
                     <div class="col-lg-2 col-md-6">
-                        @foreach (['L','P'] as $k)
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="jenis_kelamin" id="jenis_kelamin_{{ $k }}" value="{{ $k }}">
-                            <label class="form-check-label" for="jenis_kelamin_{{ $k }}">{{ $k }}</label>
-                        </div>
+                        @foreach (['L', 'P'] as $k)
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="jenis_kelamin"
+                                    id="jenis_kelamin_{{ $k }}" value="{{ $k }}">
+                                <label class="form-check-label"
+                                    for="jenis_kelamin_{{ $k }}">{{ $k }}</label>
+                            </div>
                         @endforeach
                     </div>
                     <div class="col-lg-2 col-md-6"><input name="nisn" class="form-control" placeholder="NISN"></div>
@@ -79,12 +121,13 @@
                         </select>
                     </div>
                     <div class="col-lg-2 col-md-6">
-                    <select name="status" class="form-select">
-                        <option value="">--Pilih Status--</option>
-                        @foreach (config('local.status_siswa') as $k => $v)
-                            <option value="{{ $k }}" {{ 1 == $k ? 'selected' : '' }}>{{ $v }}</option>
-                        @endforeach
-                    </select>
+                        <select name="status" class="form-select">
+                            <option value="">--Pilih Status--</option>
+                            @foreach (config('local.status_siswa') as $k => $v)
+                                <option value="{{ $k }}" {{ 1 == $k ? 'selected' : '' }}>{{ $v }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                     @include('siswa._tag')
 
@@ -96,88 +139,98 @@
 
             <div class="mb-2">
                 <h6 class="fw-bold text-primary"><i class="bi bi-upload me-1"></i> Impor Data Siswa</h6>
-            <form method="post" action="{{ route('siswa.import') }}" class="row g-2 mb-3" enctype="multipart/form-data">
-                @csrf
-                <div class="col">
-                    <input type="file" name="file" class="form-control" accept=".xlsx,.csv" required>
-                </div>
-                <div class="col">
-                    <select name="rombel_id" class="form-select">
-                        <option value="">--Pilih Rombel--</option>
-                        @foreach ($rombel as $k)
-                            <option value="{{ $k->id }}">{{ $k->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-auto"><button class="btn btn-outline-warning"><i class="bi bi-upload"></i> Impor</button>
-                </div>
-            </form>
+                <form method="post" action="{{ route('siswa.import') }}" class="row g-2 mb-3"
+                    enctype="multipart/form-data">
+                    @csrf
+                    <div class="col">
+                        <input type="file" name="file" class="form-control" accept=".xlsx,.csv" required>
+                    </div>
+                    <div class="col">
+                        <select name="rombel_id" class="form-select">
+                            <option value="">--Pilih Rombel--</option>
+                            @foreach ($rombel as $k)
+                                <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-auto"><button class="btn btn-outline-warning"><i class="bi bi-upload"></i>
+                            Impor</button>
+                    </div>
+                </form>
             </div>
             <hr>
             <div class="mb-2">
-                <h6 class="fw-bold text-primary"><i class="bi bi-filter-circle me-1"></i> Filter Data Siswa</h6>    
-            <form method="get" action="{{ route('siswa.index') }}" class="row g-3 mb-3" id='filterForm'>
-                @csrf
-                <div class="col">
-                    <input type="text" name="q" class="form-control" placeholder="Cari nama siswa..."
-                        value="{{ request('q') }}">
-                </div>
-                <div class="col">
-                    <select name="rombel_id" class="form-select" onchange="document.getElementById('filterForm').submit()">
-                        <option value="">--Pilih Rombel--</option>
-                        @foreach ($rombel as $k)
-                            <option value="{{ $k->id }}" {{ request('rombel_id') == $k->id ? 'selected' : '' }}>
-                                {{ $k->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col">
-                    <select name="status" class="form-select" onchange="this.form.submit()">
-                        <option value="">--Pilih Status--</option>
-                        @foreach (config('local.status_siswa') as $k => $v)
-                            <option value="{{ $k }}" {{ request('status') == $k ? 'selected' : '' }}>{{ $v }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col">
-                    <select name="tag_id" class="form-select" onchange="this.form.submit()">
-                        <option value="">-- Pilih Tag --</option>
-                        @foreach ($tags as $tag)
-                            <option value="{{ $tag->id }}" {{ request('tag_id') == $tag->id ? 'selected' : '' }}>
-                                {{ $tag->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                <h6 class="fw-bold text-primary"><i class="bi bi-filter-circle me-1"></i> Filter Data Siswa</h6>
+                <form method="get" action="{{ route('siswa.index') }}" class="row g-3 mb-3" id='filterForm'>
+                    @csrf
+                    <div class="col">
+                        <input type="text" name="q" class="form-control" placeholder="Cari nama siswa..."
+                            value="{{ request('q') }}">
+                    </div>
+                    <div class="col">
+                        <select name="rombel_id" class="form-select"
+                            onchange="document.getElementById('filterForm').submit()">
+                            <option value="">--Pilih Rombel--</option>
+                            @foreach ($rombel as $k)
+                                <option value="{{ $k->id }}"
+                                    {{ request('rombel_id') == $k->id ? 'selected' : '' }}>
+                                    {{ $k->nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col">
+                        <select name="status" class="form-select" onchange="this.form.submit()">
+                            <option value="">--Pilih Status--</option>
+                            @foreach (config('local.status_siswa') as $k => $v)
+                                <option value="{{ $k }}" {{ request('status') == $k ? 'selected' : '' }}>
+                                    {{ $v }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col">
+                        <select name="tag_id" class="form-select" onchange="this.form.submit()">
+                            <option value="">-- Pilih Tag --</option>
+                            @foreach ($tags as $tag)
+                                <option value="{{ $tag->id }}"
+                                    {{ request('tag_id') == $tag->id ? 'selected' : '' }}>
+                                    {{ $tag->nama }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div class="col-auto">
-                    <button class="btn btn-success">
-                        <i class="bi bi-filter"></i>
-                        Filter
+                    <div class="col-auto">
+                        <button class="btn btn-success">
+                            <i class="bi bi-filter"></i>
+                            Filter
+                        </button>
+                    </div>
+                </form>
+                <div class="mb-3">
+
+                    <button type="button" class="btn btn-outline-info position-relative" data-bs-toggle="modal"
+                        data-bs-target="#modalPreviewExport" onclick="loadPreviewExport()">
+                        <i class="bi bi-eye"></i>
+                        Preview Ekspor Siswa
+                        <span
+                            class="@if (count(session('selected_siswa', [])) < 1) d-none @endif position-absolute start-100 translate-middle badge rounded-pill bg-danger top-0"
+                            id="selected-siswa-count">
+                            {{ count(session('selected_siswa', [])) }}
+                        </span>
                     </button>
+                    @if ($siswa->count() > 0 && (request('q') != '' || request('rombel_id') != '' || request('tag_id') != ''))
+                        <a href="{{ route('siswa.export', 'filter') }}?{{ http_build_query(request()->except('_token')) }}"
+                            class="btn btn-success">
+                            <i class="bi bi-download"></i>
+                            Ekspor
+                        </a>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#modalBulkAddTag">
+                            <i class="bi bi-tags"></i>
+                            Tambah Tag
+                        </button>
+                    @endif
                 </div>
-            </form>
-            <div class="mb-3">
-                
-                <button type="button" class="btn btn-outline-info position-relative" data-bs-toggle="modal"
-                    data-bs-target="#modalPreviewExport" onclick="loadPreviewExport()">
-                    <i class="bi bi-eye"></i>
-                    Preview Ekspor Siswa
-                    <span class="@if(count(session('selected_siswa', [])) <1)d-none @endif position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="selected-siswa-count">
-                        {{ count(session('selected_siswa', [])) }}
-                    </span>
-                </button>
-                @if ($siswa->count() > 0 && (request('q') != '' || request('rombel_id') != '' || request('tag_id') != ''))
-                    <a href="{{ route('siswa.export', 'filter') }}?{{ http_build_query(request()->except('_token')) }}" class="btn btn-success">
-                        <i class="bi bi-download"></i>
-                        Ekspor
-                    </a>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalBulkAddTag">
-                        <i class="bi bi-tags"></i>
-                        Tambah Tag
-                    </button>
-                @endif
-            </div>
             </div>
             <hr>
 
@@ -204,7 +257,9 @@
                         @foreach ($siswa as $s)
                             <tr id="tr-{{ $s->id }}">
                                 <td>
-                                    {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
+                                    <a href="{{ route('siswa.show', $s->id) }}" class="text-decoration-none">
+                                        {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
+                                    </a>
                                 </td>
                                 <td>{{ $s->nisn }}</td>
                                 <td>{{ $s->rombel->nama }}</td>
@@ -392,9 +447,9 @@
                         } else {
                             bootstrap.Modal.getInstance(document.getElementById('modalPreviewExport')).hide();
                         }
-                        if(data.count<1){
+                        if (data.count < 1) {
                             document.getElementById('selected-siswa-count').classList.add('d-none');
-                        }else{
+                        } else {
                             document.getElementById('selected-siswa-count').innerText = data.count;
                         }
                         showToast(data.message + '. Tersisa ' + data.count + ' siswa di daftar sementara');
@@ -421,10 +476,10 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        if(data.count>0){
+                        if (data.count > 0) {
                             document.getElementById('selected-siswa-count').classList.remove('d-none');
                             document.getElementById('selected-siswa-count').innerText = data.count;
-                        }else{
+                        } else {
                             document.getElementById('selected-siswa-count').classList.add('d-none');
                         }
                         showToast(data.message + '. Terdapat ' + data.count + ' siswa di daftar sementara');
