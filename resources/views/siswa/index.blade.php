@@ -256,11 +256,7 @@
                     @else
                         @foreach ($siswa as $s)
                             <tr id="tr-{{ $s->id }}">
-                                <td>
-                                    <a href="{{ route('siswa.show', $s->id) }}" class="text-decoration-none">
-                                        {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
-                                    </a>
-                                </td>
+                                <td>{!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}</td>
                                 <td>{{ $s->nisn }}</td>
                                 <td>{{ $s->rombel->nama }}</td>
                                 <td>
@@ -294,6 +290,8 @@
                                         <i class="bi bi-plus-lg"></i>
                                     </button>
 
+                                    <a href="{{ route('siswa.show', $s->id) }}" class="btn btn-sm btn-outline-info"><i
+                                            class="bi bi-eye"></i></a>
                                     <a href="{{ route('siswa.edit', $s->id) }}" class="btn btn-sm btn-outline-warning"><i
                                             class="bi bi-pencil"></i></a>
                                     <form action="{{ route('siswa.destroy', $s->id) }}" method="post" class="d-inline">
