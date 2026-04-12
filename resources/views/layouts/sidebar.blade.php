@@ -59,7 +59,7 @@
     <div class="fw-bold p-3">Menu</div>
 
     @foreach ($menus as $menu)
-        <a href="{{ route($menu['url'] ?? $menu['route']) }}"
+        <a href="{{ route($menu['url'] ?? $menu['route']) }}" wire:navigate
             class="{{ request()->routeIs($menu['route']) ? 'active' : '' }}">
             <i class="bi {{ $menu['icon'] }}"></i> {{ $menu['label'] }}
         </a>

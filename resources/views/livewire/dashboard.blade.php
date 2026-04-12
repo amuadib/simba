@@ -1,9 +1,139 @@
-@extends('layouts.app')
+<?php
 
-@section('title', setting('nama_aplikasi', 'Dashboard'))
+use App\Models\Presensi;
+use App\Models\Siswa;
+use Illuminate\Support\Facades\Cache;
+use Carbon\Carbon;
+use Livewire\Volt\Component;
 
-@section('content')
+new class extends Component {
+    public $totalSiswa = 0;
+    public $total = ['a' => 0, 'h' => 0, 's' => 0, 'i' => 0];
+    public $chartData = ['labels' => [], 'series' => ['H' => [], 'S' => [], 'I' => [], 'A' => []]];
+    public $filterKehadiran = '30_hari';
 
+    public function mount()
+    {
+        $this->totalSiswa = Siswa::count();
+
+        $this->total = Cache::remember('total_presensi', now()->addMinutes(10), function () {
+            $h = $s = $i = $a = 0;
+            foreach (Presensi::where('tanggal', date('Y-m-d'))->get() as $p) {
+                if ($p->status == 'A') {
+                    $a++;
+                }
+                if ($p->status == 'H') {
+                    $h++;
+                }
+                if ($p->status == 'I') {
+                    $i++;
+                }
+                if ($p->status == 'S') {
+                    $s++;
+                }
+            }
+
+            return ['a' => $a, 'h' => $h, 's' => $s, 'i' => $i];
+        });
+
+        $this->loadChartData();
+    }
+
+    public function updatedFilterKehadiran()
+    {
+        $this->loadChartData();
+        $this->dispatch('update-chart');
+    }
+
+    public function loadChartData()
+    {
+        $this->chartData = Cache::remember('chart_presensi_' . $this->filterKehadiran . '_' . date('Ymd'), now()->addMinutes(10), function () {
+            if ($this->filterKehadiran == '7_hari') {
+                $dates = collect(range(6, 0))->map(fn($i) => Carbon::today()->subDays($i));
+            } elseif ($this->filterKehadiran == 'bulan_ini') {
+                $dates = collect(range(1, Carbon::today()->day))->map(fn($i) => Carbon::today()->setDay($i));
+            } else {
+                $dates = collect(range(29, 0))->map(fn($i) => Carbon::today()->subDays($i));
+            }
+
+            $chart = ['labels' => [], 'series' => ['H' => [], 'S' => [], 'I' => [], 'A' => []]];
+
+            foreach ($dates as $d) {
+                $formattedDate = $d->format('Y-m-d');
+                $chart['labels'][] = $d->format('d M');
+                $row = Presensi::whereDate('tanggal', $d)
+                    ->selectRaw(
+                        "
+                        SUM(status = 'H') as H,
+                        SUM(status = 'I') as I,
+                        SUM(status = 'S') as S,
+                        SUM(status = 'A') as A
+                    "
+                    )
+                    ->first();
+                $chart['series']['H'][] = (int) $row->H;
+                $chart['series']['I'][] = (int) $row->I;
+                $chart['series']['S'][] = (int) $row->S;
+                $chart['series']['A'][] = (int) $row->A;
+            }
+
+            return $chart;
+        });
+    }
+};
+
+?>
+
+<div x-data="{
+    initChart() {
+        const ctx = document.getElementById('presensiChart');
+        if (!ctx) return;
+
+        if (window.presensiChart && typeof window.presensiChart.destroy === 'function') {
+            window.presensiChart.destroy();
+        }
+
+        // Deep clone data to strip Livewire proxies and avoid Chart.js infinite loop
+        const dataSet = JSON.parse(JSON.stringify($wire.chartData));
+
+        window.presensiChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dataSet.labels,
+                datasets: [
+                    { label: 'Hadir', data: dataSet.series.H, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.1)', fill: true, tension: .3, pointRadius: 4 },
+                    { label: 'Izin', data: dataSet.series.I, borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,.1)', fill: true, tension: .3, pointRadius: 4 },
+                    { label: 'Sakit', data: dataSet.series.S, borderColor: '#facc15', backgroundColor: 'rgba(250,204,21,.1)', fill: true, tension: .3, pointRadius: 4 },
+                    { label: 'Alpa', data: dataSet.series.A, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.1)', fill: true, tension: .3, pointRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
+
+        const container = document.querySelector('.chart-container');
+        if (container) container.scrollLeft = container.scrollWidth;
+    }
+}" x-init="initChart()" @update-chart.window="
+    if(window.presensiChart) {
+        const newData = JSON.parse(JSON.stringify($wire.chartData));
+        window.presensiChart.data.labels = newData.labels;
+        window.presensiChart.data.datasets[0].data = newData.series.H;
+        window.presensiChart.data.datasets[1].data = newData.series.I;
+        window.presensiChart.data.datasets[2].data = newData.series.S;
+        window.presensiChart.data.datasets[3].data = newData.series.A;
+        window.presensiChart.update();
+    }
+">
     {{-- IDENTITY BANNER --}}
     <div class="identity-banner card p-md-4 mb-4 p-3 shadow-sm">
         <div class="d-flex align-items-center flex-wrap gap-3">
@@ -34,7 +164,6 @@
 
     {{-- STATS --}}
     <div class="row g-3 mb-4">
-
         <div class="col-6 col-md-4 col-lg">
             <div class="stat-card card h-100 p-3 shadow-sm">
                 <div class="d-flex align-items-center gap-3">
@@ -104,7 +233,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     {{-- CHART --}}
@@ -112,110 +240,24 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h6 class="fw-semibold mb-0">Grafik Kehadiran</h6>
-                <small class="text-muted">30 hari terakhir</small>
+                <small class="text-muted">Statistik presensi siswa</small>
             </div>
-            <i class="bi bi-bar-chart-line text-muted fs-5"></i>
+            <select wire:model.live="filterKehadiran" class="form-select form-select-sm w-auto">
+                <option value="30_hari">30 Hari</option>
+                <option value="7_hari">7 Hari</option>
+                <option value="bulan_ini">Bulan Ini</option>
+            </select>
         </div>
         <div class="d-flex justify-content-center align-items-center chart-container rounded"
-            style="overflow-x: auto; width: 100%;">
+            style="overflow-x: auto; width: 100%;" wire:ignore>
             <canvas id="presensiChart" style="min-width: 1000px; height: 260px;"></canvas>
         </div>
     </div>
 
-@endsection
+    @push('scripts')
+        <script src="{{ asset('chart.js') }}"></script>
+    @endpush
 
-@push('scripts')
-    <script src="{{ asset('chart.js') }}"></script>
-
-    <script>
-        const labels = @json($chartData['labels']);
-        const h = @json($chartData['series']['H']);
-        const s = @json($chartData['series']['S']);
-        const i = @json($chartData['series']['I']);
-        const a = @json($chartData['series']['A']);
-    </script>
-
-    <script>
-        const ctx = document.getElementById('presensiChart');
-
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [{
-                        label: 'Hadir',
-                        data: h,
-                        borderColor: '#22c55e',
-                        backgroundColor: 'rgba(34,197,94,.1)',
-                        fill: true,
-                        tension: .3,
-                        pointRadius: 4
-                    },
-                    {
-                        label: 'Izin',
-                        data: i,
-                        borderColor: '#38bdf8',
-                        backgroundColor: 'rgba(56,189,248,.1)',
-                        fill: true,
-                        tension: .3,
-                        pointRadius: 4
-                    },
-                    {
-                        label: 'Sakit',
-                        data: s,
-                        borderColor: '#facc15',
-                        backgroundColor: 'rgba(250,204,21,.1)',
-                        fill: true,
-                        tension: .3,
-                        pointRadius: 4
-                    },
-                    {
-                        label: 'Alpa',
-                        data: a,
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239,68,68,.1)',
-                        fill: true,
-                        tension: .3,
-                        pointRadius: 4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false
-                },
-                plugins: {
-                    tooltip: {
-                        enabled: true,
-                        callbacks: {
-                            title: (ctx) => ctx[0].label,
-                            label: (ctx) => `${ctx.dataset.label}: ${ctx.formattedValue}`
-                        }
-                    },
-                    legend: {
-                        position: 'bottom'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
-                    }
-                }
-            }
-        });
-
-        const container = document.querySelector('.chart-container');
-        container.scrollLeft = container.scrollWidth;
-    </script>
-@endpush
-
-@push('styles')
     <style>
         /* ---- IDENTITY BANNER ---- */
         .identity-banner {
@@ -290,5 +332,9 @@
             font-weight: 700;
             line-height: 1.2;
         }
+
+        tr:hover {
+            background-color: rgba(13, 110, 253, 0.01) !important;
+        }
     </style>
-@endpush
+</div>

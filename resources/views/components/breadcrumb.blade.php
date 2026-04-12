@@ -1,8 +1,6 @@
 @php
     $segments = request()->segments();
-@endphp
-
-<nav aria-label="breadcrumb">
+@endphp<nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-3">
         <li class="breadcrumb-item">
             <a href="{{ url('/') }}">Home</a>

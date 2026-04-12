@@ -1,49 +1,51 @@
-<div class="container">
-
-    @if (count($siswa) > 0)
-        <div class="mb-3">
-            <a href="{{ route('siswa.export') }}" class="btn btn-success btn-sm">
-                <i class="bi bi-download"></i>
-                Ekspor</a>
-            <button type="button" class="btn btn-danger btn-sm" onclick="hapusSiswaPreviewExport('all')">
-                <i class="bi bi-trash"></i>
-                Hapus Semua</button>
-            <a href="{{ route('siswa.index') }}" class="btn btn-secondary btn-sm">
-                <i class="bi bi-arrow-left"></i>
-                Batal</a>
-        </div>
-    @endif
-    <div class="table-responsive">
-        <table class="table-bordered table-striped table">
-            <thead>
+<div class="table-responsive">
+    <table class="table table-hover align-middle border">
+        <thead class="table-light">
+            <tr>
+                <th>Nama</th>
+                <th>Rombel</th>
+                <th width="80" class="text-center">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($siswa as $s)
                 <tr>
-                    <th>No</th>
-                    <th>NISN</th>
-                    <th>Nama Lengkap</th>
-                    <th>Rombel</th>
-                    <th>Aksi</th>
+                    <td>
+                        <div class="fw-bold">{!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}</div>
+                        <small class="text-muted">{{ $s->nisn ?: '-' }}</small>
+                    </td>
+                    <td><span class="badge bg-secondary opacity-75">{{ $s->rombel->nama }}</span></td>
+                    <td class="text-center">
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-danger btn-hapus-preview" 
+                                data-id="{{ $s->id }}">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                @forelse($siswa as $index => $data)
-                    <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>{{ $data->nisn }}</td>
-                        <td>{{ $data->nama }}</td>
-                        <td>{{ $data->rombel->nama }}</td>
-                        <td>
-                            <button type="button" class="btn btn-danger btn-sm"
-                                onclick="hapusSiswaPreviewExport('{{ $data->id }}', this)">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="text-center">Tidak ada data yang tersedia untuk diexport.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+            @empty
+                <tr>
+                    <td colspan="3" class="text-center py-4 text-muted">Belum ada siswa yang dipilih</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
 </div>
+
+@if ($siswa->count() > 0)
+    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+        <button type="button" class="btn btn-danger btn-sm" id="btn-kosongkan-preview">
+            <i class="bi bi-trash me-1"></i> Kosongkan
+        </button>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+            <a href="{{ route('siswa.export') }}" class="btn btn-success btn-sm">
+                <i class="bi bi-file-earmark-excel me-1"></i> Download Excel ({{ $siswa->count() }})
+            </a>
+        </div>
+    </div>
+@else
+    <div class="text-end mt-3">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+    </div>
+@endif

@@ -2,43 +2,36 @@
 
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PelajaranController;
-use App\Http\Controllers\RombelController;
-use App\Http\Controllers\PembelajaranController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\PresensiController;
-use App\Http\Controllers\TahunAjaranController;
 use App\Http\Controllers\AnggotaPembelajaranController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\DatabaseController;
-use App\Http\Controllers\JurnalController;
-use App\Http\Controllers\NilaiController;
 use App\Http\Controllers\SettingController;
 
 Route::get('/csrf-refresh', fn() => ['token' => csrf_token()]);
-Route::get('/login', [AuthController::class, 'form'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
+
+use Livewire\Volt\Volt;
+Volt::route('/login', 'auth.login')->name('login')->middleware('guest');
+
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+Volt::route('/', 'dashboard')->name('dashboard')->middleware('auth');
+
 Route::middleware('auth')->group(function () {
 
     Route::prefix('pembelajaran')->group(function () {
-        Route::get('/{pembelajaran}/jurnal', [JurnalController::class, 'index'])->name('pembelajaran.jurnal.index');
-        Route::post('/{pembelajaran}/jurnal', [JurnalController::class, 'store'])->name('pembelajaran.jurnal.store');
-        Route::patch('/{pembelajaran}/jurnal/{jurnal}', [JurnalController::class, 'update'])->name('pembelajaran.jurnal.update');
-        Route::get('/{pembelajaran}/jurnal/{jurnal}/delete', [JurnalController::class, 'destroy'])->name('pembelajaran.jurnal.destroy');
-        Route::get('/{pembelajaran}/jurnal/{jurnal}/nilai/create', [NilaiController::class, 'create'])->name('pembelajaran.jurnal.nilai.create');
-        Route::get('/{pembelajaran}/jurnal/nilai', [NilaiController::class, 'index'])->name('pembelajaran.jurnal.nilai.index');
-        Route::post('/nilai/update', [NilaiController::class, 'update'])->name('pembelajaran.jurnal.nilai.update');
-        Route::get('/presensi', [PresensiController::class, 'index'])->name('pembelajaran.presensi.index');
+        Volt::route('/{pembelajaran}/jurnal', 'pembelajaran.jurnal')->name('pembelajaran.jurnal.index');
+        Volt::route('/{pembelajaran}/jurnal/{jurnal}/nilai/create', 'pembelajaran.nilai.create')->name('pembelajaran.jurnal.nilai.create');
+        Volt::route('/{pembelajaran}/jurnal/nilai', 'pembelajaran.nilai.index')->name('pembelajaran.jurnal.nilai.index');
+        Route::get('/presensi', function() { return redirect()->route('pembelajaran.presensi.index'); });
+        Volt::route('/presensi/rekap', 'presensi.index')->name('pembelajaran.presensi.index');
         Route::get('/presensi/export', [PresensiController::class, 'export'])->name('pembelajaran.presensi.export');
         Route::get('/presensi/load', [PresensiController::class, 'load'])->name('pembelajaran.presensi.load');
         Route::post('/presensi/update', [PresensiController::class, 'updateCell'])->name('pembelajaran.presensi.update');
-        Route::get('/{pembelajaran}/presensi/create', [PresensiController::class, 'create'])->name('pembelajaran.presensi.create');
+        Volt::route('/{pembelajaran}/presensi/create', 'presensi.create')->name('pembelajaran.presensi.create');
         Route::post('/{pembelajaran}/presensi', [PresensiController::class, 'store'])->name('pembelajaran.presensi.store');
-        Route::get('/{pembelajaran}/anggota', [AnggotaPembelajaranController::class, 'index'])->name('pembelajaran.anggota.index');
+        Volt::route('/{pembelajaran}/anggota', 'pembelajaran.anggota')->name('pembelajaran.anggota.index');
         Route::post('/{pembelajaran}/anggota/{mode?}', [AnggotaPembelajaranController::class, 'update'])->name('pembelajaran.anggota.update');
     });
 
@@ -66,19 +59,12 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-    Route::prefix('siswa')->group(function () {
-        //route shown di SiswaController dengan nama siswa.show
-        Route::get('/{siswa}', [SiswaController::class, 'show'])->name('siswa.show');
-        Route::post('/pilih', [SiswaController::class, 'pilih'])->name('siswa.pilih');
-        Route::get('/preview-export', [SiswaController::class, 'previewExport'])->name('siswa.preview-export');
-        Route::get('/hapus-preview-export/{id}', [SiswaController::class, 'hapusPreviewExport'])->name('siswa.hapus-preview-export');
-        Route::get('/export/{from?}', [SiswaController::class, 'export'])->name('siswa.export');
-        Route::post('/import', [SiswaController::class, 'import'])->name('siswa.import');
-        Route::post('/bulk-add-tag', [SiswaController::class, 'bulkAddTag'])->name('siswa.bulk-add-tag');
-    });
-    Route::resource('siswa', SiswaController::class);
-    Route::resource('pelajaran', PelajaranController::class);
-    Route::resource('rombel', RombelController::class);
-    Route::resource('pembelajaran', PembelajaranController::class);
-    Route::resource('tahun_ajaran', TahunAjaranController::class);
+    Route::get('/siswa/preview-export', [SiswaController::class, 'previewExport'])->name('siswa.preview-export');
+    Route::delete('/siswa/preview-export/{id}', [SiswaController::class, 'hapusPreviewExport'])->name('siswa.preview-export.destroy');
+    Route::get('/siswa/export/{from?}', [SiswaController::class, 'export'])->name('siswa.export');
+    Volt::route('/siswa', 'siswa.index')->name('siswa.index');
+    Volt::route('/pelajaran', 'pelajaran.index')->name('pelajaran.index');
+    Volt::route('/rombel', 'rombel.index')->name('rombel.index');
+    Volt::route('/pembelajaran', 'pembelajaran.index')->name('pembelajaran.index');
+    Volt::route('/tahun-ajaran', 'tahun-ajaran.index')->name('tahun_ajaran.index');
 });

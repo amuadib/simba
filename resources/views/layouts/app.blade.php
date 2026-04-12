@@ -17,6 +17,13 @@
     <title>@yield('title', setting('nama_aplikasi') ?? env('APP_NAME'))</title>
     <link href="{{ asset('bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('bootstrap-icons.css') }}" rel="stylesheet">
+    <script>
+        // Apply theme immediately to prevent flash
+        (function() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <style>
         .breadcrumb a {
             text-decoration: none;
@@ -317,10 +324,18 @@
         }
     </style>
 
+    @livewireStyles
     @stack('styles')
 </head>
 
-<body data-theme="dark">
+<body x-data="{ 
+    theme: localStorage.getItem('theme') || 'dark',
+    toggleTheme() {
+        this.theme = this.theme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', this.theme);
+        document.documentElement.setAttribute('data-theme', this.theme);
+    }
+}" :data-theme="theme">
 
     <!-- NAVBAR -->
     <nav class="navbar px-3 shadow-sm">
@@ -341,8 +356,9 @@
             <div class="text-muted mx-2" id="tanggal_live">
                 loading ...
             </div>
-            <button id="themeToggle" class="btn btn-sm btn-outline-info me-2">
-                <i class="bi bi-moon-stars"></i>
+            <button @click="toggleTheme()" class="btn btn-sm btn-outline-info me-2">
+                <i class="bi bi-moon-stars" x-show="theme === 'light'"></i>
+                <i class="bi bi-sun" x-show="theme === 'dark'"></i>
             </button>
             @auth
                 <form method="POST" action="/logout" class="float-end">
@@ -361,16 +377,17 @@
         <!-- CONTENT -->
         <div class="flex-fill p-4">
 
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
             @if ($errors->any())
                 @foreach ($errors->all() as $e)
                     <div class="alert alert-danger">{{ $e }}</div>
                 @endforeach
             @endif
 
-            @yield('content')
+            @isset($slot)
+                {{ $slot }}
+            @else
+                @yield('content')
+            @endisset
             <footer class="text-muted mt-4 text-center">
                 © {{ date('Y') }} {{ setting('nama_lembaga') ?? env('APP_NAME') }}
             </footer>
@@ -380,19 +397,6 @@
 
     <div id="toast" class="toast-msg"></div>
     <!-- SCRIPT -->
-    <script>
-        const toggle = document.getElementById('themeToggle');
-        const body = document.body;
-
-        toggle.onclick = () => {
-            const theme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            body.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-        };
-
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) body.setAttribute('data-theme', savedTheme);
-    </script>
 
     <script src="{{ asset('bootstrap.bundle.min.js') }}"></script>
     <script>
@@ -428,10 +432,37 @@
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => {
                 toast.classList.remove('show');
-            }, 2000);
+            }, 3000);
         }
+
+        // Global Livewire Listener
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('toast', (event) => {
+                const data = Array.isArray(event) ? event[0] : event;
+                showToast(data.message, data.type || 'success');
+            });
+        });
+
+        // Handle Session Flash via SPA navigation
+        document.addEventListener('livewire:navigated', () => {
+            @if (session('success'))
+                showToast("{{ session('success') }}", 'success');
+            @endif
+            @if (session('error'))
+                showToast("{{ session('error') }}", 'error');
+            @endif
+        });
+
+        // Initial load
+        @if (session('success'))
+            showToast("{{ session('success') }}", 'success');
+        @endif
+        @if (session('error'))
+            showToast("{{ session('error') }}", 'error');
+        @endif
     </script>
 
+    @livewireScripts
     @stack('scripts')
 </body>
 

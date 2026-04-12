@@ -21,5 +21,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+        \Livewire\Volt\Volt::mount([
+            resource_path('views/livewire'),
+            resource_path('views/pages'),
+        ]);
     }
 }
