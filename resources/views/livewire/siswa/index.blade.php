@@ -204,7 +204,16 @@ new class extends \Livewire\Volt\Component {
 
     public function with()
     {
-        $siswa = Siswa::with('rombel', 'tags')->orderBy('nama')->when($this->rombel_id, fn($q, $id) => $q->where('rombel_id', $id))->when($this->tag_id, fn($q, $id) => $q->whereHas('tags', fn($q) => $q->where('tag_id', $id)))->when($this->status, fn($q, $s) => $q->where('status', $s))->when($this->q, fn($q, $search) => $q->where('nama', 'like', "%{$search}%"))->paginate(25);
+        $siswa = Siswa::with('rombel', 'tags')
+            ->orderBy('nama')
+            ->when($this->rombel_id, fn($q, $id) => $q->where('rombel_id', $id))
+            ->when($this->tag_id, fn($q, $id) => $q->whereHas('tags', fn($q) => $q->where('tag_id', $id)))
+            ->when($this->status, fn($q, $s) => $q->where('status', $s))
+            ->when($this->q, fn($q, $search) => $q->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                    ->orWhere('panggilan', 'like', "%{$search}%");
+            }))
+            ->paginate(25);
 
         return [
             'siswaList' => $siswa,
