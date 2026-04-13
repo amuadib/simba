@@ -41,7 +41,7 @@ class SiswaController extends Controller
         }
         return back()->with('success', 'Tag berhasil ditambahkan ke siswa');
     }
-    public function export($from = 'session')
+    public function export($from = 'session', $template = null)
     {
         if ($from == 'session') {
             $selected = session('selected_siswa', []);
@@ -63,7 +63,11 @@ class SiswaController extends Controller
                 })
                 ->pluck('id')->toArray();
         }
-        return Excel::download(new \App\Exports\SiswaExport($selected), 'siswa-' . now()->format('YmdHis') . '.xlsx');
+        $filename = 'siswa-' . now()->format('YmdHis') . '.xlsx';
+        if ($template == 'cash_out') {
+            $filename = 'cash_out-' . now()->format('YmdHis') . '.xlsx';
+        }
+        return Excel::download(new \App\Exports\SiswaExport($selected, $template), $filename);
     }
     public function hapusPreviewExport($id): JsonResponse
     {

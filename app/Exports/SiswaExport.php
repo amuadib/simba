@@ -11,10 +11,12 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 class SiswaExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize
 {
     protected $ids;
+    protected $template;
 
-    public function __construct(array $ids = [])
+    public function __construct(array $ids = [], string $template = null)
     {
         $this->ids = $ids;
+        $this->template = $template;
     }
 
     public function collection()
@@ -27,6 +29,9 @@ class SiswaExport implements FromCollection, WithHeadings, WithMapping, ShouldAu
 
     public function headings(): array
     {
+        if ($this->template == 'cash_out') {
+            return ['No', 'Nis', 'Nama', 'Keterangan', 'Nominal'];
+        }
         return ['No', 'NISN', 'Nama', 'Rombel'];
     }
 
@@ -35,6 +40,15 @@ class SiswaExport implements FromCollection, WithHeadings, WithMapping, ShouldAu
         static $no = 0;
         $no++;
 
+        if ($this->template == 'cash_out') {
+            return [
+                $no,
+                $siswa->nisn,
+                $siswa->nama,
+                '',
+                '',
+            ];
+        }
         return [
             $no,
             $siswa->nisn ?? '-',

@@ -39,8 +39,11 @@
         </button>
         <div class="d-flex gap-2">
             <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
-            <a href="{{ route('siswa.export') }}" class="btn btn-success btn-sm">
+            <a href="{{ route('siswa.export', ['from' => 'session']) }}" class="btn btn-success btn-sm">
                 <i class="bi bi-file-earmark-excel me-1"></i> Download Excel ({{ $siswa->count() }})
+            </a>
+            <a href="{{ route('siswa.export', ['from' => 'session', 'template' => 'cash_out']) }}" class="btn btn-success btn-sm">
+                <i class="bi bi-file-earmark-excel me-1"></i> Download Excel Cash Out ({{ $siswa->count() }})
             </a>
         </div>
     </div>

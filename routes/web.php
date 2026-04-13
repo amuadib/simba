@@ -61,7 +61,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/siswa/preview-export', [SiswaController::class, 'previewExport'])->name('siswa.preview-export');
     Route::delete('/siswa/preview-export/{id}', [SiswaController::class, 'hapusPreviewExport'])->name('siswa.preview-export.destroy');
-    Route::get('/siswa/export/{from?}', [SiswaController::class, 'export'])->name('siswa.export');
+    Route::get('/siswa/export/{from?}/{template?}', [SiswaController::class, 'export'])->name('siswa.export');
     Volt::route('/siswa', 'siswa.index')->name('siswa.index');
     Volt::route('/pelajaran', 'pelajaran.index')->name('pelajaran.index');
     Volt::route('/rombel', 'rombel.index')->name('rombel.index');
