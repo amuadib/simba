@@ -41,7 +41,7 @@ layout('layouts.guest');
                 {{ setting('nama_aplikasi') ?? env('APP_NAME') }}
             </h4>
             <p class="text-muted mb-4 text-center">
-                Silakan login (Livewire SPA)
+                Silakan login
             </p>
 
             <form wire:submit="login">
