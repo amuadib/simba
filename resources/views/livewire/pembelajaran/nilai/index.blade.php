@@ -56,6 +56,7 @@ with(function () {
                             <th rowspan="2" class="align-middle" width="50">No</th>
                             <th rowspan="2" class="align-middle" width="250">Nama Siswa / Rombel</th>
                             <th colspan="{{ $jurnals->count() }}" class="p-2">Materi / Pertemuan</th>
+                            <th rowspan="2" class="align-middle" width="100">Nilai Akhir</th>
                         </tr>
                         <tr>
                             @foreach ($jurnals as $j)
@@ -94,6 +95,16 @@ with(function () {
                                         @endif
                                     </td>
                                 @endforeach
+                                @php
+                                    $studentScores = collect($nilaiMap[$s->id] ?? []);
+                                    $average = $studentScores->count() > 0 ? round($studentScores->avg(), 1) : null;
+                                @endphp
+                                <td class="fw-bold text-center">
+                                    <span
+                                        class="badge {{ ($average ?? 0) >= 75 ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger' }} w-100 border p-2">
+                                        {{ $average ?? '-' }}
+                                    </span>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
