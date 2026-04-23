@@ -56,16 +56,19 @@ new class extends Component {
         </div>
 
         <div wire:key="breadcrumb-wrapper" class="d-flex align-items-center gap-2" wire:ignore>
-            <button wire:click="export" class="btn btn-success btn-sm d-flex align-items-center gap-2">
-                <i class="bi bi-file-earmark-excel"></i>
-                Export Excel
-            </button>
             <x-breadcrumb />
         </div>
     </div>
 
     <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <button wire:click="export" class="btn btn-success">
+                    <i class="bi bi-file-earmark-excel"></i>
+                    Export Excel
+                </button>
+            </div>
+
             <div class="table-responsive">
                 <table class="table-bordered table-hover mb-0 table align-middle">
                     <thead class="table-light small text-center">

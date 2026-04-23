@@ -100,7 +100,7 @@ new class extends \Livewire\Volt\Component {
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <a href="{{ route('pembelajaran.jurnal.nilai.index', $pembelajaran) }}" wire:navigate
-                    class="btn btn-primary">
+                    class="btn btn-danger">
                     <i class="bi bi-star me-1"></i> Daftar Nilai
                 </a>
             </div>
