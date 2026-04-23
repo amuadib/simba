@@ -137,13 +137,7 @@ new class extends Component {
     {{-- IDENTITY BANNER --}}
     <div class="identity-banner card p-md-4 mb-4 p-3 shadow-sm">
         <div class="d-flex align-items-center flex-wrap gap-3">
-            @if (setting('logo'))
-                <img src="{{ asset('storage/' . setting('logo')) }}" alt="Logo" class="identity-logo">
-            @else
-                <div class="identity-logo-placeholder">
-                    <i class="bi bi-building"></i>
-                </div>
-            @endif
+            <img src="{{ logo_url() }}" alt="Logo" class="identity-logo">
             <div class="flex-fill">
                 <div class="identity-app">{{ setting('nama_aplikasi') ?? env('APP_NAME') }}</div>
                 <div class="identity-lembaga">{{ setting('nama_lembaga') ?? env('APP_NAME') }}</div>

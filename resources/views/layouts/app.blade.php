@@ -344,12 +344,8 @@
         </button>
 
         <span class="fw-bold d-flex align-items-center ms-2 gap-2">
-            @if (setting('logo'))
-                <img src="{{ asset('storage/' . setting('logo')) }}" alt="logo"
-                    style="height:28px;width:28px;object-fit:contain;border-radius:6px;">
-            @else
-                📘
-            @endif
+            <img src="{{ logo_url() }}" alt="logo"
+                style="height:28px;width:28px;object-fit:contain;border-radius:6px;">
             {{ setting('nama_aplikasi', 'Sistem Presensi') }}
         </span>
         <div class="d-flex align-items-center ms-auto">

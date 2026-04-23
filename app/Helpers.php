@@ -22,3 +22,15 @@ if (!function_exists('setNama')) {
         return $nama;
     }
 }
+
+if (!function_exists('logo_url')) {
+    function logo_url()
+    {
+        $logo = setting('logo');
+        if ($logo && \Illuminate\Support\Facades\Storage::disk('public')->exists($logo)) {
+            return asset('storage/' . $logo);
+        }
+        return asset('logo.jpg');
+    }
+}
+

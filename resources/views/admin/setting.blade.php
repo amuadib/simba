@@ -43,9 +43,7 @@
                 <div class="mb-3">
                     <label>Logo</label><br>
 
-                    @if (setting('logo'))
-                        <img src="{{ asset('storage/' . setting('logo')) }}" height="80" class="mb-2">
-                    @endif
+                    <img src="{{ logo_url() }}" height="80" class="mb-2">
 
                     <input type="file" name="logo" class="form-control">
                 </div>
