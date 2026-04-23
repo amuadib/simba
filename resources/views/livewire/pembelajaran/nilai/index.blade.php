@@ -1,9 +1,12 @@
 <?php
 
-use function Livewire\Volt\{state, mount, with};
+use function Livewire\Volt\{state, mount, with, action};
 use App\Models\Pembelajaran;
 use App\Models\Jurnal;
 use App\Models\Nilai;
+use App\Exports\NilaiExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Str;
 
 state([
     'pembelajaran' => null,
@@ -33,6 +36,13 @@ with(function () {
     ];
 });
 
+$export = action(function () {
+    return Excel::download(
+        new NilaiExport($this->pembelajaran->id),
+        'nilai-' . Str::slug($this->pembelajaran->keterangan) . '.xlsx'
+    );
+});
+
 ?>
 
 <div>
@@ -42,7 +52,11 @@ with(function () {
             <small class="text-muted">Pembelajaran: <strong>{{ $pembelajaran->keterangan }}</strong></small>
         </div>
 
-        <div wire:key="breadcrumb-wrapper" wire:ignore>
+        <div wire:key="breadcrumb-wrapper" class="d-flex align-items-center gap-2" wire:ignore>
+            <button wire:click="export" class="btn btn-success btn-sm d-flex align-items-center gap-2">
+                <i class="bi bi-file-earmark-excel"></i>
+                Export Excel
+            </button>
             <x-breadcrumb />
         </div>
     </div>
