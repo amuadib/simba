@@ -1,63 +1,74 @@
 <?php
 
-use function Livewire\Volt\{state, mount, updated, with};
 use App\Models\Pembelajaran;
 use App\Models\Siswa;
 use App\Models\Rombel;
 use App\Models\AnggotaPembelajaran;
 use Illuminate\Support\Str;
+use Livewire\Volt\Component;
 
-state([
-    'pembelajaran' => null,
-    'rombel_id' => '',
-    'availableIds' => [],
-    'selectedAvailable' => [],
-    'selectedEnrolled' => [],
-]);
+new class extends Component {
+    public $pembelajaran;
+    public $rombel_id = '';
+    public $availableIds = [];
+    public $selectedAvailable = [];
+    public $selectedEnrolled = [];
 
-mount(function (Pembelajaran $pembelajaran) {
-    $this->pembelajaran = $pembelajaran;
-});
-
-$addSelected = function () {
-    if (empty($this->selectedAvailable)) {
-        return;
+    public function mount(Pembelajaran $pembelajaran)
+    {
+        $this->pembelajaran = $pembelajaran;
     }
 
-    $data = [];
-    foreach ($this->selectedAvailable as $id) {
-        $data[] = [
-            'id' => (string) Str::uuid(),
-            'pembelajaran_id' => $this->pembelajaran->id,
-            'siswa_id' => $id,
-            'created_at' => now(),
-            'updated_at' => now(),
+    public function addSelected()
+    {
+        if (empty($this->selectedAvailable)) {
+            return;
+        }
+
+        $data = [];
+        foreach ($this->selectedAvailable as $id) {
+            $data[] = [
+                'id' => (string) Str::uuid(),
+                'pembelajaran_id' => $this->pembelajaran->id,
+                'siswa_id' => $id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        AnggotaPembelajaran::insert($data);
+        $this->reset(['selectedAvailable']);
+    }
+
+    public function removeSelected()
+    {
+        if (empty($this->selectedEnrolled)) {
+            return;
+        }
+
+        AnggotaPembelajaran::where('pembelajaran_id', $this->pembelajaran->id)
+            ->whereIn('siswa_id', $this->selectedEnrolled)
+            ->delete();
+
+        $this->reset(['selectedEnrolled']);
+    }
+
+    public function with()
+    {
+        $enrolledIds = $this->pembelajaran->anggota()->pluck('siswa_id')->toArray();
+
+        return [
+            'rombels' => Rombel::orderBy('tingkat')->get(),
+            'availableSiswa' => Siswa::where('rombel_id', $this->rombel_id)
+                ->whereNotIn('id', $enrolledIds)
+                ->orderBy('nama')
+                ->get(),
+            'enrolledSiswa' => Siswa::whereIn('id', $enrolledIds)
+                ->orderBy('nama')
+                ->get(),
         ];
     }
-
-    AnggotaPembelajaran::insert($data);
-    $this->reset(['selectedAvailable']);
 };
-
-$removeSelected = function () {
-    if (empty($this->selectedEnrolled)) {
-        return;
-    }
-
-    AnggotaPembelajaran::where('pembelajaran_id', $this->pembelajaran->id)->whereIn('siswa_id', $this->selectedEnrolled)->delete();
-
-    $this->reset(['selectedEnrolled']);
-};
-
-with(function () {
-    $enrolledIds = $this->pembelajaran->anggota()->pluck('siswa_id')->toArray();
-
-    return [
-        'rombels' => Rombel::orderBy('tingkat')->get(),
-        'availableSiswa' => Siswa::where('rombel_id', $this->rombel_id)->whereNotIn('id', $enrolledIds)->orderBy('nama')->get(),
-        'enrolledSiswa' => Siswa::whereIn('id', $enrolledIds)->orderBy('nama')->get(),
-    ];
-});
 
 ?>
 

@@ -1,35 +1,38 @@
 <?php
 
-use function Livewire\Volt\{state, rules, layout};
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Livewire\Volt\Component;
+use Livewire\Attributes\Layout;
 
-state([
-    'email' => '',
-    'password' => '',
-    'remember' => false,
-]);
+new #[Layout('layouts.guest')] class extends Component {
+    public $email = '';
+    public $password = '';
+    public $remember = false;
 
-rules([
-    'email' => 'required|email',
-    'password' => 'required',
-]);
-
-$login = function () {
-    $this->validate();
-
-    if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
-        session()->regenerate();
-
-        return redirect()->intended(route('dashboard'));
+    public function rules()
+    {
+        return [
+            'email' => 'required|email',
+            'password' => 'required',
+        ];
     }
 
-    throw ValidationException::withMessages([
-        'email' => 'Email atau password salah',
-    ]);
-};
+    public function login()
+    {
+        $this->validate();
 
-layout('layouts.guest');
+        if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+            session()->regenerate();
+
+            return redirect()->intended(route('dashboard'));
+        }
+
+        throw ValidationException::withMessages([
+            'email' => 'Email atau password salah',
+        ]);
+    }
+};
 
 ?>
 

@@ -1,85 +1,88 @@
 <?php
 
-use function Livewire\Volt\{state, mount, with};
 use App\Models\Pembelajaran;
 use App\Models\Jurnal;
 use App\Models\Nilai;
 use App\Models\Presensi;
 use Illuminate\Support\Str;
+use Livewire\Volt\Component;
 
-state([
-    'pembelajaran' => null,
-    'jurnal' => null,
-    'inputNilai' => [],
-    'inputPresensi' => [],
-    'tanggal' => '',
-]);
+new class extends Component {
+    public $pembelajaran;
+    public $jurnal;
+    public $inputNilai = [];
+    public $inputPresensi = [];
+    public $tanggal = '';
 
-mount(function (Pembelajaran $pembelajaran, Jurnal $jurnal) {
-    $this->pembelajaran = $pembelajaran;
-    $this->jurnal = $jurnal;
-    $this->tanggal = date('Y-m-d', strtotime($jurnal->tanggal));
+    public function mount(Pembelajaran $pembelajaran, Jurnal $jurnal)
+    {
+        $this->pembelajaran = $pembelajaran;
+        $this->jurnal = $jurnal;
+        $this->tanggal = date('Y-m-d', strtotime($jurnal->tanggal));
 
-    $this->inputNilai = Nilai::where('jurnal_id', $jurnal->id)->pluck('nilai', 'siswa_id')->toArray();
+        $this->inputNilai = Nilai::where('jurnal_id', $jurnal->id)->pluck('nilai', 'siswa_id')->toArray();
 
-    $this->inputPresensi = Presensi::where('pembelajaran_id', $pembelajaran->id)->where('tanggal', $this->tanggal)->pluck('status', 'siswa_id')->toArray();
-});
-
-$setNilai = function ($siswaId, $nilai) {
-    $current = $this->inputNilai[$siswaId] ?? '';
-    $next = $current == $nilai ? '' : $nilai;
-
-    $this->inputNilai[$siswaId] = $next;
-
-    if ($next === '') {
-        Nilai::where('siswa_id', $siswaId)->where('jurnal_id', $this->jurnal->id)->delete();
-        $this->dispatch('toast', message: 'Nilai siswa berhasil dihapus', type: 'success');
-    } else {
-        Nilai::upsert(
-            [
-                [
-                    'id' => (string) Str::uuid(),
-                    'siswa_id' => $siswaId,
-                    'jurnal_id' => $this->jurnal->id,
-                    'jenis_nilai_id' => 1,
-                    'nilai' => $next,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ],
-            ],
-            ['siswa_id', 'jurnal_id', 'jenis_nilai_id'],
-            ['nilai', 'updated_at'],
-        );
-        $this->dispatch('toast', message: 'Nilai siswa berhasil diupdate', type: 'success');
+        $this->inputPresensi = Presensi::where('pembelajaran_id', $pembelajaran->id)->where('tanggal', $this->tanggal)->pluck('status', 'siswa_id')->toArray();
     }
-};
 
-$setPresensi = function ($siswaId, $status) {
-    $current = $this->inputPresensi[$siswaId] ?? '-';
-    $next = $current == $status ? '-' : $status;
+    public function setNilai($siswaId, $nilai)
+    {
+        $current = $this->inputNilai[$siswaId] ?? '';
+        $next = $current == $nilai ? '' : $nilai;
 
-    $this->inputPresensi[$siswaId] = $next;
+        $this->inputNilai[$siswaId] = $next;
 
-    if ($next == '-') {
-        Presensi::where('siswa_id', $siswaId)->where('pembelajaran_id', $this->pembelajaran->id)->where('tanggal', $this->tanggal)->delete();
-        $this->dispatch('toast', message: 'Presensi siswa berhasil dihapus', type: 'success');
-    } else {
-        Presensi::upsert(
-            [
+        if ($next === '') {
+            Nilai::where('siswa_id', $siswaId)->where('jurnal_id', $this->jurnal->id)->delete();
+            $this->dispatch('toast', message: 'Nilai siswa berhasil dihapus', type: 'success');
+        } else {
+            Nilai::upsert(
                 [
-                    'id' => (string) Str::uuid(),
-                    'siswa_id' => $siswaId,
-                    'pembelajaran_id' => $this->pembelajaran->id,
-                    'tanggal' => $this->tanggal,
-                    'status' => $next,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    [
+                        'id' => (string) Str::uuid(),
+                        'siswa_id' => $siswaId,
+                        'jurnal_id' => $this->jurnal->id,
+                        'jenis_nilai_id' => 1,
+                        'nilai' => $next,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ],
                 ],
-            ],
-            ['siswa_id', 'pembelajaran_id', 'tanggal'],
-            ['status', 'updated_at'],
-        );
-        $this->dispatch('toast', message: 'Presensi siswa berhasil diupdate', type: 'success');
+                ['siswa_id', 'jurnal_id', 'jenis_nilai_id'],
+                ['nilai', 'updated_at'],
+            );
+            $this->dispatch('toast', message: 'Nilai siswa berhasil diupdate', type: 'success');
+        }
+    }
+
+    public function setPresensi($siswaId, $status)
+    {
+        $current = $this->inputPresensi[$siswaId] ?? '-';
+        $next = $current == $status ? '-' : $status;
+
+        $this->inputPresensi[$siswaId] = $next;
+
+        if ($next == '-') {
+            Presensi::where('siswa_id', $siswaId)->where('pembelajaran_id', $this->pembelajaran->id)->where('tanggal', $this->tanggal)->delete();
+            $this->dispatch('toast', message: 'Presensi siswa berhasil dihapus', type: 'success');
+        } else {
+            Presensi::upsert(
+                [
+                    [
+                        'id' => (string) Str::uuid(),
+                        'siswa_id' => $siswaId,
+                        'pembelajaran_id' => $this->pembelajaran->id,
+                        'tanggal' => $this->tanggal,
+                        'status' => $next,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ],
+                ],
+                ['siswa_id', 'pembelajaran_id', 'tanggal'],
+                ['status', 'updated_at'],
+            );
+            $this->dispatch('toast', message: 'Presensi siswa berhasil diupdate', type: 'success');
+        }
     }
 };
 

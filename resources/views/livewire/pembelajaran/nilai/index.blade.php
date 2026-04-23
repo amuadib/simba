@@ -1,47 +1,50 @@
 <?php
 
-use function Livewire\Volt\{state, mount, with, action};
 use App\Models\Pembelajaran;
 use App\Models\Jurnal;
 use App\Models\Nilai;
 use App\Exports\NilaiExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
+use Livewire\Volt\Component;
 
-state([
-    'pembelajaran' => null,
-]);
+new class extends Component {
+    public $pembelajaran;
 
-mount(function (Pembelajaran $pembelajaran) {
-    $this->pembelajaran = $pembelajaran;
-});
-
-with(function () {
-    $nilai = [];
-    $jurnals = Jurnal::where('pembelajaran_id', $this->pembelajaran->id)->orderBy('tanggal')->get();
-
-    $anggotaList = $this->pembelajaran->anggota()->with('siswa.rombel')->get();
-
-    // Get all scores for this pembelajaran
-    $allNilai = Nilai::whereIn('jurnal_id', $jurnals->pluck('id'))->get();
-
-    foreach ($allNilai as $n) {
-        $nilai[$n->siswa_id][$n->jurnal_id] = $n->nilai;
+    public function mount(Pembelajaran $pembelajaran)
+    {
+        $this->pembelajaran = $pembelajaran;
     }
 
-    return [
-        'jurnals' => $jurnals,
-        'anggotaList' => $anggotaList->sortBy(fn($a) => $a->siswa->nama),
-        'nilaiMap' => $nilai,
-    ];
-});
+    public function with()
+    {
+        $nilai = [];
+        $jurnals = Jurnal::where('pembelajaran_id', $this->pembelajaran->id)->orderBy('tanggal')->get();
 
-$export = action(function () {
-    return Excel::download(
-        new NilaiExport($this->pembelajaran->id),
-        'nilai-' . Str::slug($this->pembelajaran->keterangan) . '.xlsx'
-    );
-});
+        $anggotaList = $this->pembelajaran->anggota()->with('siswa.rombel')->get();
+
+        // Get all scores for this pembelajaran
+        $allNilai = Nilai::whereIn('jurnal_id', $jurnals->pluck('id'))->get();
+
+        foreach ($allNilai as $n) {
+            $nilai[$n->siswa_id][$n->jurnal_id] = $n->nilai;
+        }
+
+        return [
+            'jurnals' => $jurnals,
+            'anggotaList' => $anggotaList->sortBy(fn($a) => $a->siswa->nama),
+            'nilaiMap' => $nilai,
+        ];
+    }
+
+    public function export()
+    {
+        return Excel::download(
+            new NilaiExport($this->pembelajaran->id),
+            'nilai-' . Str::slug($this->pembelajaran->keterangan) . '.xlsx'
+        );
+    }
+};
 
 ?>
 

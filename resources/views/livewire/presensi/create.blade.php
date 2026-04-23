@@ -1,78 +1,81 @@
 <?php
 
-use function Livewire\Volt\{state, mount, updated};
 use App\Models\Pembelajaran;
 use App\Models\Presensi;
 use Illuminate\Support\Str;
+use Livewire\Volt\Component;
 
-state([
-    'pembelajaran' => null,
-    'tanggal' => date('Y-m-d'),
-    'listSiswa' => [],
-    'inputData' => [], // [siswa_id => ['status' => 'A', 'keterangan' => '']]
-]);
+new class extends Component {
+    public $pembelajaran;
+    public $tanggal;
+    public $listSiswa = [];
+    public $inputData = []; // [siswa_id => ['status' => 'A', 'keterangan' => '']]
 
-mount(function (Pembelajaran $pembelajaran) {
-    if (request()->tanggal) {
-        $this->tanggal = request()->tanggal;
-    }
-    $this->pembelajaran = $pembelajaran;
-    $this->loadPresensi();
-});
-
-updated([
-    'tanggal' => function () {
+    public function mount(Pembelajaran $pembelajaran)
+    {
+        $this->tanggal = request()->tanggal ?? date('Y-m-d');
+        $this->pembelajaran = $pembelajaran;
         $this->loadPresensi();
-    },
-]);
-
-$loadPresensi = function () {
-    $presensi = Presensi::where('pembelajaran_id', $this->pembelajaran->id)->where('tanggal', $this->tanggal)->get()->keyBy('siswa_id');
-
-    $this->listSiswa = $this->pembelajaran
-        ->anggota()
-        ->with('siswa')
-        ->get()
-        ->map(function ($anggota) {
-            return $anggota->siswa;
-        })
-        ->sortBy('nama', SORT_NATURAL | SORT_FLAG_CASE)
-        ->values();
-
-    $this->inputData = [];
-    foreach ($this->listSiswa as $siswa) {
-        $this->inputData[$siswa->id] = [
-            'status' => $presensi[$siswa->id]->status ?? 'A',
-            'keterangan' => $presensi[$siswa->id]->keterangan ?? '',
-        ];
-    }
-};
-
-$submit = function () {
-    $this->validate([
-        'tanggal' => 'required|date',
-        'inputData' => 'required|array',
-    ]);
-
-    $rows = [];
-    foreach ($this->inputData as $siswa_id => $item) {
-        $rows[] = [
-            'id' => (string) Str::uuid(),
-            'pembelajaran_id' => $this->pembelajaran->id,
-            'siswa_id' => $siswa_id,
-            'tanggal' => $this->tanggal,
-            'status' => $item['status'],
-            'keterangan' => $item['keterangan'] ?? null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ];
     }
 
-    if (!empty($rows)) {
-        Presensi::upsert($rows, ['siswa_id', 'pembelajaran_id', 'tanggal'], ['status', 'keterangan', 'updated_at']);
+    public function updatedTanggal()
+    {
+        $this->loadPresensi();
+    }
 
-        session()->flash('success', 'Presensi berhasil disimpan.');
-        return redirect()->route('pembelajaran.index');
+    public function loadPresensi()
+    {
+        $presensi = Presensi::where('pembelajaran_id', $this->pembelajaran->id)
+            ->where('tanggal', $this->tanggal)
+            ->get()
+            ->keyBy('siswa_id');
+
+        $this->listSiswa = $this->pembelajaran
+            ->anggota()
+            ->with('siswa')
+            ->get()
+            ->map(function ($anggota) {
+                return $anggota->siswa;
+            })
+            ->sortBy('nama', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
+
+        $this->inputData = [];
+        foreach ($this->listSiswa as $siswa) {
+            $this->inputData[$siswa->id] = [
+                'status' => $presensi[$siswa->id]->status ?? 'A',
+                'keterangan' => $presensi[$siswa->id]->keterangan ?? '',
+            ];
+        }
+    }
+
+    public function submit()
+    {
+        $this->validate([
+            'tanggal' => 'required|date',
+            'inputData' => 'required|array',
+        ]);
+
+        $rows = [];
+        foreach ($this->inputData as $siswa_id => $item) {
+            $rows[] = [
+                'id' => (string) Str::uuid(),
+                'pembelajaran_id' => $this->pembelajaran->id,
+                'siswa_id' => $siswa_id,
+                'tanggal' => $this->tanggal,
+                'status' => $item['status'],
+                'keterangan' => $item['keterangan'] ?? null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        if (!empty($rows)) {
+            Presensi::upsert($rows, ['siswa_id', 'pembelajaran_id', 'tanggal'], ['status', 'keterangan', 'updated_at']);
+
+            session()->flash('success', 'Presensi berhasil disimpan.');
+            return redirect()->route('pembelajaran.index');
+        }
     }
 };
 
