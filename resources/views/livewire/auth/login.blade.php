@@ -36,51 +36,60 @@ new #[Layout('layouts.guest')] class extends Component {
 
 ?>
 
-<div class="login-box w-100">
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-4">
+<div class="login-box">
+    <div class="card border-0">
+        <div class="card-body p-4 p-md-5">
 
-            <h4 class="fw-semibold mb-1 text-center">
-                {{ setting('nama_aplikasi') ?? env('APP_NAME') }}
-            </h4>
-            <p class="text-muted mb-4 text-center">
-                Silakan login
-            </p>
+            <div class="text-center mb-4">
+                <div class="d-inline-block p-3 rounded-circle bg-white shadow-sm mb-3 logo-container">
+                    <img src="{{ logo_url() }}" alt="Logo" style="height: 60px; width: 60px; object-fit: contain;">
+                </div>
+                <h4 class="fw-bold mb-1">
+                    {{ setting('nama_aplikasi') ?? env('APP_NAME') }}
+                </h4>
+            </div>
 
             <form wire:submit="login">
                 {{-- Email --}}
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" wire:model="email" class="form-control @error('email') is-invalid @enderror" placeholder="Email"
-                        required autofocus inputmode="email">
-                    @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small">Alamat Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" wire:model="email" class="form-control with-group @error('email') is-invalid @enderror" 
+                            placeholder="nama@contoh.com" required autofocus inputmode="email">
+                    </div>
+                    @error('email') <div class="invalid-feedback d-block mt-1">{{ $message }}</div> @enderror
                 </div>
 
                 {{-- Password --}}
-                <div class="mb-3">
-                    <label class="form-label">Password</label>
-
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small">Kata Sandi</label>
                     <div class="input-group">
-                        <input type="password" wire:model="password" id="password" class="form-control @error('password') is-invalid @enderror"
-                            placeholder="Password" required>
-                        <span class="input-group-text password-toggle" id="togglePassword" onclick="togglePasswordVisibility()">
-                            <span class="bi" id="toggleIcon">🐵</span>
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" wire:model="password" id="password" 
+                            class="form-control with-group @error('password') is-invalid @enderror"
+                            placeholder="••••••••" required>
+                        <span class="input-group-text bg-transparent border-start-0 password-toggle" onclick="togglePasswordVisibility()">
+                            <i class="bi bi-eye-slash" id="toggleIcon"></i>
                         </span>
-                        @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
+                    @error('password') <div class="invalid-feedback d-block mt-1">{{ $message }}</div> @enderror
                 </div>
 
-                {{-- Remember --}}
-                <div class="form-check mb-3">
-                    <input type="checkbox" wire:model="remember" class="form-check-input" id="remember">
-                    <label class="form-check-label" for="remember">
-                        Ingat saya
-                    </label>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input type="checkbox" wire:model="remember" class="form-check-input" id="remember">
+                        <label class="form-check-label small" for="remember">
+                            Ingat saya
+                        </label>
+                    </div>
+                    <a href="#" class="small text-decoration-none fw-medium">Lupa sandi?</a>
                 </div>
 
                 {{-- Button --}}
-                <button type="submit" class="btn btn-primary w-100 fw-semibold" wire:loading.attr="disabled">
-                    <span wire:loading.remove>Login</span>
+                <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2" wire:loading.attr="disabled">
+                    <span wire:loading.remove>Masuk ke Akun</span>
+                    <span wire:loading class="spinner-border spinner-border-sm" role="status"></span>
                     <span wire:loading>Memproses...</span>
                 </button>
             </form>
@@ -88,9 +97,11 @@ new #[Layout('layouts.guest')] class extends Component {
         </div>
     </div>
 
-    <p class="text-muted small mt-3 text-center">
-        © {{ date('Y') }} {{ setting('nama_lembaga') ?? env('APP_NAME') }}
-    </p>
+    <div class="text-center mt-4">
+        <p class="text-muted small">
+            &copy; {{ date('Y') }} {{ setting('nama_lembaga') ?? env('APP_NAME') }}
+        </p>
+    </div>
 
     <script>
         function togglePasswordVisibility() {
@@ -98,7 +109,7 @@ new #[Layout('layouts.guest')] class extends Component {
             const icon = document.getElementById('toggleIcon');
             const isPassword = password.type === 'password';
             password.type = isPassword ? 'text' : 'password';
-            icon.textContent = isPassword ? '🙈' : '🐵';
+            icon.className = isPassword ? 'bi bi-eye' : 'bi bi-eye-slash';
         }
     </script>
 </div>
