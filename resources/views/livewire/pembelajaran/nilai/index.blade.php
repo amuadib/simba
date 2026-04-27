@@ -3,6 +3,7 @@
 use App\Models\Pembelajaran;
 use App\Models\Jurnal;
 use App\Models\Nilai;
+use App\Models\Presensi;
 use App\Exports\NilaiExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
@@ -30,10 +31,19 @@ new class extends Component {
             $nilai[$n->siswa_id][$n->jurnal_id] = $n->nilai;
         }
 
+        // Get all presensi for this pembelajaran
+        $allPresensi = Presensi::where('pembelajaran_id', $this->pembelajaran->id)->get();
+        $presensiMap = [];
+        foreach ($allPresensi as $p) {
+            $dateKey = \Carbon\Carbon::parse($p->tanggal)->format('Y-m-d');
+            $presensiMap[$p->siswa_id][$dateKey] = $p->status;
+        }
+
         return [
             'jurnals' => $jurnals,
             'anggotaList' => $anggotaList->sortBy(fn($a) => $a->siswa->nama),
             'nilaiMap' => $nilai,
+            'presensiMap' => $presensiMap,
         ];
     }
 
@@ -41,7 +51,7 @@ new class extends Component {
     {
         return Excel::download(
             new NilaiExport($this->pembelajaran->id),
-            'nilai-' . Str::slug($this->pembelajaran->keterangan) . '.xlsx'
+            'nilai-' . Str::slug($this->pembelajaran->keterangan) . '-' . date('YmdHi') . '.xlsx'
         );
     }
 };
@@ -103,21 +113,51 @@ new class extends Component {
                                     </div>
                                 </td>
                                 @foreach ($jurnals as $j)
-                                    @php $val = $nilaiMap[$s->id][$j->id] ?? null; @endphp
+                                    @php
+                                        $val = $nilaiMap[$s->id][$j->id] ?? null;
+                                        $dateKey = \Carbon\Carbon::parse($j->tanggal)->format('Y-m-d');
+                                        $status = $presensiMap[$s->id][$dateKey] ?? null;
+                                    @endphp
                                     <td class="fw-bold text-center">
                                         @if ($val !== null)
                                             <span
                                                 class="badge {{ $val >= 75 ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger' }} w-100 border p-2">
                                                 {{ $val }}
                                             </span>
+                                        @elseif(in_array($status, ['S', 'I']))
+                                            @if ($status == 'S')
+                                                <span class="badge bg-warning bg-opacity-10 text-warning w-100 border p-2">
+                                                    S
+                                                </span>
+                                            @else
+                                                <span class="badge bg-primary bg-opacity-10 text-primary w-100 border p-2">
+                                                    I
+                                                </span>
+                                            @endif
                                         @else
                                             <span class="text-muted opacity-25">-</span>
                                         @endif
                                     </td>
                                 @endforeach
                                 @php
-                                    $studentScores = collect($nilaiMap[$s->id] ?? []);
-                                    $average = $studentScores->count() > 0 ? round($studentScores->avg(), 1) : null;
+                                    $totalScore = 0;
+                                    $meetingCount = 0;
+                                    foreach ($jurnals as $j) {
+                                        $dateKey = \Carbon\Carbon::parse($j->tanggal)->format('Y-m-d');
+                                        $status = $presensiMap[$s->id][$dateKey] ?? 'H'; // Default to Hadir if not set
+                                        
+                                        // Jika I / S pertemuan bisa diabaikan
+                                        if (in_array($status, ['I', 'S'])) {
+                                            continue;
+                                        }
+
+                                        // Nilai akhir = jumlah seluruh nilai : banyaknya pertemuan jika siswa statusnya H / A
+                                        if (in_array($status, ['H', 'A'])) {
+                                            $meetingCount++;
+                                            $totalScore += ($nilaiMap[$s->id][$j->id] ?? 0);
+                                        }
+                                    }
+                                    $average = $meetingCount > 0 ? round($totalScore / $meetingCount, 1) : null;
                                 @endphp
                                 <td class="fw-bold text-center">
                                     <span

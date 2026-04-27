@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Nilai;
+use App\Models\Presensi;
 use App\Models\Jurnal;
 use App\Models\Pembelajaran;
 use Maatwebsite\Excel\Concerns\{FromCollection, WithHeadings, WithMapping, ShouldAutoSize};
@@ -30,23 +31,48 @@ class NilaiExport implements FromCollection, WithHeadings, WithMapping, ShouldAu
             $nilaiMap[$n->siswa_id][$n->jurnal_id] = $n->nilai;
         }
 
-        return $pembelajaran->anggota->sortBy(fn($a) => $a->siswa->nama)->values()->map(function ($anggota, $index) use ($nilaiMap) {
+        // Get all presensi for this pembelajaran
+        $allPresensi = Presensi::where('pembelajaran_id', $this->pembelajaranId)->get();
+        $presensiMap = [];
+        foreach ($allPresensi as $p) {
+            $dateKey = \Carbon\Carbon::parse($p->tanggal)->format('Y-m-d');
+            $presensiMap[$p->siswa_id][$dateKey] = $p->status;
+        }
+
+        return $pembelajaran->anggota->sortBy(fn($a) => $a->siswa->nama)->values()->map(function ($anggota, $index) use ($nilaiMap, $presensiMap) {
             $siswa = $anggota->siswa;
             $row = [
                 'no' => $index + 1,
                 'nama' => $siswa->nama . ' (' . ($siswa->rombel->nama ?? '-') . ')',
             ];
 
-            $scores = [];
+            $totalScore = 0;
+            $meetingCount = 0;
             foreach ($this->jurnals as $jurnal) {
                 $val = $nilaiMap[$siswa->id][$jurnal->id] ?? null;
-                $row['jurnal_' . $jurnal->id] = $val ?? '-';
+                
+                $dateKey = \Carbon\Carbon::parse($jurnal->tanggal)->format('Y-m-d');
+                $status = $presensiMap[$siswa->id][$dateKey] ?? 'H';
+
                 if ($val !== null) {
-                    $scores[] = (float) $val;
+                    $row['jurnal_' . $jurnal->id] = $val;
+                } elseif (in_array($status, ['S', 'I'])) {
+                    $row['jurnal_' . $jurnal->id] = $status;
+                } else {
+                    $row['jurnal_' . $jurnal->id] = '-';
+                }
+
+                if (in_array($status, ['I', 'S'])) {
+                    continue;
+                }
+
+                if (in_array($status, ['H', 'A'])) {
+                    $meetingCount++;
+                    $totalScore += (float) ($val ?? 0);
                 }
             }
 
-            $row['nilai_akhir'] = count($scores) > 0 ? round(array_sum($scores) / count($scores), 1) : '-';
+            $row['nilai_akhir'] = $meetingCount > 0 ? round($totalScore / $meetingCount, 1) : '-';
 
             return $row;
         });
