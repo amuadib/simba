@@ -10,7 +10,10 @@ new class extends \Livewire\Volt\Component {
     public $pembelajaran;
     public $tanggal = '';
     public $materi = '';
+    public $pembelajaran_list = [];
+    public $pembelajaran_id=null;
 
+    public $mode='tambah';
     public $editingId = null;
 
     public $paginationTheme = 'bootstrap';
@@ -42,6 +45,7 @@ new class extends \Livewire\Volt\Component {
     public function edit($id)
     {
         $jurnal = Jurnal::find($id);
+        $this->mode='update';
         $this->editingId = $id;
         $this->tanggal = $jurnal->tanggal;
         $this->materi = $jurnal->materi;
@@ -60,14 +64,14 @@ new class extends \Livewire\Volt\Component {
             'materi' => $this->materi,
         ]);
 
-        $this->reset(['editingId', 'materi']);
+        $this->reset(['mode', 'editingId', 'materi']);
         $this->tanggal = date('Y-m-d');
         $this->dispatch('toast', message: 'Jurnal berhasil diperbarui', type: 'success');
     }
 
     public function cancelEdit()
     {
-        $this->reset(['editingId', 'tanggal', 'materi']);
+        $this->reset(['mode','editingId', 'tanggal', 'materi']);
     }
 
     public function delete($id)
@@ -76,6 +80,36 @@ new class extends \Livewire\Volt\Component {
         $this->dispatch('toast', message: 'Jurnal berhasil dihapus', type: 'success');
     }
 
+    public function salinJurnal($id)
+    {
+        $jurnal = Jurnal::find($id);
+        $this->mode='salin';
+        $this->editingId = $id;
+        $this->tanggal = $jurnal->tanggal;
+        $this->materi = $jurnal->materi;
+        $this->pembelajaran_list = Pembelajaran::where('tahun_ajaran_id', $this->pembelajaran->tahun_ajaran_id)
+        ->orderBy('keterangan')
+        ->get();
+    }
+
+    public function salin()
+    {
+        $this->validate([
+            'tanggal' => 'required|date',
+            'materi' => 'required',
+            'pembelajaran_id' => 'required',
+        ]);
+
+        Jurnal::create([
+            'pembelajaran_id' => $this->pembelajaran_id,
+            'tanggal' => $this->tanggal,
+            'materi' => $this->materi,
+        ]);
+
+        $this->reset(['mode', 'editingId', 'materi', 'pembelajaran_id']);
+        $this->tanggal = date('Y-m-d');
+        $this->dispatch('toast', message: 'Jurnal berhasil disalin', type: 'success');
+    }
     public function with()
     {
         return [
@@ -103,9 +137,12 @@ new class extends \Livewire\Volt\Component {
                     class="btn btn-danger">
                     <i class="bi bi-star me-1"></i> Daftar Nilai
                 </a>
+                @if($mode=='salin')
+                <span class="badge bg-warning">Salin Jurnal</span>
+                @endif
             </div>
 
-            @if ($editingId)
+            @if ($mode=='update')
                 <form wire:submit="update" class="row g-2 mb-3">
                     <div class="col-sm-2">
                         <input wire:model="tanggal" class="form-control @error('tanggal') is-invalid @enderror"
@@ -124,6 +161,39 @@ new class extends \Livewire\Volt\Component {
                     <div class="col-sm-2">
                         <button type="submit" class="btn btn-warning"><i class="bi bi-check-circle"></i>
                             Update</button>
+                        <button type="button" wire:click="cancelEdit" class="btn btn-secondary">Batal</button>
+                    </div>
+                </form>
+                @elseif($mode=='salin')
+                <form wire:submit="salin" class="row g-2 mb-3">
+                    <div class="col-sm-2">
+                        <input wire:model="tanggal" class="form-control @error('tanggal') is-invalid @enderror"
+                            placeholder="Tanggal" required>
+                        @error('tanggal')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-sm-6">
+                        <input wire:model="materi" class="form-control @error('materi') is-invalid @enderror"
+                            placeholder="Materi" required>
+                        @error('materi')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-sm-2">
+                        <select wire:model="pembelajaran_id" class="form-select @error('pembelajaran_id') is-invalid @enderror" required>
+                            <option value="">Pilih Pembelajaran</option>
+                            @foreach ($pembelajaran_list as $p)
+                                <option value="{{ $p->id }}">{{ $p->keterangan }}</option>
+                            @endforeach
+                        </select>
+                        @error('kelas')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="submit" class="btn btn-info"><i class="bi bi-check-circle"></i>
+                            Salin</button>
                         <button type="button" wire:click="cancelEdit" class="btn btn-secondary">Batal</button>
                     </div>
                 </form>
@@ -155,7 +225,7 @@ new class extends \Livewire\Volt\Component {
                         <tr>
                             <th width="200">Tanggal</th>
                             <th>Materi Pembelajaran</th>
-                            <th width="200" class="text-center">Aksi</th>
+                            <th width="300" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -169,6 +239,10 @@ new class extends \Livewire\Volt\Component {
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group">
+                                        <button wire:click="salinJurnal('{{ $j->id }}')"
+                                            class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-copy me-1"></i> Salin
+                                        </button>
                                         <a href="{{ route('pembelajaran.jurnal.nilai.create', [$pembelajaran->id, $j->id]) }}"
                                             wire:navigate class="btn btn-sm btn-outline-primary"
                                             title="Input Nilai & Presensi">
