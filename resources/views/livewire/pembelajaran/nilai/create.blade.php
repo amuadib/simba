@@ -26,18 +26,16 @@ new class extends Component {
         $this->inputPresensi = Presensi::where('pembelajaran_id', $pembelajaran->id)->where('tanggal', $this->tanggal)->pluck('status', 'siswa_id')->toArray();
     }
 
-    public function setNilai($siswaId, $nilai)
+    public function setNilai($nama, $siswaId, $nilai)
     {
         $current = $this->inputNilai[$siswaId] ?? '';
         $next = $current == $nilai ? '' : $nilai;
-
-        $siswa = Siswa::find($siswaId);
 
         $this->inputNilai[$siswaId] = $next;
 
         if ($next === '') {
             Nilai::where('siswa_id', $siswaId)->where('jurnal_id', $this->jurnal->id)->delete();
-            $this->dispatch('toast', message: 'Nilai siswa ' . $siswa->nama . ' berhasil dihapus', type: 'success');
+            $this->dispatch('toast', message: 'Nilai siswa ' . $nama . ' berhasil dihapus', type: 'success');
         } else {
             Nilai::upsert(
                 [
@@ -54,22 +52,20 @@ new class extends Component {
                 ['siswa_id', 'jurnal_id', 'jenis_nilai_id'],
                 ['nilai', 'updated_at'],
             );
-            $this->dispatch('toast', message: 'Nilai siswa ' . $siswa->nama . ' berhasil diupdate', type: 'success');
+            $this->dispatch('toast', message: 'Nilai siswa ' . $nama . ' berhasil diupdate', type: 'success');
         }
     }
 
-    public function setPresensi($siswaId, $status)
+    public function setPresensi($nama, $siswaId, $status)
     {
         $current = $this->inputPresensi[$siswaId] ?? '-';
         $next = $current == $status ? '-' : $status;
-
-        $siswa = Siswa::find($siswaId);
 
         $this->inputPresensi[$siswaId] = $next;
 
         if ($next == '-') {
             Presensi::where('siswa_id', $siswaId)->where('pembelajaran_id', $this->pembelajaran->id)->where('tanggal', $this->tanggal)->delete();
-            $this->dispatch('toast', message: 'Presensi siswa ' . $siswa->nama . ' berhasil dihapus', type: 'success');
+            $this->dispatch('toast', message: 'Presensi siswa ' . $nama . ' berhasil dihapus', type: 'success');
         } else {
             Presensi::upsert(
                 [
@@ -86,7 +82,7 @@ new class extends Component {
                 ['siswa_id', 'pembelajaran_id', 'tanggal'],
                 ['status', 'updated_at'],
             );
-            $this->dispatch('toast', message: 'Presensi siswa ' . $siswa->nama . ' berhasil diupdate', type: 'success');
+            $this->dispatch('toast', message: 'Presensi siswa ' . $nama . ' berhasil diupdate', type: 'success');
         }
     }
 };
@@ -133,7 +129,7 @@ new class extends Component {
                                     <div class="btn-group w-100">
                                         @foreach (['H' => 'success', 'I' => 'primary', 'S' => 'warning', 'A' => 'danger'] as $p => $c)
                                             <button wire:key="presensi-{{ $s->id }}-{{ $p }}"
-                                                wire:click="setPresensi('{{ $s->id }}', '{{ $p }}')"
+                                                wire:click="setPresensi('{{ $s->nama }}', '{{ $s->id }}', '{{ $p }}')"
                                                 class="btn btn-sm btn-outline-{{ $c }} {{ $curP == $p ? 'active fw-bold' : '' }}"
                                                 style="width: 25%">
                                                 {{ $p }}
@@ -148,7 +144,7 @@ new class extends Component {
                                         <div class="btn-group">
                                             @foreach ([70 => 'secondary', 80 => 'info', 90 => 'success', 100 => 'primary'] as $n => $c)
                                                 <button wire:key="nilai-{{ $s->id }}-{{ $n }}"
-                                                    wire:click="setNilai('{{ $s->id }}', {{ $n }})"
+                                                    wire:click="setNilai('{{ $s->nama }}', '{{ $s->id }}', {{ $n }})"
                                                     class="btn btn-sm btn-outline-{{ $c }} {{ $curN == $n ? 'active fw-bold' : '' }}"
                                                     {{ $curP !== 'H' ? 'disabled' : '' }}>
                                                     {{ $n }}
@@ -156,7 +152,7 @@ new class extends Component {
                                             @endforeach
                                         </div>
                                         <input type="number" wire:model.blur="inputNilai.{{ $s->id }}"
-                                            wire:change="setNilai('{{ $s->id }}', $event.target.value)"
+                                            wire:change="setNilai('{{ $s->nama }}', '{{ $s->id }}', $event.target.value)"
                                             class="form-control form-control-sm fw-bold text-center" style="width: 60px"
                                             placeholder="..."
                                             {{ $curP !== 'H' ? 'disabled' : '' }}>
