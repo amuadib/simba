@@ -271,7 +271,7 @@
         /* TOAST */
         .toast-msg {
             position: fixed;
-            bottom: 20px;
+            top: 5%;
             right: 20px;
             z-index: 9999;
             min-width: 220px;
@@ -284,7 +284,7 @@
             /* default success */
             box-shadow: 0 4px 10px rgba(0, 0, 0, .25);
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(-10px);
             pointer-events: none;
             transition: opacity .25s ease, transform .25s ease;
         }
