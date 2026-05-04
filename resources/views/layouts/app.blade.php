@@ -284,15 +284,38 @@
             /* default success */
             box-shadow: 0 4px 10px rgba(0, 0, 0, .25);
             opacity: 0;
-            transform: translateY(-10px);
+            
             pointer-events: none;
-            transition: opacity .25s ease, transform .25s ease;
         }
-
+@-webkit-keyframes slide-in-top {
+  0% {
+    -webkit-transform: translateY(-1000px);
+            transform: translateY(-1000px);
+    opacity: 0;
+  }
+  100% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes slide-in-top {
+  0% {
+    -webkit-transform: translateY(-1000px);
+            transform: translateY(-1000px);
+    opacity: 0;
+  }
+  100% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+    opacity: 1;
+  }
+}
         /* show */
         .toast-msg.show {
             opacity: 1;
-            transform: translateY(0);
+            -webkit-animation: slide-in-top 1s ease;
+            animation: slide-in-top 1s ease;
         }
 
         /* error */
