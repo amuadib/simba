@@ -129,7 +129,7 @@ new class extends Component {
                                     <div class="btn-group w-100">
                                         @foreach (['H' => 'success', 'I' => 'primary', 'S' => 'warning', 'A' => 'danger'] as $p => $c)
                                             <button wire:key="presensi-{{ $s->id }}-{{ $p }}"
-                                                wire:click="setPresensi('{{ $s->nama }}', '{{ $s->id }}', '{{ $p }}')"
+                                                wire:click="setPresensi('{{ addslashes($s->nama) }}', '{{ $s->id }}', '{{ $p }}')"
                                                 class="btn btn-sm btn-outline-{{ $c }} {{ $curP == $p ? 'active fw-bold' : '' }}"
                                                 style="width: 25%">
                                                 {{ $p }}
@@ -144,7 +144,7 @@ new class extends Component {
                                         <div class="btn-group">
                                             @foreach ([70 => 'secondary', 80 => 'info', 90 => 'success', 100 => 'primary'] as $n => $c)
                                                 <button wire:key="nilai-{{ $s->id }}-{{ $n }}"
-                                                    wire:click="setNilai('{{ $s->nama }}', '{{ $s->id }}', {{ $n }})"
+                                                    wire:click="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', {{ $n }})"
                                                     class="btn btn-sm btn-outline-{{ $c }} {{ $curN == $n ? 'active fw-bold' : '' }}"
                                                     {{ $curP !== 'H' ? 'disabled' : '' }}>
                                                     {{ $n }}
@@ -152,7 +152,7 @@ new class extends Component {
                                             @endforeach
                                         </div>
                                         <input type="number" wire:model.blur="inputNilai.{{ $s->id }}"
-                                            wire:change="setNilai('{{ $s->nama }}', '{{ $s->id }}', $event.target.value)"
+                                            wire:change="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', $event.target.value)"
                                             class="form-control form-control-sm fw-bold text-center" style="width: 60px"
                                             placeholder="..."
                                             {{ $curP !== 'H' ? 'disabled' : '' }}>
