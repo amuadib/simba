@@ -30,6 +30,12 @@
             'label' => 'Rombel',
         ],
         [
+            'route' => 'jadwal.*',
+            'url' => 'jadwal.index',
+            'icon' => 'bi-calendar-week',
+            'label' => 'Jadwal',
+        ],
+        [
             'route' => 'pelajaran.*',
             'url' => 'pelajaran.index',
             'icon' => 'bi-book',

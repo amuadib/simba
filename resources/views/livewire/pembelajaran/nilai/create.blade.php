@@ -15,6 +15,11 @@ new class extends Component {
     public $inputPresensi = [];
     public $tanggal = '';
 
+    public $editSiswaId;
+    public $editSiswaNama;
+    public $editSiswaPanggilan;
+    public $editSiswaJenisKelamin;
+
     public function mount(Pembelajaran $pembelajaran, Jurnal $jurnal)
     {
         $this->pembelajaran = $pembelajaran;
@@ -85,6 +90,33 @@ new class extends Component {
             $this->dispatch('toast', message: 'Presensi siswa ' . $nama . ' berhasil diupdate', type: 'success');
         }
     }
+
+    public function editDataSantri($siswaId)
+    {
+        $siswa = Siswa::find($siswaId);
+        if ($siswa) {
+            $this->editSiswaId = $siswa->id;
+            $this->editSiswaNama = $siswa->nama;
+            $this->editSiswaPanggilan = $siswa->panggilan;
+            $this->editSiswaJenisKelamin = $siswa->jenis_kelamin;
+            $this->dispatch('open-modal', id: 'modalEditSantri');
+        }
+    }
+
+    public function updateDataSantri()
+    {
+        $siswa = Siswa::find($this->editSiswaId);
+        if ($siswa) {
+            $siswa->update([
+                'nama' => $this->editSiswaNama,
+                'panggilan' => $this->editSiswaPanggilan,
+                'jenis_kelamin' => $this->editSiswaJenisKelamin,
+            ]);
+            $this->pembelajaran->load('anggota.siswa');
+            $this->dispatch('close-modal', id: 'modalEditSantri');
+            $this->dispatch('toast', message: 'Data santri berhasil diupdate', type: 'success');
+        }
+    }
 };
 
 ?>
@@ -121,7 +153,14 @@ new class extends Component {
                             @endphp
                             <tr wire:key="row-{{ $s->id }}">
                                 <td class="ps-4">
-                                    <div class="fw-bold">{!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!} ({{ $s->rombel->nama }})</div>
+                                    <div class="fw-bold d-flex align-items-center justify-content-between pe-3">
+                                        <div>
+                                            {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!} <span class="text-muted fw-normal">({{ $s->rombel->nama }})</span>
+                                        </div>
+                                        <button wire:click="editDataSantri('{{ $s->id }}')" class="btn btn-sm btn-link text-secondary p-0" title="Edit Data Santri">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                    </div>
                                 </td>
 
                                 {{-- PRESENSI PRESETS --}}
@@ -175,4 +214,55 @@ new class extends Component {
             background-color: rgba(13, 110, 253, 0.01) !important;
         }
     </style>
+
+    {{-- MODAL EDIT SANTRI --}}
+    <div wire:ignore.self class="modal fade" id="modalEditSantri" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form wire:submit="updateDataSantri">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i> Edit Data Santri</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nama Lengkap</label>
+                            <input type="text" class="form-control" wire:model="editSiswaNama" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nama Panggilan</label>
+                            <input type="text" class="form-control" wire:model="editSiswaPanggilan">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold d-block">Jenis Kelamin</label>
+                            <div class="d-flex gap-4 mt-1">
+                                <div class="form-check">
+                                    <input wire:model="editSiswaJenisKelamin" class="form-check-input" type="radio" value="L" id="editJkL" required>
+                                    <label class="form-check-label" for="editJkL">Laki-laki (L)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input wire:model="editSiswaJenisKelamin" class="form-check-input" type="radio" value="P" id="editJkP" required>
+                                    <label class="form-check-label" for="editJkP">Perempuan (P)</label>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" wire:loading.attr="disabled">
+                            <i class="bi bi-save me-1"></i> SIMPAN PERUBAHAN
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @script
+    <script>
+        $wire.on('close-modal', ({id}) => {
+            bootstrap.Modal.getInstance(document.getElementById(id))?.hide();
+        });
+        $wire.on('open-modal', ({id}) => {
+            new bootstrap.Modal(document.getElementById(id)).show();
+        });
+    </script>
+    @endscript
 </div>

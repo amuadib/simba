@@ -195,14 +195,14 @@
 
         .table thead th {
             background-color: var(--table-head-bg);
-            color: var(--table-text) !important;
+            color: var(--table-text);
             position: sticky;
             top: 0;
             z-index: 5;
         }
 
         [data-theme="dark"] .table thead th {
-            color: #ffffff !important;
+            color: #ffffff;
             font-weight: 600;
             letter-spacing: .04em;
         }

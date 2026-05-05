@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\DatabaseController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\JadwalController;
 
 Route::get('/csrf-refresh', fn() => ['token' => csrf_token()]);
 
@@ -66,5 +67,7 @@ Route::middleware('auth')->group(function () {
     Volt::route('/pelajaran', 'pelajaran.index')->name('pelajaran.index');
     Volt::route('/rombel', 'rombel.index')->name('rombel.index');
     Volt::route('/pembelajaran', 'pembelajaran.index')->name('pembelajaran.index');
+    Volt::route('/jadwal', 'jadwal.index')->name('jadwal.index');
+    Route::get('/jadwal/print', [JadwalController::class, 'print'])->name('jadwal.print');
     Volt::route('/tahun-ajaran', 'tahun-ajaran.index')->name('tahun_ajaran.index');
 });

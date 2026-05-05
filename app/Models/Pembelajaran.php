@@ -16,6 +16,11 @@ class Pembelajaran extends Model
         'pelajaran_id',
     ];
 
+    public function jadwal()
+    {
+        return $this->hasMany(Jadwal::class);
+    }
+
     public function tahunAjaran()
     {
         return $this->belongsTo(TahunAjaran::class);
