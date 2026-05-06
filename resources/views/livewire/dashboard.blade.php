@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Jadwal;
 use App\Models\Presensi;
 use App\Models\Siswa;
 use Illuminate\Support\Facades\Cache;
@@ -11,10 +12,23 @@ new class extends Component {
     public $total = ['a' => 0, 'h' => 0, 's' => 0, 'i' => 0];
     public $chartData = ['labels' => [], 'series' => ['H' => [], 'S' => [], 'I' => [], 'A' => []]];
     public $filterKehadiran = '30_hari';
+    public $jadwalHariIni = [];
 
     public function mount()
     {
         $this->totalSiswa = Siswa::count();
+
+        // Jadwal hari ini untuk user yang login
+        $hariIni = (int) Carbon::today()->isoWeekday(); // 1=Senin ... 7=Ahad
+        // Model memakai hari 7 = Ahad, tapi Carbon: 7 = Sunday — samakan
+        $hariCarbon = $hariIni; // Carbon isoWeekday: 1=Mon ... 7=Sun → sesuai model
+
+        $this->jadwalHariIni = Jadwal::with(['pembelajaran.pelajaran', 'pembelajaran.tahunAjaran', 'pembelajaran.anggota'])
+            ->where('user_id', auth()->id())
+            ->where('hari', $hariCarbon)
+            ->orderBy('jam_mulai')
+            ->get()
+            ->toArray();
 
         $this->total = Cache::remember('total_presensi', now()->addMinutes(10), function () {
             $h = $s = $i = $a = 0;
@@ -229,6 +243,70 @@ new class extends Component {
         </div>
     </div>
 
+    {{-- JADWAL HARI INI --}}
+    @php
+        $namaHari = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Ahad'];
+        $hariIniNum = (int) \Carbon\Carbon::today()->isoWeekday();
+        $hariIniText = $namaHari[$hariIniNum] ?? '-';
+        $tanggalIni = \Carbon\Carbon::today()->translatedFormat('d F Y');
+    @endphp
+    <div class="card p-md-4 p-3 shadow-sm mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <h6 class="fw-semibold mb-0"><i class="bi bi-calendar2-check me-2" style="color:#6366f1;"></i>Jadwal Hari Ini</h6>
+                <small class="text-muted">{{ $hariIniText }}, {{ $tanggalIni }}</small>
+            </div>
+            <span class="badge rounded-pill" style="background:rgba(99,102,241,.15);color:#6366f1;font-size:.75rem;padding:.35em .8em;">
+                {{ count($jadwalHariIni) }} Sesi
+            </span>
+        </div>
+
+        @if(count($jadwalHariIni) === 0)
+            <div class="text-center py-4">
+                <div style="font-size:2.5rem;opacity:.25;"><i class="bi bi-calendar-x"></i></div>
+                <div class="text-muted mt-2" style="font-size:.875rem;">Tidak ada jadwal mengajar hari ini</div>
+            </div>
+        @else
+            <div class="jadwal-timeline">
+                @foreach($jadwalHariIni as $idx => $j)
+                    @php
+                        $jamMulai   = \Carbon\Carbon::parse($j['jam_mulai'])->format('H:i');
+                        $jamSelesai = \Carbon\Carbon::parse($j['jam_selesai'])->format('H:i');
+                        $mapel      = $j['pembelajaran']['pelajaran']['nama'] ?? '-';
+                        $keterangan = $j['pembelajaran']['keterangan'] ?? '';
+                        $jumlahSiswa = count($j['pembelajaran']['anggota'] ?? []);
+                        $colors = ['#6366f1','#22c55e','#f59e0b','#38bdf8','#ef4444','#a855f7','#14b8a6'];
+                        $color  = $colors[$idx % count($colors)];
+                    @endphp
+                    <div class="jadwal-item d-flex gap-3 align-items-stretch">
+                        {{-- time column --}}
+                        <div class="jadwal-time text-center" style="min-width:60px;">
+                            <div class="fw-bold" style="font-size:.85rem;color:{{ $color }};">{{ $jamMulai }}</div>
+                            <div class="jadwal-line" style="border-color:{{ $color }};"></div>
+                            <div style="font-size:.75rem;color:#94a3b8;">{{ $jamSelesai }}</div>
+                        </div>
+                        {{-- card --}}
+                        <div class="jadwal-card flex-fill rounded-3 p-3 mb-3" style="border-left:3px solid {{ $color }};background:rgba({{ implode(',', sscanf(ltrim($color,'#'), '%02x%02x%02x')) }},.06);">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-1">
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.95rem;">{{ $mapel }}</div>
+                                    @if($keterangan)
+                                        <div class="text-muted" style="font-size:.8rem;">{{ $keterangan }}</div>
+                                    @endif
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge" style="background:rgba({{ implode(',', sscanf(ltrim($color,'#'), '%02x%02x%02x')) }},.15);color:{{ $color }};font-size:.72rem;">
+                                        <i class="bi bi-people me-1"></i>{{ $jumlahSiswa }} Siswa
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
     {{-- CHART --}}
     <div class="card p-md-4 p-3 shadow-sm">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -329,6 +407,39 @@ new class extends Component {
 
         tr:hover {
             background-color: rgba(13, 110, 253, 0.01) !important;
+        }
+
+        /* ---- JADWAL TIMELINE ---- */
+        .jadwal-timeline {
+            padding-top: 4px;
+        }
+
+        .jadwal-item {
+            position: relative;
+        }
+
+        .jadwal-time {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding-top: 2px;
+        }
+
+        .jadwal-line {
+            flex: 1;
+            border-left: 2px dashed;
+            opacity: .35;
+            min-height: 20px;
+        }
+
+        .jadwal-card {
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+
+        .jadwal-card:hover {
+            transform: translateX(3px);
+            box-shadow: 0 4px 16px rgba(0,0,0,.08);
         }
     </style>
 </div>
