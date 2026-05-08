@@ -23,7 +23,7 @@ new class extends Component {
         // Model memakai hari 7 = Ahad, tapi Carbon: 7 = Sunday — samakan
         $hariCarbon = $hariIni; // Carbon isoWeekday: 1=Mon ... 7=Sun → sesuai model
 
-        $this->jadwalHariIni = Jadwal::with(['pembelajaran.pelajaran', 'pembelajaran.tahunAjaran', 'pembelajaran.anggota'])
+        $this->jadwalHariIni = Jadwal::with(['pembelajaran.pelajaran', 'pembelajaran.tahunAjaran', 'pembelajaran.anggota', 'pembelajaran.latestJurnal'])
             ->where('user_id', auth()->id())
             ->where('hari', $hariCarbon)
             ->orderBy('jam_mulai')
@@ -270,11 +270,14 @@ new class extends Component {
             <div class="jadwal-timeline">
                 @foreach($jadwalHariIni as $idx => $j)
                     @php
-                        $jamMulai   = \Carbon\Carbon::parse($j['jam_mulai'])->format('H:i');
-                        $jamSelesai = \Carbon\Carbon::parse($j['jam_selesai'])->format('H:i');
-                        $mapel      = $j['pembelajaran']['pelajaran']['nama'] ?? '-';
-                        $keterangan = $j['pembelajaran']['keterangan'] ?? '';
+                        $jamMulai    = \Carbon\Carbon::parse($j['jam_mulai'])->format('H:i');
+                        $jamSelesai  = \Carbon\Carbon::parse($j['jam_selesai'])->format('H:i');
+                        $mapel       = $j['pembelajaran']['pelajaran']['nama'] ?? '-';
+                        $keterangan  = $j['pembelajaran']['keterangan'] ?? '';
                         $jumlahSiswa = count($j['pembelajaran']['anggota'] ?? []);
+                        $latestJurnal = $j['pembelajaran']['latest_jurnal'] ?? null;
+                        $materiTerakhir = $latestJurnal['materi'] ?? null;
+                        $tanggalJurnal  = $latestJurnal ? \Carbon\Carbon::parse($latestJurnal['tanggal'])->locale('id_ID')->isoFormat('DD MMM YYYY') : null;
                         $colors = ['#6366f1','#22c55e','#f59e0b','#38bdf8','#ef4444','#a855f7','#14b8a6'];
                         $color  = $colors[$idx % count($colors)];
                     @endphp
@@ -288,14 +291,35 @@ new class extends Component {
                         {{-- card --}}
                         <div class="jadwal-card flex-fill rounded-3 p-3 mb-3" style="border-left:3px solid {{ $color }};background:rgba({{ implode(',', sscanf(ltrim($color,'#'), '%02x%02x%02x')) }},.06);">
                             <div class="d-flex justify-content-between align-items-start flex-wrap gap-1">
-                                <div>
-                                    <div class="fw-semibold" style="font-size:.95rem;">{{ $mapel }}</div>
+                                <div class="flex-fill">
+                                    <div class="fw-semibold jadwal-mapel" style="font-size:.95rem;">
+                                        {{ $mapel }}
+                                    </div>
                                     @if($keterangan)
-                                        <div class="text-muted" style="font-size:.8rem;">{{ $keterangan }}</div>
+                                        <div class="jadwal-keterangan" style="font-size:.8rem;">
+                                            <a wire:navigate href="{{ route('pembelajaran.jurnal.index', ['pembelajaran' => $j['pembelajaran_id']]) }}">
+                                                {{ $keterangan }}
+                                            </a>
+                                        </div>
                                     @endif
+                                    {{-- Materi jurnal terakhir --}}
+                                    <div class="mt-2 pt-2 jadwal-divider">
+                                        @if($materiTerakhir)
+                                            <div class="jadwal-label" style="font-size:.78rem;margin-bottom:2px;">
+                                                <i class="bi bi-journal-text me-1"></i>
+                                                Materi terakhir
+                                                <span style="font-size:.72rem;">({{ $tanggalJurnal }})</span>
+                                            </div>
+                                            <div class="jadwal-materi" style="font-size:.83rem;line-height:1.45;">{!! nl2br(e($materiTerakhir)) !!}</div>
+                                        @else
+                                            <div class="jadwal-label" style="font-size:.78rem;font-style:italic;">
+                                                <i class="bi bi-journal-x me-1"></i>Belum ada jurnal
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge" style="background:rgba({{ implode(',', sscanf(ltrim($color,'#'), '%02x%02x%02x')) }},.15);color:{{ $color }};font-size:.72rem;">
+                                <div class="d-flex align-items-start gap-2 ms-2">
+                                    <span class="badge" style="background:rgba({{ implode(',', sscanf(ltrim($color,'#'), '%02x%02x%02x')) }},.15);color:{{ $color }};font-size:.72rem;white-space:nowrap;">
                                         <i class="bi bi-people me-1"></i>{{ $jumlahSiswa }} Siswa
                                     </span>
                                 </div>
@@ -441,5 +465,23 @@ new class extends Component {
             transform: translateX(3px);
             box-shadow: 0 4px 16px rgba(0,0,0,.08);
         }
+
+        /* ---- JADWAL TEXT (light mode defaults) ---- */
+        .jadwal-mapel    { color: #1e293b; }
+        .jadwal-keterangan { color: #475569; }
+        .jadwal-keterangan a { color: #0d6efd; text-decoration: none; }
+        .jadwal-keterangan a:hover { text-decoration: underline; color: #0a58ca; }
+        .jadwal-materi   { color: #334155; }
+        .jadwal-label    { color: #94a3b8; }
+        .jadwal-divider  { border-top: 1px dashed rgba(0,0,0,.1); }
+
+        /* ---- JADWAL TEXT (dark mode overrides) ---- */
+        [data-theme="dark"] .jadwal-mapel    { color: #f1f5f9; }
+        [data-theme="dark"] .jadwal-keterangan { color: #cbd5e1; }
+        [data-theme="dark"] .jadwal-keterangan a { color: #93c5fd; }
+        [data-theme="dark"] .jadwal-keterangan a:hover { color: #bfdbfe; text-decoration: underline; }
+        [data-theme="dark"] .jadwal-materi   { color: #e2e8f0; }
+        [data-theme="dark"] .jadwal-label    { color: #94a3b8; }
+        [data-theme="dark"] .jadwal-divider  { border-top: 1px dashed rgba(255,255,255,.12); }
     </style>
 </div>

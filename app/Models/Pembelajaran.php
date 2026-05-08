@@ -48,4 +48,9 @@ class Pembelajaran extends Model
         return $this->hasMany(Jurnal::class)
             ->orderBy('tanggal');
     }
+
+    public function latestJurnal()
+    {
+        return $this->hasOne(Jurnal::class)->latestOfMany('tanggal');
+    }
 }
