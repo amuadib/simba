@@ -70,4 +70,5 @@ Route::middleware('auth')->group(function () {
     Volt::route('/jadwal', 'jadwal.index')->name('jadwal.index');
     Route::get('/jadwal/print', [JadwalController::class, 'print'])->name('jadwal.print');
     Volt::route('/tahun-ajaran', 'tahun-ajaran.index')->name('tahun_ajaran.index');
+    Volt::route('/pengguna', 'pengguna.index')->name('pengguna.index');
 });

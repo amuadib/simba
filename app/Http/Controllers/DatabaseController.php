@@ -10,7 +10,9 @@ class DatabaseController extends Controller
 {
     public function index()
     {
-
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
         $whitelists = [
             'cache', 'cache_locks', 'failed_jobs',
             'jobs', 'job_batches',
@@ -30,6 +32,9 @@ class DatabaseController extends Controller
 
     public function export(Request $request)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
         $tables = $request->validate([
             'tables' => 'required|array'
         ])['tables'];
@@ -61,6 +66,10 @@ class DatabaseController extends Controller
     }
     public function import(Request $request)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
         $request->validate([
             'file' => 'required|file|mimes:json'
         ]);

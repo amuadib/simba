@@ -48,15 +48,24 @@
             'label' => 'Tahun Ajaran',
         ],
         [
+            'route' => 'pengguna.*',
+            'url' => 'pengguna.index',
+            'icon' => 'bi-person',
+            'roles' => ['admin'],
+            'label' => 'Pengguna',
+        ],
+        [
             'route' => 'settings.*',
             'url' => 'settings.index',
             'icon' => 'bi-gear',
             'label' => 'Pengaturan',
+            'roles' => ['admin'],
         ],
         [
             'route' => 'database.*',
             'url' => 'database.index',
             'icon' => 'bi-database',
+            'roles' => ['admin'],
             'label' => 'Database',
         ],
     ];
@@ -65,6 +74,9 @@
     <div class="fw-bold p-3">Menu</div>
 
     @foreach ($menus as $menu)
+        @if (isset($menu['roles']) && !in_array(Auth::user()->role, $menu['roles']))
+            @continue
+        @endif
         <a href="{{ route($menu['url'] ?? $menu['route']) }}" wire:navigate
             class="{{ request()->routeIs($menu['route']) ? 'active' : '' }}">
             <i class="bi {{ $menu['icon'] }}"></i> {{ $menu['label'] }}

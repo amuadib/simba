@@ -10,11 +10,18 @@ class SettingController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
         return view('admin.setting');
     }
 
     public function update(Request $request)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
         $request->validate([
             'nama_aplikasi' => 'required',
             'nama_lembaga'  => 'required',
