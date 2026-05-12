@@ -97,7 +97,7 @@ new class extends Component {
         if ($siswa) {
             $this->editSiswaId = $siswa->id;
             $this->editSiswaNama = $siswa->nama;
-            $this->editSiswaPanggilan = $siswa->panggilan;
+            $this->editSiswaPanggilan = $siswa->panggilan ?? $siswa->nama;
             $this->editSiswaJenisKelamin = $siswa->jenis_kelamin;
             $this->dispatch('open-modal', id: 'modalEditSantri');
         }
