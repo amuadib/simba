@@ -32,7 +32,10 @@ class Pembelajaran extends Model
     public function anggota()
     {
         return $this->hasMany(AnggotaPembelajaran::class)
-                    ->whereHas('siswa', fn($q) => $q->where('status', 1));
+            ->whereHas('siswa', fn($q) => $q->where('status', 1))
+            ->join('siswa', 'anggota_pembelajaran.siswa_id', '=', 'siswa.id')
+            ->orderBy('siswa.panggilan', 'asc')
+            ->orderBy('siswa.nama', 'asc');
     }
 
     public function anggotaSemua()
