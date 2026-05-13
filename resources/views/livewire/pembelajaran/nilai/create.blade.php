@@ -275,7 +275,7 @@ new class extends Component {
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100" wire:loading.attr="disabled">
+                        <button type="submit" class="btn btn-warning w-100" wire:loading.attr="disabled">
                             <i class="bi bi-save me-1"></i> SIMPAN PERUBAHAN
                         </button>
                     </div>
