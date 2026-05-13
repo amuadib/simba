@@ -29,12 +29,19 @@ class Pembelajaran extends Model
     {
         return $this->belongsTo(Pelajaran::class);
     }
-    public function anggota()
+    public function anggotaSortPanggilan()
     {
         return $this->hasMany(AnggotaPembelajaran::class)
             ->whereHas('siswa', fn($q) => $q->where('status', 1))
             ->join('siswa', 'anggota_pembelajaran.siswa_id', '=', 'siswa.id')
             ->orderBy('siswa.panggilan', 'asc')
+            ->orderBy('siswa.nama', 'asc');
+    }
+    public function anggota()
+    {
+        return $this->hasMany(AnggotaPembelajaran::class)
+            ->whereHas('siswa', fn($q) => $q->where('status', 1))
+            ->join('siswa', 'anggota_pembelajaran.siswa_id', '=', 'siswa.id')
             ->orderBy('siswa.nama', 'asc');
     }
 

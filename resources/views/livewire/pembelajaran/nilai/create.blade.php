@@ -14,6 +14,7 @@ new class extends Component {
     public $inputNilai = [];
     public $inputPresensi = [];
     public $tanggal = '';
+    public $sort = 'nama';
 
     public $editSiswaId;
     public $editSiswaNama;
@@ -117,6 +118,23 @@ new class extends Component {
             $this->dispatch('toast', message: 'Data santri berhasil diupdate', type: 'success');
         }
     }
+
+    public function toggleSort()
+    {
+        $this->sort = $this->sort == 'nama' ? 'panggilan' : 'nama';
+    }
+    public function with()
+    {
+        if ($this->sort == 'nama') {
+            return [
+                'anggota' => $this->pembelajaran->anggota,
+            ];
+        } elseif ($this->sort == 'panggilan') {
+            return [
+                'anggota' => $this->pembelajaran->anggotaSortPanggilan,
+            ];
+        }
+    }
 };
 
 ?>
@@ -139,15 +157,26 @@ new class extends Component {
                 <table class="table-hover mb-0 table align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-4">Nama Siswa</th>
+                            <th class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <span>Nama Siswa</span>
+                                    <button wire:click="toggleSort()" class="btn @if($sort=='nama') btn-primary @else btn-success @endif btn-sm px-2 py-0 ms-2">
+                                        @if ($sort == 'nama')
+                                            L
+                                        @elseif ($sort == 'panggilan')
+                                            P
+                                        @endif
+                                    </button>
+                                </div>
+                            </th>
                             <th class="text-center" width="220">Presensi</th>
                             <th class="text-center" width="350">Nilai</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($pembelajaran->anggota as $anggota)
+                        @foreach ($anggota as $a)
                             @php
-                                $s = $anggota->siswa;
+                                $s = $a->siswa;
                                 $curP = $inputPresensi[$s->id] ?? '-';
                                 $curN = $inputNilai[$s->id] ?? '';
                             @endphp
@@ -157,7 +186,7 @@ new class extends Component {
                                         <div>
                                             {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!} <span class="text-muted fw-normal">({{ $s->rombel->nama }})</span>
                                         </div>
-                                        <button wire:click="editDataSantri('{{ $s->id }}')" class="btn btn-sm btn-link text-secondary p-0" title="Edit Data Santri">
+                                        <button wire:click="editDataSantri('{{ $s->id }}')" class="btn btn-sm btn-link text-warning p-0" title="Edit Data Santri">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
                                     </div>
