@@ -139,7 +139,7 @@ new class extends Component {
         <div class="card-body">
             {{-- FORM AREA --}}
             @if($action === 'create' || $action === 'edit')
-                <div class="bg-light mb-4 rounded border p-3">
+                <div class="bg-primary bg-opacity-10 mb-4 rounded border p-3">
                     <h6 class="fw-bold text-primary mb-3">
                         <i class="bi {{ $action === 'edit' ? 'bi-pencil-square' : 'bi-person-plus' }} me-1"></i>
                         {{ $action === 'edit' ? 'Edit' : 'Tambah' }} Data Pengguna

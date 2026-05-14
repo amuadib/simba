@@ -79,12 +79,15 @@ new class extends \Livewire\Volt\Component {
             'rombel_id' => $this->form_rombel_id,
         ]);
 
-        $siswa->tags()->sync($this->selectedTags);
-
-        foreach ($this->newTags as $name) {
-            $tag = Tag::firstOrCreate(['nama' => $name]);
-            $siswa->tags()->attach($tag->id);
+        $tagIds = [];
+        foreach ($this->selectedTags as $name) {
+            $name = trim($name);
+            if (!empty($name)) {
+                $tag = Tag::firstOrCreate(['nama' => $name]);
+                $tagIds[] = $tag->id;
+            }
         }
+        $siswa->tags()->sync($tagIds);
 
         $this->resetForm();
         $this->dispatch('toast', message: 'Siswa berhasil ditambahkan', type: 'success');
@@ -110,7 +113,7 @@ new class extends \Livewire\Volt\Component {
         $this->nisn = $siswa->nisn;
         $this->form_status = $siswa->status;
         $this->form_rombel_id = $siswa->rombel_id;
-        $this->selectedTags = $siswa->tags->pluck('id')->toArray();
+        $this->selectedTags = $siswa->tags->pluck('nama')->toArray();
         $this->newTags = [];
     }
 
@@ -135,11 +138,15 @@ new class extends \Livewire\Volt\Component {
             'rombel_id' => $this->form_rombel_id,
         ]);
 
-        $siswa->tags()->sync($this->selectedTags);
-        foreach ($this->newTags as $name) {
-            $tag = Tag::firstOrCreate(['nama' => $name]);
-            $siswa->tags()->attach($tag->id);
+        $tagIds = [];
+        foreach ($this->selectedTags as $name) {
+            $name = trim($name);
+            if (!empty($name)) {
+                $tag = Tag::firstOrCreate(['nama' => $name]);
+                $tagIds[] = $tag->id;
+            }
         }
+        $siswa->tags()->sync($tagIds);
 
         $this->resetForm();
         $this->dispatch('toast', message: 'Siswa berhasil diperbarui', type: 'success');
@@ -221,6 +228,7 @@ new class extends \Livewire\Volt\Component {
             'tags' => Tag::orderBy('nama')->get(),
             'statusOptions' => config('local.status_siswa'),
             'selectedSiswa' => session('selected_siswa', []),
+            'allTags' => Tag::orderBy('nama')->pluck('nama')->toArray()
         ];
     }
 };
@@ -244,7 +252,7 @@ new class extends \Livewire\Volt\Component {
 
             {{-- FORM AREA --}}
             @if ($action == 'edit' || $action == 'create')
-                <div class="bg-light mb-4 rounded border p-3">
+                <div class="bg-primary bg-opacity-10 mb-4 rounded border p-3">
                     <h6 class="fw-bold text-primary mb-3">
                         <i class="bi {{ $action == 'edit' ? 'bi-pencil-square' : 'bi-plus-circle' }} me-1"></i>
                         {{ $action == 'edit' ? 'Edit' : 'Tambah' }} Data Siswa
@@ -294,6 +302,56 @@ new class extends \Livewire\Volt\Component {
                                     <option value="{{ $k }}">{{ $v }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Tag</label>
+                            <div x-data="{
+                                open: false,
+                                text: '',
+                                tags: @entangle('selectedTags'),
+                                allTags: @js($allTags),
+                                get suggestions(){
+                                    if(this.text.trim() === '') return [];
+                                    return this.allTags.filter(t => t.toLowerCase().includes(this.text.toLowerCase()) && !this.tags.includes(t));
+                                },
+                                addTag(tag){
+                                    tag = tag.trim();
+                                    if(tag && !this.tags.includes(tag)){
+                                        this.tags.push(tag);
+                                    }
+                                    this.text = '';
+                                    this.open = false;
+                                },
+                                removeTag(index){
+                                    this.tags.splice(index, 1);
+                                }
+                            }" class="position-relative">
+                                <div class="form-control d-flex flex-wrap gap-1 align-items-center" :class="{ 'border-success': open }" style="min-height: 38px;">
+                                    <template x-for="(tag, index) in tags" :key="index">
+                                        <span class="badge bg-primary d-inline-flex align-items-center rounded-1">
+                                            <span x-text="tag"></span>
+                                            <button type="button" @click="removeTag(index)" class="btn-close btn-close-white ms-2" style="font-size: 0.5em;" aria-label="Remove"></button>
+                                        </span>
+                                    </template>
+                                    <input type="text" x-model="text" @keydown.enter.prevent="addTag(text)"
+                                            @keydown.comma.prevent="addTag(text)" @keydown.escape="open = false"
+                                            @focus="open = true" @click.away="open = false"
+                                            class="border-0 p-0 m-0 flex-grow-1 bg-transparent text-sm"
+                                            style="outline: none; min-width: 100px; box-shadow: none;"
+                                            placeholder="">
+                                </div>
+                                <div x-show="open && suggestions.length > 0" x-cloak
+                                     class="position-absolute z-3 mt-1 w-100 bg-body border rounded shadow-sm overflow-auto" style="max-height: 200px;">
+                                    <template x-for="suggestion in suggestions" :key="suggestion">
+                                        <div @click="addTag(suggestion)"
+                                             class="px-3 py-2 text-body border-bottom" style="cursor: pointer;"
+                                             onmouseover="this.classList.add('bg-secondary', 'bg-opacity-10')" onmouseout="this.classList.remove('bg-secondary', 'bg-opacity-10')">
+                                            <span x-text="suggestion"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="form-text small text-muted">Tekan Enter atau Koma untuk menambah tag</div>
+                            </div>
                         </div>
 
                         <div class="col-md-10 d-flex align-items-end gap-2">
