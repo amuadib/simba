@@ -29,3 +29,7 @@ Fitur:
 ## Lisensi
 
 Proyek ini memiliki Lisensi MIT
+
+## Sponsor
+
+Buy me a coffee (or tea, or snacks) :) [Ko-Fi](https://ko-fi.com/amuadib)
