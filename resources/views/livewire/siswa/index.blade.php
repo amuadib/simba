@@ -250,163 +250,246 @@ new class extends \Livewire\Volt\Component {
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
 
-            {{-- FORM AREA --}}
-            @if ($action == 'edit' || $action == 'create')
-                <div class="bg-primary bg-opacity-10 mb-4 rounded border p-3">
-                    <h6 class="fw-bold text-primary mb-3">
-                        <i class="bi {{ $action == 'edit' ? 'bi-pencil-square' : 'bi-plus-circle' }} me-1"></i>
-                        {{ $action == 'edit' ? 'Edit' : 'Tambah' }} Data Siswa
-                    </h6>
-                    <form wire:submit="{{ $action == 'edit' ? 'update' : 'store' }}" class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Nama Lengkap</label>
-                            <input wire:model="nama" class="form-control" placeholder="Nama Lengkap" required>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small fw-bold">Panggilan</label>
-                            <input wire:model="panggilan" class="form-control" placeholder="Panggilan">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small fw-bold">JK</label>
-                            <div class="d-flex gap-3 pt-2">
-                                <div class="form-check">
-                                    <input wire:model="jenis_kelamin" class="form-check-input" type="radio"
-                                        value="L" id="jkL">
-                                    <label class="form-check-label" for="jkL">L</label>
-                                </div>
-                                <div class="form-check">
-                                    <input wire:model="jenis_kelamin" class="form-check-input" type="radio"
-                                        value="P" id="jkP">
-                                    <label class="form-check-label" for="jkP">P</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small fw-bold">NISN</label>
-                            <input wire:model="nisn" class="form-control" placeholder="NISN">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small fw-bold">Rombel</label>
-                            <select wire:model="form_rombel_id" class="form-select" required>
-                                <option value="">--Pilih--</option>
-                                @foreach ($rombels as $r)
-                                    <option value="{{ $r->id }}">{{ $r->nama }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small fw-bold">Status</label>
-                            <select wire:model="form_status" class="form-select" required>
-                                <option value="">--Pilih--</option>
-                                @foreach ($statusOptions as $k => $v)
-                                    <option value="{{ $k }}">{{ $v }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Tag</label>
-                            <div x-data="{
-                                open: false,
-                                text: '',
-                                tags: @entangle('selectedTags'),
-                                allTags: @js($allTags),
-                                get suggestions(){
-                                    if(this.text.trim() === '') return [];
-                                    return this.allTags.filter(t => t.toLowerCase().includes(this.text.toLowerCase()) && !this.tags.includes(t));
-                                },
-                                addTag(tag){
-                                    tag = tag.trim();
-                                    if(tag && !this.tags.includes(tag)){
-                                        this.tags.push(tag);
-                                    }
-                                    this.text = '';
-                                    this.open = false;
-                                },
-                                removeTag(index){
-                                    this.tags.splice(index, 1);
-                                }
-                            }" class="position-relative">
-                                <div class="form-control d-flex flex-wrap gap-1 align-items-center" :class="{ 'border-success': open }" style="min-height: 38px;">
-                                    <template x-for="(tag, index) in tags" :key="index">
-                                        <span class="badge bg-primary d-inline-flex align-items-center rounded-1">
-                                            <span x-text="tag"></span>
-                                            <button type="button" @click="removeTag(index)" class="btn-close btn-close-white ms-2" style="font-size: 0.5em;" aria-label="Remove"></button>
-                                        </span>
-                                    </template>
-                                    <input type="text" x-model="text" @keydown.enter.prevent="addTag(text)"
-                                            @keydown.comma.prevent="addTag(text)" @keydown.escape="open = false"
-                                            @focus="open = true" @click.away="open = false"
-                                            class="border-0 p-0 m-0 flex-grow-1 bg-transparent text-sm"
-                                            style="outline: none; min-width: 100px; box-shadow: none;"
-                                            placeholder="">
-                                </div>
-                                <div x-show="open && suggestions.length > 0" x-cloak
-                                     class="position-absolute z-3 mt-1 w-100 bg-body border rounded shadow-sm overflow-auto" style="max-height: 200px;">
-                                    <template x-for="suggestion in suggestions" :key="suggestion">
-                                        <div @click="addTag(suggestion)"
-                                             class="px-3 py-2 text-body border-bottom" style="cursor: pointer;"
-                                             onmouseover="this.classList.add('bg-secondary', 'bg-opacity-10')" onmouseout="this.classList.remove('bg-secondary', 'bg-opacity-10')">
-                                            <span x-text="suggestion"></span>
-                                        </div>
-                                    </template>
-                                </div>
-                                <div class="form-text small text-muted">Tekan Enter atau Koma untuk menambah tag</div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-10 d-flex align-items-end gap-2">
-                            <button type="submit" class="btn btn-{{ $action == 'edit' ? 'warning' : 'primary' }}">
-                                <i class="bi bi-save me-1"></i> SIMPAN
-                            </button>
-                            <button type="button" wire:click="resetForm" class="btn btn-secondary">BATAL</button>
-                        </div>
-                    </form>
-                </div>
-            @elseif($action == 'show')
-                <div class="bg-info mb-4 rounded border bg-opacity-10 p-3">
-                    <h6 class="fw-bold text-primary mb-3"><i class="bi bi-eye me-1"></i> Detail Siswa</h6>
-                    @php $sData = App\Models\Siswa::find($showId); @endphp
-                    @if ($sData)
-                        <div class="row g-3">
-                            <div class="col-md-3"><strong>Nama</strong><br>{{ $sData->nama }}</div>
-                            <div class="col-md-2"><strong>Panggilan</strong><br>{{ $sData->panggilan ?? '-' }}</div>
-                            <div class="col-md-2"><strong>JK</strong><br>{{ $sData->jenis_kelamin }}</div>
-                            <div class="col-md-2"><strong>NISN</strong><br>{{ $sData->nisn ?? '-' }}</div>
-                            <div class="col-md-3"><strong>Rombel</strong><br>{{ $sData->rombel->nama }}</div>
-                            <div class="col-12"><button wire:click="resetForm"
-                                    class="btn btn-sm btn-secondary">Tutup</button></div>
-                        </div>
-                    @endif
-                </div>
-            @else
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <button wire:click="create" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle me-1"></i>
-                        Tambah Siswa</button>
-                </div>
-            @endif
-
-            {{-- IMPORT AREA --}}
-            <div class="accordion mb-3" id="accordionImport">
-                <div class="accordion-item border-0">
-                    <h2 class="accordion-header">
-                        <button
-                            class="accordion-button collapsed bg-light fw-bold small text-primary border-0 px-3 py-2"
-                            type="button" data-bs-toggle="collapse" data-bs-target="#collapseImport">
-                            <i class="bi bi-upload me-2"></i> Import Data Siswa
+            {{-- TABS AREA --}}
+            <div x-data="{ activeTab: 'form' }" x-init="$watch('$wire.action', value => { if(value === 'edit' || value === 'create' || value === 'show') activeTab = 'form' })">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" :class="{ 'active': activeTab === 'form' }" @click="activeTab = 'form'" type="button" role="tab">
+                            <i class="bi bi-pencil-square me-1"></i> Form Siswa
                         </button>
-                    </h2>
-                    <div id="collapseImport" class="accordion-collapse collapse" data-bs-parent="#accordionImport">
-                        <div class="accordion-body bg-light rounded-bottom border p-3">
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" :class="{ 'active': activeTab === 'filter' }" @click="activeTab = 'filter'" type="button" role="tab">
+                            <i class="bi bi-funnel me-1"></i> Filter
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" :class="{ 'active': activeTab === 'import' }" @click="activeTab = 'import'" type="button" role="tab">
+                            <i class="bi bi-upload me-1"></i> Import
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" :class="{ 'active': activeTab === 'sync' }" @click="activeTab = 'sync'" type="button" role="tab">
+                            <i class="bi bi-arrow-repeat me-1"></i> Sinkron
+                        </button>
+                    </li>
+
+                    {{-- TOMBOL AKSI SEJAJAR TAB --}}
+                    <li class="nav-item ms-auto d-flex align-items-center gap-2 pe-1 pb-1">
+                        @if ($siswaList->count() > 0 && ($q != '' || $rombel_id != '' || $tag_id != ''))
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#modalBulkAddTag">
+                                <i class="bi bi-tags me-1"></i> Tambah Tag Massal
+                            </button>
+                        @endif
+
+                        <button type="button" class="btn btn-outline-info btn-sm position-relative" data-bs-toggle="modal"
+                            data-bs-target="#modalPreviewExport" id="btnPreviewExport">
+                            <i class="bi bi-eye me-1"></i> Preview Ekspor
+                            @if ($selectedSiswaCount > 0)
+                                <span class="position-absolute start-100 translate-middle badge rounded-pill bg-danger top-0">
+                                    {{ $selectedSiswaCount }}
+                                </span>
+                            @endif
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content mb-4">
+                    {{-- FORM AREA --}}
+                    <div x-show="activeTab === 'form'">
+                        @if ($action == 'edit' || $action == 'create')
+                            <div class="bg-primary bg-opacity-10 rounded border p-3">
+                                <h6 class="fw-bold text-primary mb-3">
+                                    <i class="bi {{ $action == 'edit' ? 'bi-pencil-square' : 'bi-plus-circle' }} me-1"></i>
+                                    {{ $action == 'edit' ? 'Edit' : 'Tambah' }} Data Siswa
+                                </h6>
+                                <form wire:submit="{{ $action == 'edit' ? 'update' : 'store' }}" class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Nama Lengkap</label>
+                                        <input wire:model="nama" class="form-control" placeholder="Nama Lengkap" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Panggilan</label>
+                                        <input wire:model="panggilan" class="form-control" placeholder="Panggilan">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">JK</label>
+                                        <div class="d-flex gap-3 pt-2">
+                                            <div class="form-check">
+                                                <input wire:model="jenis_kelamin" class="form-check-input" type="radio"
+                                                    value="L" id="jkL">
+                                                <label class="form-check-label" for="jkL">L</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input wire:model="jenis_kelamin" class="form-check-input" type="radio"
+                                                    value="P" id="jkP">
+                                                <label class="form-check-label" for="jkP">P</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">NISN</label>
+                                        <input wire:model="nisn" class="form-control" placeholder="NISN">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Rombel</label>
+                                        <select wire:model="form_rombel_id" class="form-select" required>
+                                            <option value="">--Pilih--</option>
+                                            @foreach ($rombels as $r)
+                                                <option value="{{ $r->id }}">{{ $r->nama }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Status</label>
+                                        <select wire:model="form_status" class="form-select" required>
+                                            <option value="">--Pilih--</option>
+                                            @foreach ($statusOptions as $k => $v)
+                                                <option value="{{ $k }}">{{ $v }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Tag</label>
+                                        <div x-data="{
+                                            open: false,
+                                            text: '',
+                                            tags: @entangle('selectedTags'),
+                                            allTags: @js($allTags),
+                                            get suggestions(){
+                                                if(this.text.trim() === '') return [];
+                                                return this.allTags.filter(t => t.toLowerCase().includes(this.text.toLowerCase()) && !this.tags.includes(t));
+                                            },
+                                            addTag(tag){
+                                                tag = tag.trim();
+                                                if(tag && !this.tags.includes(tag)){
+                                                    this.tags.push(tag);
+                                                }
+                                                this.text = '';
+                                                this.open = false;
+                                            },
+                                            removeTag(index){
+                                                this.tags.splice(index, 1);
+                                            }
+                                        }" class="position-relative">
+                                            <div class="form-control d-flex flex-wrap gap-1 align-items-center" :class="{ 'border-success': open }" style="min-height: 38px;">
+                                                <template x-for="(tag, index) in tags" :key="index">
+                                                    <span class="badge bg-primary d-inline-flex align-items-center rounded-1">
+                                                        <span x-text="tag"></span>
+                                                        <button type="button" @click="removeTag(index)" class="btn-close btn-close-white ms-2" style="font-size: 0.5em;" aria-label="Remove"></button>
+                                                    </span>
+                                                </template>
+                                                <input type="text" x-model="text" @keydown.enter.prevent="addTag(text)"
+                                                        @keydown.comma.prevent="addTag(text)" @keydown.escape="open = false"
+                                                        @focus="open = true" @click.away="open = false"
+                                                        class="border-0 p-0 m-0 flex-grow-1 bg-transparent text-sm"
+                                                        style="outline: none; min-width: 100px; box-shadow: none;"
+                                                        placeholder="">
+                                            </div>
+                                            <div x-show="open && suggestions.length > 0" x-cloak
+                                                 class="position-absolute z-3 mt-1 w-100 bg-body border rounded shadow-sm overflow-auto" style="max-height: 200px;">
+                                                <template x-for="suggestion in suggestions" :key="suggestion">
+                                                    <div @click="addTag(suggestion)"
+                                                         class="px-3 py-2 text-body border-bottom" style="cursor: pointer;"
+                                                         onmouseover="this.classList.add('bg-secondary', 'bg-opacity-10')" onmouseout="this.classList.remove('bg-secondary', 'bg-opacity-10')">
+                                                        <span x-text="suggestion"></span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            <div class="form-text small text-muted">Tekan Enter atau Koma untuk menambah tag</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-10 d-flex align-items-end gap-2">
+                                        <button type="submit" class="btn btn-{{ $action == 'edit' ? 'warning' : 'primary' }}">
+                                            <i class="bi bi-save me-1"></i> SIMPAN
+                                        </button>
+                                        <button type="button" wire:click="resetForm" class="btn btn-secondary">BATAL</button>
+                                    </div>
+                                </form>
+                            </div>
+                        @elseif($action == 'show')
+                            <div class="bg-info rounded border bg-opacity-10 p-3">
+                                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-eye me-1"></i> Detail Siswa</h6>
+                                @php $sData = App\Models\Siswa::find($showId); @endphp
+                                @if ($sData)
+                                    <div class="row g-3">
+                                        <div class="col-md-3"><strong>Nama</strong><br>{{ $sData->nama }}</div>
+                                        <div class="col-md-2"><strong>Panggilan</strong><br>{{ $sData->panggilan ?? '-' }}</div>
+                                        <div class="col-md-2"><strong>JK</strong><br>{{ $sData->jenis_kelamin }}</div>
+                                        <div class="col-md-2"><strong>NISN</strong><br>{{ $sData->nisn ?? '-' }}</div>
+                                        <div class="col-md-3"><strong>Rombel</strong><br>{{ $sData->rombel->nama }}</div>
+                                        <div class="col-12"><button wire:click="resetForm"
+                                                class="btn btn-sm btn-secondary">Tutup</button></div>
+                                    </div>
+                                @endif
+                            </div>
+                        @else
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button wire:click="create" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle me-1"></i>
+                                    Tambah Siswa</button>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- FILTER AREA --}}
+                    <div x-show="activeTab === 'filter'" style="display: none;">
+                        <div class="bg-light rounded border p-3">
+                            <form wire:submit.prevent class="row g-2">
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <span class="input-group-text border-end-0 bg-white"><i
+                                                class="bi bi-search text-muted"></i></span>
+                                        <input type="text" wire:model.live.debounce.300ms="q"
+                                            class="form-control border-start-0" placeholder="Cari nama siswa...">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <select wire:model.live="rombel_id" class="form-select">
+                                        <option value="">-- Semua Rombel --</option>
+                                        @foreach ($rombels as $k)
+                                            <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select wire:model.live="status" class="form-select">
+                                        <option value="">-- Semua Status --</option>
+                                        @foreach ($statusOptions as $k => $v)
+                                            <option value="{{ $k }}">{{ $v }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select wire:model.live="tag_id" class="form-select">
+                                        <option value="">-- Semua Tag --</option>
+                                        @foreach ($tags as $tag)
+                                            <option value="{{ $tag->id }}">{{ $tag->nama }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" wire:click="resetPage" class="btn btn-success w-100"><i
+                                            class="bi bi-funnel me-1"></i> Filter</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    {{-- IMPORT AREA --}}
+                    <div x-show="activeTab === 'import'" style="display: none;">
+                        <div class="bg-light rounded border p-3">
                             <form wire:submit="import" class="row g-2">
                                 <div class="col-md-6">
-                                    <input type="file" wire:model="importFile" class="form-control form-control-sm"
+                                    <input type="file" wire:model="importFile" class="form-control"
                                         accept=".xlsx,.csv" required>
                                     @error('importFile')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
                                 </div>
                                 <div class="col-md-4">
-                                    <select wire:model="importRombelId" class="form-select form-select-sm" required>
+                                    <select wire:model="importRombelId" class="form-select" required>
                                         <option value="">--Pilih Rombel--</option>
                                         @foreach ($rombels as $k)
                                             <option value="{{ $k->id }}">{{ $k->nama }}</option>
@@ -414,7 +497,7 @@ new class extends \Livewire\Volt\Component {
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <button type="submit" class="btn btn-sm btn-warning w-100"
+                                    <button type="submit" class="btn btn-warning w-100"
                                         wire:loading.attr="disabled">
                                         <i class="bi bi-upload"></i> IMPORT
                                     </button>
@@ -422,70 +505,20 @@ new class extends \Livewire\Volt\Component {
                             </form>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <hr>
-
-            {{-- FILTER AREA --}}
-            <div class="bg-light shadow-xs mb-3 rounded border p-3">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <div class="input-group">
-                            <span class="input-group-text border-end-0 bg-white"><i
-                                    class="bi bi-search text-muted"></i></span>
-                            <input type="text" wire:model.live.debounce.300ms="q"
-                                class="form-control border-start-0" placeholder="Cari nama siswa...">
+                    {{-- SYNC AREA --}}
+                    <div x-show="activeTab === 'sync'" style="display: none;">
+                        <div class="bg-light rounded border p-3">
+                            <form wire:submit.prevent="syncFromMasterApi" class="row g-2">
+                                <div class="col-md-6">
+                                    <button type="button" wire:click="syncFromMasterApi" class="btn btn-primary">
+                                        <i class="bi bi-arrow-repeat me-1"></i> Sinkron dari Master Data
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <select wire:model.live="rombel_id" class="form-select">
-                            <option value="">-- Semua Rombel --</option>
-                            @foreach ($rombels as $k)
-                                <option value="{{ $k->id }}">{{ $k->nama }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select wire:model.live="status" class="form-select">
-                            <option value="">-- Semua Status --</option>
-                            @foreach ($statusOptions as $k => $v)
-                                <option value="{{ $k }}">{{ $v }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select wire:model.live="tag_id" class="form-select">
-                            <option value="">-- Semua Tag --</option>
-                            @foreach ($tags as $tag)
-                                <option value="{{ $tag->id }}">{{ $tag->nama }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button wire:click="resetPage" class="btn btn-success w-100"><i
-                                class="bi bi-arrow-repeat me-1"></i> REFRESH</button>
-                    </div>
                 </div>
-            </div>
-
-            <div class="d-flex mb-3 gap-2">
-                <button type="button" class="btn btn-outline-info btn-sm position-relative" data-bs-toggle="modal"
-                    data-bs-target="#modalPreviewExport" id="btnPreviewExport">
-                    <i class="bi bi-eye me-1"></i> Preview Ekspor
-                    @if ($selectedSiswaCount > 0)
-                        <span class="position-absolute start-100 translate-middle badge rounded-pill bg-danger top-0">
-                            {{ $selectedSiswaCount }}
-                        </span>
-                    @endif
-                </button>
-
-                @if ($siswaList->count() > 0 && ($q != '' || $rombel_id != '' || $tag_id != ''))
-                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
-                        data-bs-target="#modalBulkAddTag">
-                        <i class="bi bi-tags me-1"></i> Tambah Tag Massal
-                    </button>
-                @endif
             </div>
 
             {{-- TABLE --}}
