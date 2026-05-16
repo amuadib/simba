@@ -251,16 +251,16 @@ new class extends \Livewire\Volt\Component {
         <div class="card-body">
 
             {{-- TABS AREA --}}
-            <div x-data="{ activeTab: 'form' }" x-init="$watch('$wire.action', value => { if(value === 'edit' || value === 'create' || value === 'show') activeTab = 'form' })">
+            <div x-data="{ activeTab: 'filter' }" x-init="$watch('$wire.action', value => { if(value === 'edit' || value === 'create' || value === 'show') activeTab = 'form' })">
                 <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" :class="{ 'active': activeTab === 'form' }" @click="activeTab = 'form'" type="button" role="tab">
-                            <i class="bi bi-pencil-square me-1"></i> Form Siswa
-                        </button>
-                    </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" :class="{ 'active': activeTab === 'filter' }" @click="activeTab = 'filter'" type="button" role="tab">
                             <i class="bi bi-funnel me-1"></i> Filter
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" :class="{ 'active': activeTab === 'form' }" @click="activeTab = 'form'" type="button" role="tab">
+                            <i class="bi bi-pencil-square me-1"></i> Form Siswa
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -297,7 +297,7 @@ new class extends \Livewire\Volt\Component {
 
                 <div class="tab-content mb-4">
                     {{-- FORM AREA --}}
-                    <div x-show="activeTab === 'form'">
+                    <div x-show="activeTab === 'form'" style="display: none;">
                         @if ($action == 'edit' || $action == 'create')
                             <div class="bg-primary bg-opacity-10 rounded border p-3">
                                 <h6 class="fw-bold text-primary mb-3">
@@ -434,7 +434,7 @@ new class extends \Livewire\Volt\Component {
                     </div>
 
                     {{-- FILTER AREA --}}
-                    <div x-show="activeTab === 'filter'" style="display: none;">
+                    <div x-show="activeTab === 'filter'">
                         <div class="bg-light rounded border p-3">
                             <form wire:submit.prevent class="row g-2">
                                 <div class="col-md-4">
