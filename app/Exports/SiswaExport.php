@@ -44,7 +44,7 @@ class SiswaExport implements FromCollection, WithHeadings, WithMapping, ShouldAu
             return [
                 $no,
                 $siswa->nisn,
-                $siswa->nama,
+                str_replace("'", '', $siswa->nama), // tanda petik menyebabkan cashout PSP tidak valid
                 '',
                 '',
             ];
