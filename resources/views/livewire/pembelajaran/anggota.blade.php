@@ -28,7 +28,6 @@ new class extends Component {
         $data = [];
         foreach ($this->selectedAvailable as $id) {
             $data[] = [
-                'id' => (string) Str::uuid(),
                 'pembelajaran_id' => $this->pembelajaran->id,
                 'siswa_id' => $id,
                 'created_at' => now(),
@@ -60,6 +59,7 @@ new class extends Component {
         return [
             'rombels' => Rombel::orderBy('tingkat')->get(),
             'availableSiswa' => Siswa::where('rombel_id', $this->rombel_id)
+            ->where('status', 1)
                 ->whereNotIn('id', $enrolledIds)
                 ->orderBy('nama')
                 ->get(),
