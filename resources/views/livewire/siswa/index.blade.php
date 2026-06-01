@@ -31,7 +31,9 @@ new class extends \Livewire\Volt\Component {
     public $selectedSiswaCount = 0;
 
     // Bulk Actions
-    public $bulkTagId = '';
+    public $bulkRombelId = '';
+    public $bulkStatus = '';
+    public $bulkTags = [];
 
     // Import
     public $importFile;
@@ -177,21 +179,66 @@ new class extends \Livewire\Volt\Component {
         }
     }
 
-    public function bulkAddTag()
+    public function bulkUpdate()
     {
-        $this->validate(['bulkTagId' => 'required']);
+        $this->validate([
+            'bulkRombelId' => 'nullable',
+            'bulkStatus' => 'nullable',
+            'bulkTags' => 'array',
+        ]);
 
-        $query = Siswa::query()->when($this->rombel_id, fn($q, $id) => $q->where('rombel_id', $id))->when($this->status, fn($q, $s) => $q->where('status', $s))->when($this->q, fn($q, $search) => $q->where('nama', 'like', "%{$search}%"));
+        if (empty($this->bulkRombelId) && empty($this->bulkStatus) && empty($this->bulkTags)) {
+            $this->dispatch('toast', message: 'Pilih minimal satu data yang ingin diperbarui secara massal', type: 'error');
+            return;
+        }
 
-        foreach ($query->get() as $s) {
-            if (!$s->tags()->where('tag_id', $this->bulkTagId)->exists()) {
-                $s->tags()->attach($this->bulkTagId);
+        $query = Siswa::query()
+            ->when($this->rombel_id, fn($q, $id) => $q->where('rombel_id', $id))
+            ->when($this->tag_id, fn($q, $id) => $q->whereHas('tags', fn($q) => $q->where('tag_id', $id)))
+            ->when($this->status, fn($q, $s) => $q->where('status', $s))
+            ->when($this->q, fn($q, $search) => $q->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                    ->orWhere('panggilan', 'like', "%{$search}%");
+            }));
+
+        $siswaListToUpdate = $query->get();
+
+        if ($siswaListToUpdate->isEmpty()) {
+            $this->dispatch('toast', message: 'Tidak ada data siswa untuk diperbarui', type: 'warning');
+            return;
+        }
+
+        foreach ($siswaListToUpdate as $s) {
+            $updateData = [];
+            if (!empty($this->bulkRombelId)) {
+                $updateData['rombel_id'] = $this->bulkRombelId;
+            }
+            if (!empty($this->bulkStatus)) {
+                $updateData['status'] = $this->bulkStatus;
+            }
+
+            if (!empty($updateData)) {
+                $s->update($updateData);
+            }
+
+            if (!empty($this->bulkTags)) {
+                $tagIds = [];
+                foreach ($this->bulkTags as $name) {
+                    $name = trim($name);
+                    if (!empty($name)) {
+                        $tag = Tag::firstOrCreate(['nama' => $name]);
+                        $tagIds[] = $tag->id;
+                    }
+                }
+                if (!empty($tagIds)) {
+                    $s->tags()->syncWithoutDetaching($tagIds);
+                }
             }
         }
 
-        $this->bulkTagId = '';
-        $this->dispatch('close-modal', id: 'modalBulkAddTag');
-        $this->dispatch('toast', message: 'Tag berhasil ditambahkan secara massal', type: 'success');
+        $this->reset(['bulkRombelId', 'bulkStatus', 'bulkTags']);
+        $this->dispatch('close-modal', id: 'modalBulkUpdate');
+        $this->dispatch('toast', message: 'Data siswa berhasil diperbarui secara massal', type: 'success');
     }
 
     public function import()
@@ -222,13 +269,24 @@ new class extends \Livewire\Volt\Component {
             }))
             ->paginate(25);
 
+        $bulkCount = Siswa::query()
+            ->when($this->rombel_id, fn($q, $id) => $q->where('rombel_id', $id))
+            ->when($this->tag_id, fn($q, $id) => $q->whereHas('tags', fn($q) => $q->where('tag_id', $id)))
+            ->when($this->status, fn($q, $s) => $q->where('status', $s))
+            ->when($this->q, fn($q, $search) => $q->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                    ->orWhere('panggilan', 'like', "%{$search}%");
+            }))
+            ->count();
+
         return [
             'siswaList' => $siswa,
             'rombels' => Rombel::orderBy('tingkat')->get(),
             'tags' => Tag::orderBy('nama')->get(),
             'statusOptions' => config('local.status_siswa'),
             'selectedSiswa' => session('selected_siswa', []),
-            'allTags' => Tag::orderBy('nama')->pluck('nama')->toArray()
+            'allTags' => Tag::orderBy('nama')->pluck('nama')->toArray(),
+            'bulkCount' => $bulkCount,
         ];
     }
 };
@@ -276,10 +334,10 @@ new class extends \Livewire\Volt\Component {
 
                     {{-- TOMBOL AKSI SEJAJAR TAB --}}
                     <li class="nav-item ms-auto d-flex align-items-center gap-2 pe-1 pb-1">
-                        @if ($siswaList->count() > 0 && ($q != '' || $rombel_id != '' || $tag_id != ''))
+                        @if ($siswaList->count() > 0 && ($q != '' || $rombel_id != '' || $status != '' || $tag_id != ''))
                             <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
-                                data-bs-target="#modalBulkAddTag">
-                                <i class="bi bi-tags me-1"></i> Tambah Tag Massal
+                                data-bs-target="#modalBulkUpdate">
+                                <i class="bi bi-pencil-square me-1"></i> Update Massal
                             </button>
                         @endif
 
@@ -600,28 +658,88 @@ new class extends \Livewire\Volt\Component {
         </div>
     </div>
 
-    {{-- MODAL BULK TAG --}}
-    <div wire:ignore.self class="modal fade" id="modalBulkAddTag" tabindex="-1">
+    {{-- MODAL BULK UPDATE --}}
+    <div wire:ignore.self class="modal fade" id="modalBulkUpdate" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Tambah Tag secara Massal</h5>
+                    <h5 class="modal-title">Update Data secara Massal</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="small text-muted">Tag akan ditambahkan ke <strong>semua siswa</strong> hasil filter saat
-                        ini.</p>
+                    <p class="small text-muted">
+                        Perubahan akan diterapkan pada <strong>{{ $bulkCount }}</strong> siswa hasil filter saat ini.
+                    </p>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Pilih Tag</label>
-                        <select wire:model="bulkTagId" class="form-select">
-                            <option value="">-- Pilih Tag --</option>
-                            @foreach ($tags as $tag)
-                                <option value="{{ $tag->id }}">{{ $tag->nama }}</option>
+                        <label class="form-label small fw-bold">Kelas (Rombel)</label>
+                        <select wire:model="bulkRombelId" class="form-select">
+                            <option value="">-- Tetap (Tidak Berubah) --</option>
+                            @foreach ($rombels as $r)
+                                <option value="{{ $r->id }}">{{ $r->nama }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <button wire:click="bulkAddTag" class="btn btn-primary w-100" wire:loading.attr="disabled">
-                        <i class="bi bi-save me-1"></i> SIMPAN TAG
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Status</label>
+                        <select wire:model="bulkStatus" class="form-select">
+                            <option value="">-- Tetap (Tidak Berubah) --</option>
+                            @foreach ($statusOptions as $k => $v)
+                                <option value="{{ $k }}">{{ $v }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Tambah Tag</label>
+                        <div x-data="{
+                            open: false,
+                            text: '',
+                            tags: @entangle('bulkTags'),
+                            allTags: @js($allTags),
+                            get suggestions(){
+                                if(this.text.trim() === '') return [];
+                                return this.allTags.filter(t => t.toLowerCase().includes(this.text.toLowerCase()) && !this.tags.includes(t));
+                            },
+                            addTag(tag){
+                                tag = tag.trim();
+                                if(tag && !this.tags.includes(tag)){
+                                    this.tags.push(tag);
+                                }
+                                this.text = '';
+                                this.open = false;
+                            },
+                            removeTag(index){
+                                this.tags.splice(index, 1);
+                            }
+                        }" class="position-relative">
+                            <div class="form-control d-flex flex-wrap gap-1 align-items-center" :class="{ 'border-success': open }" style="min-height: 38px;">
+                                <template x-for="(tag, index) in tags" :key="index">
+                                    <span class="badge bg-primary d-inline-flex align-items-center rounded-1">
+                                        <span x-text="tag"></span>
+                                        <button type="button" @click="removeTag(index)" class="btn-close btn-close-white ms-2" style="font-size: 0.5em;" aria-label="Remove"></button>
+                                    </span>
+                                </template>
+                                <input type="text" x-model="text" @keydown.enter.prevent="addTag(text)"
+                                        @keydown.comma.prevent="addTag(text)" @keydown.escape="open = false"
+                                        @focus="open = true" @click.away="open = false"
+                                        class="border-0 p-0 m-0 flex-grow-1 bg-transparent text-sm"
+                                        style="outline: none; min-width: 100px; box-shadow: none;"
+                                        placeholder="">
+                            </div>
+                            <div x-show="open && suggestions.length > 0" x-cloak
+                                 class="position-absolute z-3 mt-1 w-100 bg-body border rounded shadow-sm overflow-auto" style="max-height: 200px;">
+                                <template x-for="suggestion in suggestions" :key="suggestion">
+                                    <div @click="addTag(suggestion)"
+                                         class="px-3 py-2 text-body border-bottom" style="cursor: pointer;"
+                                         onmouseover="this.classList.add('bg-secondary', 'bg-opacity-10')" onmouseout="this.classList.remove('bg-secondary', 'bg-opacity-10')">
+                                        <span x-text="suggestion"></span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="form-text small text-muted">Tekan Enter atau Koma untuk menambah tag</div>
+                        </div>
+                    </div>
+                    <button wire:click="bulkUpdate" class="btn btn-primary w-100" wire:loading.attr="disabled">
+                        <i class="bi bi-save me-1"></i> SIMPAN PERUBAHAN MASSAL
                     </button>
                 </div>
             </div>
