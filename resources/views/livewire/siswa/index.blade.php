@@ -7,6 +7,7 @@ use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SiswaImport;
+use App\Exports\SiswaExport;
 
 new class extends \Livewire\Volt\Component {
     use WithPagination, WithFileUploads;
@@ -37,7 +38,7 @@ new class extends \Livewire\Volt\Component {
 
     // Import
     public $importFile;
-    public $importRombelId = '';
+    public $importResults = [];
 
     public $paginationTheme = 'bootstrap';
 
@@ -245,15 +246,21 @@ new class extends \Livewire\Volt\Component {
     {
         $this->validate([
             'importFile' => 'required|mimes:xlsx,xls,csv',
-            'importRombelId' => 'required',
         ]);
 
-        Excel::import(new SiswaImport($this->importRombelId), $this->importFile->getRealPath());
-
-        $this->reset(['importFile', 'importRombelId']);
-        $this->dispatch('toast', message: 'Import berhasil', type: 'success');
+        $import = new SiswaImport();
+        Excel::import($import, $this->importFile->getRealPath());
+        $this->importResults = $import->getResults();
+        $errorsCount = count($this->importResults['errors']);
+        $message = "Impor data siswa selesai. Sukses: {$this->importResults['success']}" . ($errorsCount > 0 ? ", Gagal: {$errorsCount}" : "");
+        $this->reset(['importFile']);
+        $this->dispatch('toast', message: $message, type: $errorsCount > 0 ? 'warning' : 'success');
     }
 
+    public function exportTemplate()
+    {
+        return Excel::download(new SiswaExport([], 'template-import'), 'SIMBA-template-import-siswa-'.date('YmdHis').'.xlsx');
+    }
     // --- DATA FETCHING ---
 
     public function with()
@@ -546,18 +553,16 @@ new class extends \Livewire\Volt\Component {
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
                                 </div>
-                                <div class="col-md-4">
-                                    <select wire:model="importRombelId" class="form-select" required>
-                                        <option value="">--Pilih Rombel--</option>
-                                        @foreach ($rombels as $k)
-                                            <option value="{{ $k->id }}">{{ $k->nama }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
                                 <div class="col-md-2">
                                     <button type="submit" class="btn btn-warning w-100"
                                         wire:loading.attr="disabled">
                                         <i class="bi bi-upload"></i> IMPORT
+                                    </button>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" wire:click="exportTemplate" class="btn btn-primary w-100"
+                                        wire:loading.attr="disabled">
+                                        <i class="bi bi-download"></i> TEMPLATE
                                     </button>
                                 </div>
                             </form>
