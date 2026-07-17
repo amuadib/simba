@@ -281,7 +281,7 @@ new class extends \Livewire\Volt\Component {
 
         return [
             'siswaList' => $siswa,
-            'rombels' => Rombel::orderBy('tingkat')->get(),
+            'rombels' => Rombel::where('tahun_ajaran_id', session('tahun_ajaran_id'))->orderBy('tingkat')->get(),
             'tags' => Tag::orderBy('nama')->get(),
             'statusOptions' => config('local.status_siswa'),
             'selectedSiswa' => session('selected_siswa', []),
@@ -584,6 +584,7 @@ new class extends \Livewire\Volt\Component {
                 <table class="table-hover table border align-middle">
                     <thead class="table-light">
                         <tr>
+                            <th>No</th>
                             <th>Nama</th>
                             <th>NISN</th>
                             <th>Rombel</th>
@@ -595,11 +596,12 @@ new class extends \Livewire\Volt\Component {
                     <tbody>
                         @forelse ($siswaList as $s)
                             <tr wire:key="row-{{ $s->id }}">
+                                <td>{{ $loop->iteration + ($siswaList->currentPage() - 1) * $siswaList->perPage() }}</td>
                                 <td>
                                     {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
                                 </td>
                                 <td>{{ $s->nisn ?: '-' }}</td>
-                                <td><span class="badge bg-secondary opacity-75">{{ $s->rombel->nama }}</span></td>
+                                <td><span class="badge bg-secondary opacity-75">{{ $s->rombel->nama??'' }}</span></td>
                                 <td>
                                     @php
                                         $badges = [

@@ -2,6 +2,21 @@
 
 use App\Models\Setting;
 
+if(!function_exists('toRoman')){
+    function toRoman($number)
+    {
+        $map = array('X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1);
+        $result = '';
+
+        foreach ($map as $roman => $integer) {
+            while ($number >= $integer) {
+                $result .= $roman;
+                $number -= $integer;
+            }
+        }
+        return $result;
+    }
+}
 if (!function_exists('setting')) {
     function setting($key, $default = null)
     {

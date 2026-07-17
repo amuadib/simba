@@ -24,7 +24,9 @@ new #[Layout('layouts.guest')] class extends Component {
 
         if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
             session()->regenerate();
-
+            $tahun_ajaran = \App\Models\TahunAjaran::where('aktif', 'y')->first();
+            session()->put('tahun_ajaran_id', $tahun_ajaran->id);
+            session()->put('tahun_ajaran_nama', $tahun_ajaran->nama);
             return redirect()->intended(route('dashboard'));
         }
 

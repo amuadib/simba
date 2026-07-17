@@ -365,11 +365,10 @@
         <button class="btn btn-outline-secondary d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
             <i class="bi bi-list"></i>
         </button>
-
         <span class="fw-bold d-flex align-items-center ms-2 gap-2">
             <img src="{{ logo_url() }}" alt="logo"
                 style="height:28px;width:28px;object-fit:contain;border-radius:6px;">
-            {{ setting('nama_aplikasi', 'Sistem Presensi') }}
+            {{ setting('nama_aplikasi', 'Sistem Presensi') }} [{{ session('tahun_ajaran_nama') }}]
         </span>
         <div class="d-flex align-items-center ms-auto">
             <div class="text-muted mx-2" id="tanggal_live">

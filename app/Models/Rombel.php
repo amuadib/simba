@@ -12,5 +12,11 @@ class Rombel extends Model
     protected $fillable = [
         'nama',
         'tingkat',
+        'tahun_ajaran_id',
     ];
+
+    public function tahunAjaran()
+    {
+        return $this->belongsTo(TahunAjaran::class);
+    }
 }

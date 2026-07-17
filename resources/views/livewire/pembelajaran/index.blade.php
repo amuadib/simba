@@ -28,6 +28,10 @@ new class extends \Livewire\Volt\Component {
 
     public $paginationTheme = 'bootstrap';
 
+    public function mount()
+    {
+        $this->tahun_ajaran_id = session('tahun_ajaran_id');
+    }
     public function updated($property)
     {
         if (in_array($property, ['pelajaran_id', 'kelas_id'])) {
@@ -78,7 +82,6 @@ new class extends \Livewire\Volt\Component {
         $p = Pembelajaran::findOrFail($id);
         $this->editingId = $id;
         $this->action = 'edit';
-        $this->tahun_ajaran_id = $p->tahun_ajaran_id;
         $this->pelajaran_id = $p->pelajaran_id;
         $this->keterangan = $p->keterangan;
     }
@@ -86,25 +89,23 @@ new class extends \Livewire\Volt\Component {
     public function update()
     {
         $this->validate([
-            'tahun_ajaran_id' => 'required',
             'pelajaran_id' => 'required',
             'keterangan' => 'nullable',
         ]);
 
         $p = Pembelajaran::findOrFail($this->editingId);
         $p->update([
-            'tahun_ajaran_id' => $this->tahun_ajaran_id,
             'pelajaran_id' => $this->pelajaran_id,
             'keterangan' => $this->keterangan,
         ]);
 
-        $this->reset(['tahun_ajaran_id', 'pelajaran_id', 'kelas_id', 'keterangan', 'editingId', 'action']);
+        $this->reset(['pelajaran_id', 'kelas_id', 'keterangan', 'editingId', 'action']);
         $this->dispatch('toast', message: 'Pembelajaran berhasil diperbarui', type: 'success');
     }
 
     public function cancelEdit()
     {
-        $this->reset(['tahun_ajaran_id', 'pelajaran_id', 'kelas_id', 'keterangan', 'editingId', 'action']);
+        $this->reset(['pelajaran_id', 'kelas_id', 'keterangan', 'editingId', 'action']);
     }
     public function delete($id)
     {
@@ -158,10 +159,13 @@ new class extends \Livewire\Volt\Component {
     public function with()
     {
         return [
-            'pembelajarans' => Pembelajaran::with(['tahunAjaran', 'pelajaran', 'anggota', 'jadwal.user'])->orderBy('keterangan', 'asc')->paginate(15),
-            'tahunajarans' => TahunAjaran::orderBy('nama', 'desc')->get(),
+            'pembelajarans' => Pembelajaran::with(['tahunAjaran', 'pelajaran', 'anggota', 'jadwal.user'])
+                ->where('tahun_ajaran_id', session('tahun_ajaran_id'))
+                ->orderBy('keterangan', 'asc')->paginate(15),
             'pelajarans' => Pelajaran::orderBy('nama', 'desc')->get(),
-            'rombels' => Rombel::orderBy('nama', 'desc')->get(),
+            'rombels' => Rombel::where('tahun_ajaran_id', session('tahun_ajaran_id'))
+            ->orderBy('nama', 'desc')
+            ->get(),
             'users' => User::orderBy('name')->get(),
             'hariOptions' => [
                 1 => 'Senin',
@@ -197,13 +201,7 @@ new class extends \Livewire\Volt\Component {
                 <form wire:submit="update" class="row g-2 align-items-end mb-3">
                     <div class="col-md-3">
                         <label class="form-label small fw-bold">Tahun Ajaran</label>
-                        <select wire:model="tahun_ajaran_id"
-                            class="form-select @error('tahun_ajaran_id') is-invalid @enderror" required>
-                            <option value="">--Pilih TA--</option>
-                            @foreach ($tahunajarans as $ta)
-                                <option value="{{ $ta->id }}">{{ $ta->nama }}</option>
-                            @endforeach
-                        </select>
+                        <span class="form-control small fw-bold">{{ session('tahun_ajaran_nama') }}</span>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small fw-bold">Pelajaran</label>
@@ -227,17 +225,11 @@ new class extends \Livewire\Volt\Component {
                 </form>
             @else
                 <form wire:submit="store" class="row g-2 align-items-end mb-3">
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label small fw-bold">Tahun Ajaran</label>
-                        <select wire:model="tahun_ajaran_id"
-                            class="form-select @error('tahun_ajaran_id') is-invalid @enderror" required>
-                            <option value="">--Pilih--</option>
-                            @foreach ($tahunajarans as $ta)
-                                <option value="{{ $ta->id }}">{{ $ta->nama }}</option>
-                            @endforeach
-                        </select>
+                        <span class="form-control small fw-bold">{{ session('tahun_ajaran_nama') }}</span>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label small fw-bold">Pelajaran</label>
                         <select wire:model="pelajaran_id"
                             class="form-select @error('pelajaran_id') is-invalid @enderror" required>
@@ -247,7 +239,7 @@ new class extends \Livewire\Volt\Component {
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-4">
                         <label class="form-label small fw-bold">Kelas (Otomatis)</label>
                         <select wire:model="kelas_id" class="form-select">
                             <option value="">--Pilih Kelas--</option>

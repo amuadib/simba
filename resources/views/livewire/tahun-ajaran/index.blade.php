@@ -19,11 +19,17 @@ new class extends \Livewire\Volt\Component {
             'aktif' => 'required|in:y,n',
         ]);
 
-        TahunAjaran::create([
+        $ta = TahunAjaran::create([
             'nama' => $this->nama,
             'aktif' => $this->aktif,
         ]);
 
+        if ($this->aktif == 'y') {
+            //Reset Session Aktif
+            session()->put('tahun_ajaran_id', $ta->id);
+            session()->put('tahun_ajaran_nama', $ta->nama);
+            TahunAjaran::where('id', '!=', $ta->id)->update(['aktif' => 'n']);
+        }
         $this->reset(['nama', 'aktif']);
         $this->dispatch('toast', message: 'Tahun Ajaran berhasil ditambahkan', type: 'success');
     }
@@ -49,6 +55,12 @@ new class extends \Livewire\Volt\Component {
             'aktif' => $this->aktif,
         ]);
 
+        if ($this->aktif == 'y') {
+            //Reset Session Aktif
+            session()->put('tahun_ajaran_id', $ta->id);
+            session()->put('tahun_ajaran_nama', $ta->nama);
+            TahunAjaran::where('id', '!=', $ta->id)->update(['aktif' => 'n']);
+        }
         $this->reset(['nama', 'aktif', 'editingId']);
         $this->dispatch('toast', message: 'Tahun Ajaran berhasil diperbarui', type: 'success');
     }

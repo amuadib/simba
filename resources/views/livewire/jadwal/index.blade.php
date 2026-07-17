@@ -12,17 +12,12 @@ new class extends Component {
     public function with()
     {
         $query = Jadwal::with(['pembelajaran.pelajaran', 'pembelajaran.tahunAjaran', 'user'])
+        ->where('tahun_ajaran_id', session('tahun_ajaran_id'))
             ->orderBy('jam_mulai')
             ->orderBy('hari');
 
         if ($this->filter_user_id) {
             $query->where('user_id', $this->filter_user_id);
-        }
-
-        if ($this->filter_tahun_ajaran_id) {
-            $query->whereHas('pembelajaran', function ($q) {
-                $q->where('tahun_ajaran_id', $this->filter_tahun_ajaran_id);
-            });
         }
 
         $jadwals = $query->get();
@@ -53,9 +48,8 @@ new class extends Component {
         }
 
         $users = User::orderBy('name')->get();
-        $tahunAjarans = TahunAjaran::orderBy('nama', 'desc')->get();
 
-        return compact('timeSlots', 'matrix', 'users', 'tahunAjarans');
+        return compact('timeSlots', 'matrix', 'users');
     }
 };
 ?>
@@ -63,17 +57,11 @@ new class extends Component {
 <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="mb-0">Jadwal Pelajaran</h4>
+            <h4 class="mb-0">Jadwal Pelajaran {{ session('tahun_ajaran_nama') }}</h4>
             <small class="text-muted">Jadwal Pelajaran seluruh kelas dan guru</small>
         </div>
 
         <div class="d-flex gap-2">
-            <select wire:model.live="filter_tahun_ajaran_id" class="form-select form-select-sm shadow-sm">
-                <option value="">Semua Tahun Ajaran</option>
-                @foreach ($tahunAjarans as $ta)
-                    <option value="{{ $ta->id }}">{{ $ta->nama }}</option>
-                @endforeach
-            </select>
             <select wire:model.live="filter_user_id" class="form-select form-select-sm shadow-sm">
                 <option value="">Semua Guru</option>
                 @foreach ($users as $u)

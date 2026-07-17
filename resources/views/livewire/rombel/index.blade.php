@@ -22,6 +22,7 @@ new class extends \Livewire\Volt\Component {
         Rombel::create([
             'nama' => $this->nama,
             'tingkat' => $this->tingkat,
+            'tahun_ajaran_id' => session('tahun_ajaran_id'),
         ]);
 
         $this->reset(['nama', 'tingkat']);
@@ -47,6 +48,7 @@ new class extends \Livewire\Volt\Component {
         $rombel->update([
             'nama' => $this->nama,
             'tingkat' => $this->tingkat,
+            'tahun_ajaran_id' => session('tahun_ajaran_id'),
         ]);
 
         $this->reset(['nama', 'tingkat', 'editingId']);
@@ -67,8 +69,79 @@ new class extends \Livewire\Volt\Component {
     public function with()
     {
         return [
-            'rombels' => Rombel::orderBy('tingkat')->orderBy('nama')->paginate(15),
+            'rombels' => Rombel::where('tahun_ajaran_id', session('tahun_ajaran_id'))->orderBy('tingkat')->orderBy('nama')->paginate(15),
         ];
+    }
+
+    public function naikkanTingkat()
+    {
+        $tahun_ajaran_sekarang = session('tahun_ajaran_nama');
+        $tahun_ajaran_sekarang_id = session('tahun_ajaran_id');
+        $tahun_ajaran_lalu = explode('/', $tahun_ajaran_sekarang)[0] - 1 . '/' . explode('/', $tahun_ajaran_sekarang)[1] - 1;
+        $tahun_ajaran_lalu_id = \App\Models\TahunAjaran::where('nama', $tahun_ajaran_lalu)->first()->id;
+              
+        $new_rombel_array=[];
+        $rollback_query=[];
+        foreach (Rombel::where('tahun_ajaran_id', $tahun_ajaran_lalu_id)->get() as $rombel) {
+            if(!in_array($rombel->tingkat, [6,9,12])){
+                $prefix='';
+                if(count(explode(' ',$rombel->nama))>1){
+                    $prefix=explode(' ',$rombel->nama)[1];
+                }
+                $tingkat = $rombel->tingkat+1;  
+                $nama = trim(toRoman($tingkat) . ' ' . $prefix);
+                
+                $new_rombel_array[$nama] = [
+                    'tingkat' => $tingkat,
+                    'tahun_ajaran_id' => $tahun_ajaran_sekarang_id,
+                ];
+            }else{
+                \App\Models\Siswa::where('status',1)->where('rombel_id', $rombel->id)->update([
+                    'status' => 2,
+                ]);
+                $rollback_query[]="UPDATE siswa SET status=1 WHERE rombel_id=".$rombel->id." AND status=2;";
+                
+            }
+        }
+        if(!$new_rombel_array){
+            $this->dispatch('toast', message: 'Tidak ada rombel yang bisa naik tingkat', type: 'error');
+            return;
+        }
+        foreach(Rombel::where('tahun_ajaran_id', $tahun_ajaran_sekarang_id)->get() as $rombel){
+            if(!isset($new_rombel_array[$rombel->nama])){
+                $new_rombel_array[$rombel->nama] = [
+                    'tingkat' => $rombel->tingkat,
+                    'tahun_ajaran_id' => $tahun_ajaran_sekarang_id,
+                ];
+            }
+        }
+
+        foreach($new_rombel_array as $nama => $data){
+            $rombel = Rombel::create([
+                'nama' => $nama,
+                'tingkat' => $data['tingkat'],
+                'tahun_ajaran_id' => $data['tahun_ajaran_id'],
+            ]);
+
+            $rollback_query[]="DELETE FROM rombel WHERE id=\"".$rombel->id."\";";
+            
+            //Rombel lama
+            $prefix='';
+            if(count(explode(' ',$rombel->nama))>1){
+                $prefix=explode(' ',$rombel->nama)[1];
+            }
+            $tingkat = $rombel->tingkat-1;  
+            $nama = trim(toRoman($tingkat) . ' ' . $prefix);
+            $old_rombel = Rombel::where('tahun_ajaran_id', $tahun_ajaran_lalu_id)->where('nama', $nama)->first();
+            if(isset($old_rombel->id)){
+                \App\Models\Siswa::where('status',1)->where('rombel_id', $old_rombel->id)->update([
+                    'rombel_id' => $rombel->id,
+                ]);
+                $rollback_query[]="UPDATE siswa SET rombel_id=\"".$old_rombel->id."\" WHERE rombel_id=\"".$rombel->id."\";";
+            }
+        }
+        \Illuminate\Support\Facades\Log::info('Naikkan tingkat Rombel - Rollback Query', $rollback_query);
+        $this->dispatch('toast', message: 'Rombel berhasil dinaikkan tingkatnya', type: 'success');
     }
 };
 
@@ -167,7 +240,14 @@ new class extends \Livewire\Volt\Component {
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="text-center">Tidak ada data</td>
+                                <td colspan="3" class="text-center">
+                                    Tidak ada data
+                                    <div class="mt-2">
+                                        <button wire:click="naikkanTingkat" class="btn btn-sm btn-primary">
+                                            Proses Kenaikan Kelas Otomatis
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
