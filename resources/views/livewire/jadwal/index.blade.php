@@ -2,17 +2,15 @@
 
 use App\Models\Jadwal;
 use App\Models\User;
-use App\Models\TahunAjaran;
 use Livewire\Volt\Component;
 
 new class extends Component {
     public $filter_user_id = '';
-    public $filter_tahun_ajaran_id = '';
 
     public function with()
     {
         $query = Jadwal::with(['pembelajaran.pelajaran', 'pembelajaran.tahunAjaran', 'user'])
-        ->where('tahun_ajaran_id', session('tahun_ajaran_id'))
+            ->whereHas('pembelajaran.tahunAjaran', fn($q) => $q->where('id', session('tahun_ajaran_id')))
             ->orderBy('jam_mulai')
             ->orderBy('hari');
 
@@ -21,7 +19,6 @@ new class extends Component {
         }
 
         $jadwals = $query->get();
-
         // Get unique time slots
         $timeSlots = [];
         foreach ($jadwals as $j) {
