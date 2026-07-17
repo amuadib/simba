@@ -24,6 +24,7 @@ new class extends Component {
         $hariCarbon = $hariIni; // Carbon isoWeekday: 1=Mon ... 7=Sun → sesuai model
 
         $this->jadwalHariIni = Jadwal::with(['pembelajaran.pelajaran', 'pembelajaran.tahunAjaran', 'pembelajaran.anggota', 'pembelajaran.latestJurnal'])
+            ->where('tahun_ajaran_id', session('tahun_ajaran_id'))
             ->where('user_id', auth()->id())
             ->where('hari', $hariCarbon)
             ->orderBy('jam_mulai')
