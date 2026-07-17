@@ -57,7 +57,7 @@ new class extends Component {
         $enrolledIds = $this->pembelajaran->anggota()->pluck('siswa_id')->toArray();
 
         return [
-            'rombels' => Rombel::orderBy('tingkat')->get(),
+            'rombels' => Rombel::where('tahun_ajaran_id', session('tahun_ajaran_id'))->orderBy('tingkat')->get(),
             'availableSiswa' => Siswa::where('rombel_id', $this->rombel_id)
             ->where('status', 1)
                 ->whereNotIn('id', $enrolledIds)
