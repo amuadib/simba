@@ -1,3 +1,4 @@
+@section('title', 'Jadwal Pelajaran '. session('tahun_ajaran_nama'))
 <?php
 
 use App\Models\Jadwal;

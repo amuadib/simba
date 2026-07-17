@@ -1,3 +1,5 @@
+@section('title', 'Data Rombel')
+
 <?php
 
 use App\Models\Rombel;

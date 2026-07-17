@@ -1,3 +1,4 @@
+@section('title', 'Data Pelajaran')
 <?php
 
 use App\Models\Pelajaran;

@@ -1,3 +1,5 @@
+@section('title','Data Tahun Ajaran')
+
 <?php
 
 use App\Models\TahunAjaran;

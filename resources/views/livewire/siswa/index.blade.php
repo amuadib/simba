@@ -1,3 +1,5 @@
+@section('title', 'Data Siswa')
+
 <?php
 
 use App\Models\Siswa;

@@ -1,3 +1,4 @@
+@section('title', 'Manajemen Pengguna')
 <?php
 
 use App\Models\User;
