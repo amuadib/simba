@@ -218,9 +218,9 @@ new class extends \Livewire\Volt\Component {
                         <input wire:model="keterangan" class="form-control" placeholder="Keterangan">
                     </div>
                     <div class="col-md-2 d-flex gap-2">
-                        <button type="submit" class="btn btn-sm btn-warning w-100"><i class="bi bi-save me-1"></i> SIMPAN</button>
+                        <button type="submit" class="btn btn-warning w-100"><i class="bi bi-save me-1"></i> SIMPAN</button>
                         <button type="button" wire:click="cancelEdit"
-                            class="btn btn-sm btn-secondary w-100">BATAL</button>
+                            class="btn btn-secondary w-100">BATAL</button>
                     </div>
                 </form>
             @else
