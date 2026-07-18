@@ -1,3 +1,4 @@
+@section('title', 'Data Pembelajaran ' . session('tahun_ajaran_nama'))
 <?php
 
 use App\Models\Pembelajaran;
