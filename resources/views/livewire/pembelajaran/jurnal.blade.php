@@ -146,7 +146,7 @@ new class extends \Livewire\Volt\Component {
             @if ($mode=='update')
                 <form wire:submit="update" class="row g-2 mb-3">
                     <div class="col-sm-2">
-                        <input wire:model="tanggal" class="form-control @error('tanggal') is-invalid @enderror"
+                        <input type="date" wire:model="tanggal" class="form-control @error('tanggal') is-invalid @enderror"
                             placeholder="Tanggal" required>
                         @error('tanggal')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -168,7 +168,7 @@ new class extends \Livewire\Volt\Component {
                 @elseif($mode=='salin')
                 <form wire:submit="salin" class="row g-2 mb-3">
                     <div class="col-sm-2">
-                        <input wire:model="tanggal" class="form-control @error('tanggal') is-invalid @enderror"
+                        <input type="date" wire:model="tanggal" class="form-control @error('tanggal') is-invalid @enderror"
                             placeholder="Tanggal" required>
                         @error('tanggal')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -201,7 +201,7 @@ new class extends \Livewire\Volt\Component {
             @else
                 <form wire:submit="store" class="row g-2 mb-3">
                     <div class="col-sm-2">
-                        <input wire:model="tanggal" class="form-control @error('tanggal') is-invalid @enderror"
+                        <input type="date" wire:model="tanggal" class="form-control @error('tanggal') is-invalid @enderror"
                             placeholder="Tanggal" required>
                         @error('tanggal')
                             <div class="invalid-feedback">{{ $message }}</div>
