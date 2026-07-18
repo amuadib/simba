@@ -280,8 +280,6 @@ new class extends \Livewire\Volt\Component {
                 <table class="table-bordered table-hover table">
                     <thead class="table-light">
                         <tr>
-                            <th>Keterangan</th>
-                            <th>Tahun Ajaran</th>
                             <th>Pelajaran</th>
                             <th class="text-center">Anggota</th>
                             <th>Jadwal</th>
@@ -292,9 +290,6 @@ new class extends \Livewire\Volt\Component {
                         @forelse ($pembelajarans as $pb)
                             <tr wire:key="row-{{ $pb->id }}">
                                 <td class="fw-bold">{{ $pb->keterangan }}</td>
-                                <td>{{ $pb->tahunAjaran->nama }}</td>
-                                <td><span class="badge bg-light text-dark border">{{ $pb->pelajaran->nama }}</span>
-                                </td>
                                 <td class="text-center">
                                     @if($pb->anggota->count() > 0)
                                         <span class="badge bg-info text-white">{{ $pb->anggota->count() }}</span>
