@@ -73,7 +73,7 @@ new class extends \Livewire\Volt\Component {
             }
         }
 
-        $this->reset(['tahun_ajaran_id', 'pelajaran_id', 'kelas_id', 'keterangan']);
+        $this->reset(['pelajaran_id', 'kelas_id', 'keterangan']);
         $this->dispatch('toast', message: 'Pembelajaran berhasil ditambahkan', type: 'success');
     }
 
