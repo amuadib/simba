@@ -1,3 +1,4 @@
+@section('title', 'Jurnal Pembelajaran ' . $pembelajaran->keterangan)
 <?php
 
 use App\Models\Jurnal;
