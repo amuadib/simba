@@ -328,7 +328,6 @@
             .toast-msg {
                 left: 16px;
                 right: 16px;
-                bottom: 16px;
                 text-align: center;
             }
         }
