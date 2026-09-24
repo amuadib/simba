@@ -32,8 +32,14 @@ class SiswaExport implements FromCollection, WithHeadings, WithMapping, ShouldAu
                 ]
             ]);
         }
-        return Siswa::with('rombel')
-            ->when($this->ids, fn($q) => $q->whereIn('id', $this->ids))
+
+        $query = Siswa::with('rombel')
+                ->when($this->ids, fn($q) => $q->whereIn('id', $this->ids));
+        if ($this->ids) {
+            return $query->get()->sortBy(fn($s) => array_search($s->id, $this->ids));
+        }
+        return 
+            $query
             ->orderBy('nama')
             ->get();
     }

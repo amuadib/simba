@@ -33,6 +33,12 @@ new class extends \Livewire\Volt\Component {
     // Selection for Export
     public $selectedSiswaCount = 0;
 
+    // Checkbox Selection
+    public $checkedSiswa = [];
+    public $selectAll = false;
+    public $randomConfirmString = '';
+    public $confirmText = '';
+
     // Bulk Actions
     public $bulkRombelId = '';
     public $bulkStatus = '';
@@ -53,7 +59,61 @@ new class extends \Livewire\Volt\Component {
     {
         if (in_array($property, ['q', 'rombel_id', 'status', 'tag_id'])) {
             $this->resetPage();
+            $this->checkedSiswa = [];
+            $this->selectAll = false;
         }
+    }
+
+    public function updatedSelectAll($value)
+    {
+        if ($value) {
+            $this->checkedSiswa = Siswa::query()
+                ->when($this->rombel_id, fn($q, $id) => $q->where('rombel_id', $id))
+                ->when($this->tag_id, fn($q, $id) => $q->whereHas('tags', fn($q) => $q->where('tag_id', $id)))
+                ->when($this->status, fn($q, $s) => $q->where('status', $s))
+                ->when($this->q, fn($q, $search) => $q->where(function($q) use ($search) {
+                    $q->where('nama', 'like', "%{$search}%")
+                        ->orWhere('panggilan', 'like', "%{$search}%");
+                }))->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        } else {
+            $this->checkedSiswa = [];
+        }
+    }
+
+    public function updatedCheckedSiswa()
+    {
+        $this->selectAll = false;
+    }
+
+    public function prepareBulkDelete()
+    {
+        $this->randomConfirmString = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 5);
+        $this->confirmText = '';
+        $this->dispatch('show-modal-delete');
+    }
+
+    public function bulkDelete()
+    {
+        if (strtoupper($this->confirmText) !== $this->randomConfirmString) {
+            $this->dispatch('toast', message: 'Karakter konfirmasi tidak cocok', type: 'error');
+            return;
+        }
+
+        $siswas = Siswa::whereIn('id', $this->checkedSiswa)->get();
+        foreach ($siswas as $s) {
+            $s->tags()->detach();
+            $s->delete();
+        }
+
+        $this->checkedSiswa = [];
+        $this->selectAll = false;
+        $this->dispatch('close-modal', id: 'modalBulkDelete');
+        $this->dispatch('toast', message: 'Data siswa berhasil dihapus', type: 'success');
+    }
+
+    public function bulkExport()
+    {
+        return Excel::download(new SiswaExport($this->checkedSiswa, 'data'), 'SIMBA-ekspor-siswa-'.date('YmdHis').'.xlsx');
     }
 
     // --- CRUD ACTIONS ---
@@ -157,13 +217,6 @@ new class extends \Livewire\Volt\Component {
         $this->dispatch('toast', message: 'Siswa berhasil diperbarui', type: 'success');
     }
 
-    public function delete($id)
-    {
-        $siswa = Siswa::findOrFail($id);
-        $siswa->tags()->detach();
-        $siswa->delete();
-        $this->dispatch('toast', message: 'Siswa berhasil dihapus', type: 'success');
-    }
 
     public function resetForm()
     {
@@ -195,16 +248,7 @@ new class extends \Livewire\Volt\Component {
             return;
         }
 
-        $query = Siswa::query()
-            ->when($this->rombel_id, fn($q, $id) => $q->where('rombel_id', $id))
-            ->when($this->tag_id, fn($q, $id) => $q->whereHas('tags', fn($q) => $q->where('tag_id', $id)))
-            ->when($this->status, fn($q, $s) => $q->where('status', $s))
-            ->when($this->q, fn($q, $search) => $q->where(function($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                    ->orWhere('panggilan', 'like', "%{$search}%");
-            }));
-
-        $siswaListToUpdate = $query->get();
+        $siswaListToUpdate = Siswa::whereIn('id', $this->checkedSiswa)->get();
 
         if ($siswaListToUpdate->isEmpty()) {
             $this->dispatch('toast', message: 'Tidak ada data siswa untuk diperbarui', type: 'warning');
@@ -239,7 +283,7 @@ new class extends \Livewire\Volt\Component {
             }
         }
 
-        $this->reset(['bulkRombelId', 'bulkStatus', 'bulkTags']);
+        $this->reset(['bulkRombelId', 'bulkStatus', 'bulkTags', 'checkedSiswa', 'selectAll']);
         $this->dispatch('close-modal', id: 'modalBulkUpdate');
         $this->dispatch('toast', message: 'Data siswa berhasil diperbarui secara massal', type: 'success');
     }
@@ -278,16 +322,6 @@ new class extends \Livewire\Volt\Component {
             }))
             ->paginate(25);
 
-        $bulkCount = Siswa::query()
-            ->when($this->rombel_id, fn($q, $id) => $q->where('rombel_id', $id))
-            ->when($this->tag_id, fn($q, $id) => $q->whereHas('tags', fn($q) => $q->where('tag_id', $id)))
-            ->when($this->status, fn($q, $s) => $q->where('status', $s))
-            ->when($this->q, fn($q, $search) => $q->where(function($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                    ->orWhere('panggilan', 'like', "%{$search}%");
-            }))
-            ->count();
-
         return [
             'siswaList' => $siswa,
             'rombels' => Rombel::where('tahun_ajaran_id', session('tahun_ajaran_id'))->orderBy('tingkat')->get(),
@@ -295,7 +329,6 @@ new class extends \Livewire\Volt\Component {
             'statusOptions' => config('local.status_siswa'),
             'selectedSiswa' => session('selected_siswa', []),
             'allTags' => Tag::orderBy('nama')->pluck('nama')->toArray(),
-            'bulkCount' => $bulkCount,
         ];
     }
 };
@@ -343,10 +376,16 @@ new class extends \Livewire\Volt\Component {
 
                     {{-- TOMBOL AKSI SEJAJAR TAB --}}
                     <li class="nav-item ms-auto d-flex align-items-center gap-2 pe-1 pb-1">
-                        @if ($siswaList->count() > 0 && ($q != '' || $rombel_id != '' || $status != '' || $tag_id != ''))
+                        @if (count($checkedSiswa) > 0)
                             <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
                                 data-bs-target="#modalBulkUpdate">
-                                <i class="bi bi-pencil-square me-1"></i> Update Massal
+                                <i class="bi bi-pencil-square me-1"></i> Update ({{ count($checkedSiswa) }})
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" wire:click="prepareBulkDelete">
+                                <i class="bi bi-trash me-1"></i> Hapus ({{ count($checkedSiswa) }})
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm" wire:click="bulkExport">
+                                <i class="bi bi-file-earmark-excel me-1"></i> Ekspor ({{ count($checkedSiswa) }})
                             </button>
                         @endif
 
@@ -591,6 +630,11 @@ new class extends \Livewire\Volt\Component {
                 <table class="table-hover table border align-middle">
                     <thead class="table-light">
                         <tr>
+                            <th style="width: 40px;" class="text-center">
+                                <div class="form-check d-flex justify-content-center m-0 p-0">
+                                    <input class="form-check-input m-0" type="checkbox" wire:model.live="selectAll">
+                                </div>
+                            </th>
                             <th>No</th>
                             <th>Nama</th>
                             <th>NISN</th>
@@ -603,6 +647,11 @@ new class extends \Livewire\Volt\Component {
                     <tbody>
                         @forelse ($siswaList as $s)
                             <tr wire:key="row-{{ $s->id }}">
+                                <td class="text-center">
+                                    <div class="form-check d-flex justify-content-center m-0 p-0">
+                                        <input class="form-check-input m-0" type="checkbox" wire:model.live="checkedSiswa" value="{{ $s->id }}">
+                                    </div>
+                                </td>
                                 <td>{{ $loop->iteration + ($siswaList->currentPage() - 1) * $siswaList->perPage() }}</td>
                                 <td>
                                     {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
@@ -643,15 +692,12 @@ new class extends \Livewire\Volt\Component {
                                         <button wire:click="edit('{{ $s->id }}')"
                                             class="btn btn-sm btn-outline-warning"><i
                                                 class="bi bi-pencil"></i></button>
-                                        <button wire:click="delete('{{ $s->id }}')"
-                                            wire:confirm="Hapus data ini?" class="btn btn-sm btn-outline-danger"><i
-                                                class="bi bi-trash"></i></button>
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="py-5 text-center">
+                                <td colspan="7" class="py-5 text-center">
                                     <i class="bi bi-search fs-2 text-muted d-block mb-2"></i>
                                     Tidak ditemukan data siswa
                                 </td>
@@ -677,7 +723,7 @@ new class extends \Livewire\Volt\Component {
                 </div>
                 <div class="modal-body">
                     <p class="small text-muted">
-                        Perubahan akan diterapkan pada <strong>{{ $bulkCount }}</strong> siswa hasil filter saat ini.
+                        Perubahan akan diterapkan pada <strong>{{ count($checkedSiswa) }}</strong> siswa yang dipilih.
                     </p>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Kelas (Rombel)</label>
@@ -776,12 +822,41 @@ new class extends \Livewire\Volt\Component {
         </div>
     </div>
 
+    {{-- MODAL BULK DELETE --}}
+    <div wire:ignore.self class="modal fade" id="modalBulkDelete" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Konfirmasi Hapus Massal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Anda yakin ingin menghapus <strong>{{ count($checkedSiswa) }}</strong> siswa yang dipilih?</p>
+                    <p class="text-danger small"><i class="bi bi-info-circle me-1"></i>Tindakan ini tidak dapat dibatalkan!</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Ketik karakter berikut untuk konfirmasi: <strong class="fs-5 ms-2 user-select-none">{{ $randomConfirmString }}</strong></label>
+                        <input type="text" wire:model="confirmText" class="form-control" placeholder="Ketik karakter konfirmasi..." autocomplete="off">
+                    </div>
+                    
+                    <button wire:click="bulkDelete" class="btn btn-danger w-100" wire:loading.attr="disabled">
+                        <i class="bi bi-trash me-1"></i> HAPUS DATA
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @script
         <script>
             $wire.on('close-modal', ({
                 id
             }) => {
                 bootstrap.Modal.getInstance(document.getElementById(id))?.hide();
+            });
+
+            $wire.on('show-modal-delete', () => {
+                new bootstrap.Modal(document.getElementById('modalBulkDelete')).show();
             });
 
             document.getElementById('modalPreviewExport').addEventListener('show.bs.modal', function() {

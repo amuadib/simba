@@ -45,7 +45,6 @@ class SiswaController extends Controller
     {
         if ($from == 'session') {
             $selected = session('selected_siswa', []);
-            // session()->forget('selected_siswa');
         } else {
             $selected = Siswa::when(request('rombel_id'), function ($q, $rombel_id) {
                 $q->where('rombel_id', $rombel_id);
@@ -107,8 +106,8 @@ class SiswaController extends Controller
         $selected = session('selected_siswa', []);
         $siswa = Siswa::with('rombel')
             ->whereIn('id', $selected)
-            ->orderBy('nama')
-            ->get();
+            ->get()
+            ->sortBy(fn($s) => array_search($s->id, $selected));
 
         if (request()->ajax()) {
             return response()->json([
