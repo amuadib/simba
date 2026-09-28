@@ -142,8 +142,6 @@ class SiswaImport implements ToCollection, WithHeadingRow
                         }
                     }
                     $siswa->tags()->sync($tagIds);
-                } else {
-                    $siswa->tags()->detach();
                 }
 
                 $this->rowsSuccess++;
