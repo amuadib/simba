@@ -49,7 +49,7 @@ class SiswaExport implements FromCollection, WithHeadings, WithMapping, ShouldAu
         if ($this->template == 'cash_out') {
             return ['No', 'Nis', 'Nama', 'Keterangan', 'Nominal'];
         } elseif ($this->template == 'template-import') {
-            return ['No', 'NISN', 'Nama', 'Kelas','Jenis Kelamin', 'Tag'];
+            return ['No', 'NISN', 'NIK', 'NIS', 'No Akte', 'No KK', 'Nama', 'Tempat Lahir', 'Tanggal Lahir', 'Kelas', 'Jenis Kelamin', 'Lembaga ID', 'Alamat', 'Telepon', 'Ayah', 'Ibu', 'Tag'];
         }
         return ['No', 'NISN', 'Nama', 'Rombel'];
     }
@@ -73,10 +73,21 @@ class SiswaExport implements FromCollection, WithHeadings, WithMapping, ShouldAu
             return [
                 $no,
                 $faker->unique()->numerify('##########'),
-                $faker->name($gender),
-                'IX A',
-                $gender == 'male' ? 'L' : 'P',
-                implode(',', $faker->words(3)),
+                $faker->unique()->numerify('################'), // NIK
+                $faker->unique()->numerify('######'), // NIS
+                'AKTE-'.$faker->numerify('######'), // No Akte
+                $faker->unique()->numerify('################'), // No KK
+                $faker->name($gender), // Nama
+                $faker->city(), // Tempat Lahir
+                $faker->date(), // Tanggal Lahir
+                'IX A', // Kelas
+                $gender == 'male' ? 'L' : 'P', // Jenis Kelamin
+                99, // Lembaga ID
+                $faker->address(), // Alamat
+                $faker->phoneNumber(), // Telepon
+                $faker->name('male'), // Ayah
+                $faker->name('female'), // Ibu
+                implode(',', $faker->words(3)), // Tag
             ];
         }
         return [

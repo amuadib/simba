@@ -17,6 +17,18 @@ class Siswa extends Model
         'rombel_id',
         'panggilan',
         'jenis_kelamin',
+        'nik',
+        'nis',
+        'no_akte',
+        'no_kk',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'lembaga_id',
+        'alamat',
+        'telepon',
+        'ayah',
+        'ibu',
+        'foto',
     ];
     public function tags()
     {

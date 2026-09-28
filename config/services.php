@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+    'master_data' => [
+        'url' => env('MASTER_DATA_API_URL'),
+        'user' => env('MASTER_DATA_API_USER'),
+        'password' => env('MASTER_DATA_API_PASSWORD'),
+    ],
 ];
