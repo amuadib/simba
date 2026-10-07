@@ -13,6 +13,7 @@ class Rombel extends Model
         'nama',
         'tingkat',
         'tahun_ajaran_id',
+        'lembaga_id',
     ];
 
     public function tahunAjaran()

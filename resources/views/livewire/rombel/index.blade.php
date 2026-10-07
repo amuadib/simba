@@ -10,7 +10,14 @@ new class extends \Livewire\Volt\Component {
 
     public $nama = '';
     public $tingkat = 0;
+    public $tahun_ajaran_id = null;
+    public $lembaga_id = null;
     public $editingId = null;
+
+    public function mount()
+    {
+        $this->tahun_ajaran_id = session('tahun_ajaran_id');
+    }
 
     public $paginationTheme = 'bootstrap';
 
@@ -19,15 +26,19 @@ new class extends \Livewire\Volt\Component {
         $this->validate([
             'nama' => 'required',
             'tingkat' => 'required|integer|min:1|max:12',
+            'tahun_ajaran_id' => 'required',
+            'lembaga_id' => 'required',
         ]);
 
         Rombel::create([
             'nama' => $this->nama,
             'tingkat' => $this->tingkat,
-            'tahun_ajaran_id' => session('tahun_ajaran_id'),
+            'tahun_ajaran_id' => $this->tahun_ajaran_id,
+            'lembaga_id' => $this->lembaga_id,
         ]);
 
-        $this->reset(['nama', 'tingkat']);
+        $this->reset(['nama', 'tingkat', 'tahun_ajaran_id', 'lembaga_id']);
+        $this->tahun_ajaran_id = session('tahun_ajaran_id');
         $this->dispatch('toast', message: 'Rombel berhasil ditambahkan', type: 'success');
     }
 
@@ -37,6 +48,8 @@ new class extends \Livewire\Volt\Component {
         $this->editingId = $id;
         $this->nama = $rombel->nama;
         $this->tingkat = $rombel->tingkat;
+        $this->tahun_ajaran_id = $rombel->tahun_ajaran_id;
+        $this->lembaga_id = $rombel->lembaga_id;
     }
 
     public function update()
@@ -44,22 +57,27 @@ new class extends \Livewire\Volt\Component {
         $this->validate([
             'nama' => 'required',
             'tingkat' => 'required|integer|min:1|max:12',
+            'tahun_ajaran_id' => 'required',
+            'lembaga_id' => 'required',
         ]);
 
         $rombel = Rombel::findOrFail($this->editingId);
         $rombel->update([
             'nama' => $this->nama,
             'tingkat' => $this->tingkat,
-            'tahun_ajaran_id' => session('tahun_ajaran_id'),
+            'tahun_ajaran_id' => $this->tahun_ajaran_id,
+            'lembaga_id' => $this->lembaga_id,
         ]);
 
-        $this->reset(['nama', 'tingkat', 'editingId']);
+        $this->reset(['nama', 'tingkat', 'tahun_ajaran_id', 'lembaga_id', 'editingId']);
+        $this->tahun_ajaran_id = session('tahun_ajaran_id');
         $this->dispatch('toast', message: 'Rombel berhasil diperbarui', type: 'success');
     }
 
     public function cancelEdit()
     {
-        $this->reset(['nama', 'tingkat', 'editingId']);
+        $this->reset(['nama', 'tingkat', 'tahun_ajaran_id', 'lembaga_id', 'editingId']);
+        $this->tahun_ajaran_id = session('tahun_ajaran_id');
     }
 
     public function delete($id)
@@ -71,7 +89,8 @@ new class extends \Livewire\Volt\Component {
     public function with()
     {
         return [
-            'rombels' => Rombel::where('tahun_ajaran_id', session('tahun_ajaran_id'))->orderBy('tingkat')->orderBy('nama')->paginate(15),
+            'rombels' => Rombel::with('tahunAjaran')->where('tahun_ajaran_id', session('tahun_ajaran_id'))->orderBy('tingkat')->orderBy('nama')->paginate(15),
+            'tahunAjarans' => \App\Models\TahunAjaran::orderBy('nama', 'desc')->get(),
         ];
     }
 
@@ -96,6 +115,7 @@ new class extends \Livewire\Volt\Component {
                 $new_rombel_array[$nama] = [
                     'tingkat' => $tingkat,
                     'tahun_ajaran_id' => $tahun_ajaran_sekarang_id,
+                    'lembaga_id' => $rombel->lembaga_id,
                 ];
             }else{
                 \App\Models\Siswa::where('status',1)->where('rombel_id', $rombel->id)->update([
@@ -114,6 +134,7 @@ new class extends \Livewire\Volt\Component {
                 $new_rombel_array[$rombel->nama] = [
                     'tingkat' => $rombel->tingkat,
                     'tahun_ajaran_id' => $tahun_ajaran_sekarang_id,
+                    'lembaga_id' => $rombel->lembaga_id,
                 ];
             }
         }
@@ -123,6 +144,7 @@ new class extends \Livewire\Volt\Component {
                 'nama' => $nama,
                 'tingkat' => $data['tingkat'],
                 'tahun_ajaran_id' => $data['tahun_ajaran_id'],
+                'lembaga_id' => $data['lembaga_id'],
             ]);
 
             $rollback_query[]="DELETE FROM rombel WHERE id=\"".$rombel->id."\";";
@@ -183,6 +205,28 @@ new class extends \Livewire\Volt\Component {
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                    <div class="col">
+                        <select wire:model="tahun_ajaran_id" class="form-control @error('tahun_ajaran_id') is-invalid @enderror">
+                            <option value="">--Pilih Tahun Ajaran--</option>
+                            @foreach ($tahunAjarans as $ta)
+                                <option value="{{ $ta->id }}">{{ $ta->nama }}</option>
+                            @endforeach
+                        </select>
+                        @error('tahun_ajaran_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col">
+                        <select wire:model="lembaga_id" class="form-control @error('lembaga_id') is-invalid @enderror">
+                            <option value="">--Pilih Lembaga--</option>
+                            @foreach (config('local.lembaga', []) as $id => $namaLembaga)
+                                <option value="{{ $id }}">{{ $namaLembaga }}</option>
+                            @endforeach
+                        </select>
+                        @error('lembaga_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                     <div class="col-auto">
                         <button type="submit" class="btn btn-warning"><i class="bi bi-check-circle"></i>
                             Update</button>
@@ -209,6 +253,28 @@ new class extends \Livewire\Volt\Component {
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                    <div class="col">
+                        <select wire:model="tahun_ajaran_id" class="form-control @error('tahun_ajaran_id') is-invalid @enderror">
+                            <option value="">--Pilih Tahun Ajaran--</option>
+                            @foreach ($tahunAjarans as $ta)
+                                <option value="{{ $ta->id }}">{{ $ta->nama }}</option>
+                            @endforeach
+                        </select>
+                        @error('tahun_ajaran_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col">
+                        <select wire:model="lembaga_id" class="form-control @error('lembaga_id') is-invalid @enderror">
+                            <option value="">--Pilih Lembaga--</option>
+                            @foreach (config('local.lembaga', []) as $id => $namaLembaga)
+                                <option value="{{ $id }}">{{ $namaLembaga }}</option>
+                            @endforeach
+                        </select>
+                        @error('lembaga_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                     <div class="col-auto">
                         <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah</button>
                     </div>
@@ -221,6 +287,8 @@ new class extends \Livewire\Volt\Component {
                         <tr>
                             <th>Nama</th>
                             <th>Tingkat</th>
+                            <th>Tahun Ajaran</th>
+                            <th>Lembaga</th>
                             <th width="150">Aksi</th>
                         </tr>
                     </thead>
@@ -229,6 +297,8 @@ new class extends \Livewire\Volt\Component {
                             <tr wire:key="{{ $r->id }}">
                                 <td>{{ $r->nama }}</td>
                                 <td>{{ $r->tingkat }}</td>
+                                <td>{{ $r->tahunAjaran->nama ?? '-' }}</td>
+                                <td>{{ config('local.lembaga')[$r->lembaga_id] ?? '-' }}</td>
                                 <td>
                                     <button wire:click="edit('{{ $r->id }}')"
                                         class="btn btn-sm btn-outline-warning">
@@ -242,7 +312,7 @@ new class extends \Livewire\Volt\Component {
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="text-center">
+                                <td colspan="5" class="text-center">
                                     Tidak ada data
                                     <div class="mt-2">
                                         <button wire:click="naikkanTingkat" class="btn btn-sm btn-primary">

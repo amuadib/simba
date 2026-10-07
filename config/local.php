@@ -4,6 +4,7 @@ return [
     'lembaga' => [
         1 => 'SDI Miftahul Ulum Klemunan',
         2 => 'SMPI Miftahul Ulum',
+        3 => 'SMAI Miftahul Ulum',
         99 => 'Yayasan Bastomiyah Rahman',
     ],
     'jenis_nilai' => [
