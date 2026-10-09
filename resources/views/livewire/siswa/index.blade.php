@@ -41,6 +41,8 @@ new class extends \Livewire\Volt\Component {
     public $bulkStatus = '';
     public $bulkTags = [];
 
+    public $selected_siswa_id = '';
+
     // Import
     public $importFile;
 
@@ -338,6 +340,11 @@ new class extends \Livewire\Volt\Component {
     {
         return Excel::download(new SiswaExport([], 'template-import'), 'SIMBA-template-import-siswa-'.date('YmdHis').'.xlsx');
     }
+
+    public function exportCashout($ids)
+    {
+        return Excel::download(new SiswaExport($ids, 'cashout-template'), 'SIMBA-cashout-siswa-'.date('YmdHis').'.xlsx');
+    }
     // --- DATA FETCHING ---
 
     public function with()
@@ -359,6 +366,16 @@ new class extends \Livewire\Volt\Component {
             'tags' => Tag::orderBy('nama')->get(),
             'statusOptions' => config('local.status_siswa'),
             'allTags' => Tag::orderBy('nama')->pluck('nama')->toArray(),
+            'siswaAktif' => Siswa::with('rombel', 'tags')->where('status', 1)->orderBy('nama')->get()->map(function($s) {
+                return [
+                    'id' => $s->id,
+                    'nama' => $s->nama,
+                    'panggilan' => $s->panggilan,
+                    'rombel' => $s->rombel->nama ?? '-',
+                    'nisn' => $s->nisn,
+                    'tags' => $s->tags->pluck('nama')->implode(', ')
+                ];
+            })->toArray(),
         ];
     }
 };
@@ -393,6 +410,11 @@ new class extends \Livewire\Volt\Component {
                             <i class="bi bi-upload me-1"></i> Import
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" :class="{ 'active': activeTab === 'cashout-template' }" @click="activeTab = 'cashout-template'" type="button" role="tab">
+                            <i class="bi bi-file-earmark-excel me-1"></i> Template Cashout
+                        </button>
+                    </li>
 
                     {{-- TOMBOL AKSI SEJAJAR TAB --}}
                     <li class="nav-item ms-auto d-flex align-items-center gap-2 pe-1 pb-1">
@@ -415,13 +437,195 @@ new class extends \Livewire\Volt\Component {
                 </ul>
 
                 <div class="tab-content mb-4">
+                    <div x-show="activeTab === 'cashout-template'">
+                        <div class="rounded p-3" style="background-color: var(--table-bg); border: 1px solid var(--table-border);">
+                            <div class="mb-3" x-data="{
+                                open: false,
+                                search: '',
+                                options: @js($siswaAktif),
+                                highlightedIndex: 0,
+                                cashoutList: JSON.parse(localStorage.getItem('simba_cashoutList') || '[]'),
+                                get filteredOptions() {
+                                    if (this.search.length < 3) return [];
+                                    const s = this.search.toLowerCase();
+                                    return this.options.filter(o =>
+                                        o.nama.toLowerCase().includes(s) ||
+                                        (o.panggilan && o.panggilan.toLowerCase().includes(s)) ||
+                                        (o.nisn && o.nisn.toLowerCase().includes(s))
+                                    ).slice(0, 20);
+                                },
+                                selectOption(opt) {
+                                    if (opt) {
+                                        if (!this.cashoutList.find(c => c.id === opt.id)) {
+                                            this.cashoutList.push(opt);
+                                            localStorage.setItem('simba_cashoutList', JSON.stringify(this.cashoutList));
+                                        }
+                                        this.search = '';
+                                        this.highlightedIndex = 0;
+                                        this.open = true;
+                                        this.$nextTick(() => {
+                                            this.$refs.searchInput.focus();
+                                        });
+                                    }
+                                },
+                                onKeydown(e) {
+                                    if (!this.open) {
+                                        if(e.key === 'Enter') {
+                                            e.preventDefault();
+                                            this.open = true;
+                                            this.$nextTick(() => this.$refs.searchInput.focus());
+                                        }
+                                        return;
+                                    }
+                                    const items = this.filteredOptions;
+                                    if(e.key === 'ArrowDown') {
+                                        e.preventDefault();
+                                        if(this.highlightedIndex < items.length - 1) this.highlightedIndex++;
+                                        this.scrollToActive();
+                                    } else if(e.key === 'ArrowUp') {
+                                        e.preventDefault();
+                                        if(this.highlightedIndex > 0) this.highlightedIndex--;
+                                        this.scrollToActive();
+                                    } else if(e.key === 'Enter') {
+                                        e.preventDefault();
+                                        if(items.length > 0 && items[this.highlightedIndex]) {
+                                            this.selectOption(items[this.highlightedIndex]);
+                                        }
+                                    }
+                                },
+                                scrollToActive() {
+                                    this.$nextTick(() => {
+                                        const el = this.$refs.listbox;
+                                        const active = el.querySelector('.is-active');
+                                        if (active) {
+                                            if (active.offsetTop < el.scrollTop) {
+                                                el.scrollTop = active.offsetTop;
+                                            } else if (active.offsetTop + active.offsetHeight > el.scrollTop + el.clientHeight) {
+                                                el.scrollTop = active.offsetTop + active.offsetHeight - el.clientHeight;
+                                            }
+                                        }
+                                    });
+                                },
+                                removeSiswa(id) {
+                                    this.cashoutList = this.cashoutList.filter(s => s.id !== id);
+                                    localStorage.setItem('simba_cashoutList', JSON.stringify(this.cashoutList));
+                                }
+                            }" x-init="$watch('search', () => highlightedIndex = 0)">
+                                <label class="form-label fw-bold">Pilih Siswa</label>
+                                <div class="position-relative" @click.away="open = false; search = ''">
+                                    
+                                    <!-- Select Trigger (Closed State) -->
+                                    <div :class="!open ? 'd-flex' : 'd-none'" 
+                                         @click="open = true; $nextTick(() => $refs.searchInput.focus())" 
+                                         class="form-control justify-content-between align-items-center" 
+                                         style="cursor: pointer; background-color: var(--bg-card); border-color: var(--table-border); color: var(--text-main);">
+                                        <span class="text-muted">-- Ketik / Pilih Siswa untuk Ditambahkan --</span>
+                                        <div class="border-start ps-2">
+                                            <i class="bi bi-chevron-down text-muted"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Input Mode (Open State) -->
+                                    <div :class="open ? 'd-flex' : 'd-none'" class="form-control align-items-center p-0 border-primary" style="cursor: text; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); background-color: var(--bg-card);">
+                                        <input x-ref="searchInput" 
+                                               type="text" 
+                                               class="border-0 w-100 px-3 py-2 bg-transparent"
+                                               style="outline: none; box-shadow: none; color: var(--text-main);"
+                                               placeholder="Ketik nama atau NISN..."
+                                               x-model="search"
+                                               @keydown="onKeydown"
+                                               @keydown.escape="open = false; search = ''">
+                                        <div class="d-flex align-items-center px-2 border-start" @click.stop="open = false; search = ''" style="cursor: pointer;">
+                                            <i class="bi bi-chevron-up text-muted"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Dropdown List -->
+                                    <div x-show="open" style="display: none; z-index: 1050; background-color: var(--bg-card); border: 1px solid var(--table-border);" class="position-absolute w-100 mt-1 rounded shadow-sm">
+                                        
+                                        <!-- Header for search query -->
+                                        <div x-show="search !== ''" class="p-2 bg-primary bg-opacity-10 text-primary border-bottom small">
+                                            Cari &quot;<span x-text="search"></span>&quot;
+                                        </div>
+
+                                        <div class="overflow-auto" x-ref="listbox" style="max-height: 250px;">
+                                            <template x-for="(opt, index) in filteredOptions" :key="opt.id">
+                                                <div @click="selectOption(opt)" 
+                                                     class="px-3 py-2 border-bottom"
+                                                     style="cursor: pointer;"
+                                                     :class="{
+                                                         'bg-primary text-white is-active': highlightedIndex === index,
+                                                         'hover-bg-light': highlightedIndex !== index
+                                                     }"
+                                                     @mouseenter="highlightedIndex = index">
+                                                    <div class="text-uppercase" :class="highlightedIndex === index ? 'text-white' : 'text-primary'" style="color: #1e53a3;">
+                                                        <span x-text="opt.nama"></span> (<span x-text="opt.panggilan"></span>) - <span x-text="opt.nisn || '-'"></span>
+                                                    </div>
+                                                    <small :class="highlightedIndex === index ? 'text-white-50' : 'text-muted'" x-text="(opt.rombel || '-') + (opt.tags ? ' , ' + opt.tags : '')"></small>
+                                                </div>
+                                            </template>
+                                            <div x-show="filteredOptions.length === 0" class="p-3 text-center text-muted small">
+                                                <span x-show="search.length < 3">Ketik minimal 3 karakter untuk mencari siswa...</span>
+                                                <span x-show="search.length >= 3">Tidak ada siswa ditemukan</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive mt-3">
+                                    <table class="table table-bordered table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 50px;" class="text-center">No</th>
+                                                <th>Nama Siswa</th>
+                                                <th>Panggilan</th>
+                                                <th>NISN</th>
+                                                <th>Rombel</th>
+                                                <th style="width: 60px;" class="text-center"><i class="bi bi-trash"></i></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="(siswa, index) in cashoutList" :key="siswa.id">
+                                                <tr>
+                                                    <td class="text-center" x-text="index + 1"></td>
+                                                    <td class="fw-bold text-uppercase text-primary" x-text="siswa.nama"></td>
+                                                    <td x-text="siswa.panggilan || '-'"></td>
+                                                    <td x-text="siswa.nisn || '-'"></td>
+                                                    <td x-text="siswa.rombel || '-'"></td>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" @click="removeSiswa(siswa.id)">
+                                                            <i class="bi bi-x-lg"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <tr x-show="cashoutList.length === 0">
+                                                <td colspan="6" class="text-center py-4 text-muted">
+                                                    Belum ada siswa terpilih untuk cashout
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="d-flex justify-content-start mt-2">
+                                    <button type="button" class="btn btn-success btn-sm" @click="if(cashoutList.length === 0) { alert('Belum ada siswa yang dipilih.'); return; } $wire.exportCashout(cashoutList.map(s => s.id))">
+                                        <i class="bi bi-file-earmark-excel me-1"></i> Ekspor
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm ms-2" @click="if(cashoutList.length === 0) { alert('Belum ada siswa yang dipilih.'); return; } if(confirm('Apakah Anda yakin ingin menghapus semua siswa dari daftar cashout ini?')) { cashoutList = []; localStorage.removeItem('simba_cashoutList'); }">
+                                        <i class="bi bi-trash me-1"></i> Bersihkan Daftar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     {{-- FILTER AREA --}}
                     <div x-show="activeTab === 'filter'">
-                        <div class="bg-light rounded border p-3">
+                        <div class="rounded p-3" style="background-color: var(--table-bg); border: 1px solid var(--table-border);">
+                        
                             <form wire:submit.prevent class="row g-2">
                                 <div class="col-md-4">
                                     <div class="input-group">
-                                        <span class="input-group-text border-end-0 bg-white"><i
+                                        <span class="input-group-text border-end-0" style="background-color: var(--bg-card); border-color: var(--table-border);"><i
                                                 class="bi bi-search text-muted"></i></span>
                                         <input type="text" wire:model.live.debounce.300ms="q"
                                             class="form-control border-start-0" placeholder="Cari nama siswa...">

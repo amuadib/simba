@@ -49,6 +49,9 @@ class SiswaExport implements FromCollection, WithHeadings, WithMapping, ShouldAu
         if ($this->template == 'template-import') {
             return ['No', 'NISN', 'NIK', 'NIS', 'No Akte', 'No KK', 'Nama', 'Tempat Lahir', 'Tanggal Lahir', 'Kelas', 'Jenis Kelamin', 'Lembaga ID', 'Alamat', 'Telepon', 'Ayah', 'Ibu', 'Tag'];
         }
+        if ($this->template == 'cashout-template') {
+            return ['No', 'Nis', 'Nama', 'Panggilan', 'Keterangan', 'Nominal'];
+        }
         return ['No', 'NISN', 'Nama', 'Rombel'];
     }
 
@@ -56,6 +59,17 @@ class SiswaExport implements FromCollection, WithHeadings, WithMapping, ShouldAu
     {
         static $no = 0;
         $no++;
+
+        if ($this->template == 'cashout-template') {
+            return [
+                $no,
+                $siswa->nisn,
+                $siswa->nama,
+                $siswa->panggilan,
+                '',
+                ''
+            ];
+        }
 
         if ($this->template == 'template-import') {
             $faker = fake('id_ID');
