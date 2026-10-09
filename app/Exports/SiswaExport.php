@@ -46,9 +46,7 @@ class SiswaExport implements FromCollection, WithHeadings, WithMapping, ShouldAu
 
     public function headings(): array
     {
-        if ($this->template == 'cash_out') {
-            return ['No', 'Nis', 'Nama', 'Keterangan', 'Nominal'];
-        } elseif ($this->template == 'template-import') {
+        if ($this->template == 'template-import') {
             return ['No', 'NISN', 'NIK', 'NIS', 'No Akte', 'No KK', 'Nama', 'Tempat Lahir', 'Tanggal Lahir', 'Kelas', 'Jenis Kelamin', 'Lembaga ID', 'Alamat', 'Telepon', 'Ayah', 'Ibu', 'Tag'];
         }
         return ['No', 'NISN', 'Nama', 'Rombel'];
@@ -59,15 +57,7 @@ class SiswaExport implements FromCollection, WithHeadings, WithMapping, ShouldAu
         static $no = 0;
         $no++;
 
-        if ($this->template == 'cash_out') {
-            return [
-                $no,
-                $siswa->nisn,
-                str_replace("'", '', $siswa->nama), // tanda petik menyebabkan cashout PSP tidak valid
-                '',
-                '',
-            ];
-        } elseif ($this->template == 'template-import') {
+        if ($this->template == 'template-import') {
             $faker = fake('id_ID');
             $gender = $faker->randomElement(['male', 'female']);
             return [

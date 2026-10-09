@@ -30,9 +30,6 @@ new class extends \Livewire\Volt\Component {
     public $nik, $nis, $no_akte, $no_kk, $tempat_lahir, $tanggal_lahir, $lembaga_id, $alamat, $telepon, $ayah, $ibu, $foto, $existing_foto;
     public $selectedTags = [];
 
-    // Selection for Export
-    public $selectedSiswaCount = 0;
-
     // Checkbox Selection
     public $checkedSiswa = [];
     public $selectAll = false;
@@ -46,14 +43,8 @@ new class extends \Livewire\Volt\Component {
 
     // Import
     public $importFile;
-    public $importResults = [];
 
     public $paginationTheme = 'bootstrap';
-
-    public function mount()
-    {
-        $this->selectedSiswaCount = count(session('selected_siswa', []));
-    }
 
     public function updated($property)
     {
@@ -275,18 +266,6 @@ new class extends \Livewire\Volt\Component {
         $this->reset(['nama', 'panggilan', 'jenis_kelamin', 'nisn', 'form_rombel_id', 'form_status', 'selectedTags', 'action', 'editingId', 'showId', 'nik', 'nis', 'no_akte', 'no_kk', 'tempat_lahir', 'tanggal_lahir', 'lembaga_id', 'alamat', 'telepon', 'ayah', 'ibu', 'foto', 'existing_foto']);
     }
 
-    // --- SELECTION & EXPORT ---
-
-    public function pilihSiswa($id)
-    {
-        $selected = session('selected_siswa', []);
-        if (!in_array($id, $selected)) {
-            session()->push('selected_siswa', $id);
-            $this->selectedSiswaCount = count(session('selected_siswa'));
-            $this->dispatch('toast', message: 'Siswa berhasil dipilih', type: 'success');
-        }
-    }
-
     public function bulkUpdate()
     {
         $this->validate([
@@ -348,9 +327,9 @@ new class extends \Livewire\Volt\Component {
 
         $import = new SiswaImport();
         Excel::import($import, $this->importFile->getRealPath());
-        $this->importResults = $import->getResults();
-        $errorsCount = count($this->importResults['errors']);
-        $message = "Impor data siswa selesai. Sukses: {$this->importResults['success']}" . ($errorsCount > 0 ? ", Gagal: {$errorsCount}" : "");
+        $results = $import->getResults();
+        $errorsCount = count($results['errors']);
+        $message = "Impor data siswa selesai. Sukses: {$results['success']}" . ($errorsCount > 0 ? ", Gagal: {$errorsCount}" : "");
         $this->reset(['importFile']);
         $this->dispatch('toast', message: $message, type: $errorsCount > 0 ? 'warning' : 'success');
     }
@@ -379,7 +358,6 @@ new class extends \Livewire\Volt\Component {
             'rombels' => Rombel::where('tahun_ajaran_id', session('tahun_ajaran_id'))->orderBy('tingkat')->get(),
             'tags' => Tag::orderBy('nama')->get(),
             'statusOptions' => config('local.status_siswa'),
-            'selectedSiswa' => session('selected_siswa', []),
             'allTags' => Tag::orderBy('nama')->pluck('nama')->toArray(),
         ];
     }
@@ -433,15 +411,6 @@ new class extends \Livewire\Volt\Component {
 
                         <button wire:click="create" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle me-1"></i>
                             Tambah Siswa</button>
-                        <button type="button" class="btn btn-outline-info btn-sm position-relative" data-bs-toggle="modal"
-                            data-bs-target="#modalPreviewExport" id="btnPreviewExport">
-                            <i class="bi bi-eye me-1"></i> Preview Ekspor
-                            @if ($selectedSiswaCount > 0)
-                                <span class="position-absolute start-100 translate-middle badge rounded-pill bg-danger top-0">
-                                    {{ $selectedSiswaCount }}
-                                </span>
-                            @endif
-                        </button>
                     </li>
                 </ul>
 
@@ -575,12 +544,6 @@ new class extends \Livewire\Volt\Component {
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group">
-                                        <button wire:click="pilihSiswa('{{ $s->id }}')"
-                                            class="btn btn-sm btn-outline-info {{ in_array($s->id, $selectedSiswa) ? 'bg-info text-white' : '' }}"
-                                            title="Pilih untuk Ekspor">
-                                            <i
-                                                class="bi {{ in_array($s->id, $selectedSiswa) ? 'bi-check-lg' : 'bi-plus-lg' }}"></i>
-                                        </button>
                                         <button wire:click="show('{{ $s->id }}')"
                                             class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i></button>
                                         <button wire:click="edit('{{ $s->id }}')"
@@ -922,27 +885,6 @@ new class extends \Livewire\Volt\Component {
         </div>
     </div>
 
-    {{-- MODAL PREVIEW EXPORT --}}
-    <div wire:ignore.self class="modal fade" id="modalPreviewExport" data-bs-backdrop="static" tabindex="-1"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-eye me-2"></i> Preview Ekspor Siswa</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="previewExportContent" wire:ignore>
-                    <div class="py-5 text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <div class="text-muted mt-2">Memuat data...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     {{-- MODAL BULK DELETE --}}
     <div wire:ignore.self class="modal fade" id="modalBulkDelete" tabindex="-1">
         <div class="modal-dialog">
@@ -983,65 +925,5 @@ new class extends \Livewire\Volt\Component {
             $wire.on('show-modal-siswa', () => {
                 new bootstrap.Modal(document.getElementById('modalSiswaForm')).show();
             });
-
-            document.getElementById('modalPreviewExport').addEventListener('show.bs.modal', function() {
-                loadPreviewExport();
-            });
-
-            function loadPreviewExport() {
-                const content = document.getElementById('previewExportContent');
-                fetch("{{ route('siswa.preview-export') }}", {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        content.innerHTML = data.html;
-                        attachPreviewListeners();
-                    });
-            }
-
-            function attachPreviewListeners() {
-                document.querySelectorAll('.btn-hapus-preview').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const id = this.getAttribute('data-id');
-                        if (confirm('Hapus dari daftar ekspor?')) {
-                            fetch("{{ url('/siswa/preview-export') }}/" + id, {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'X-Requested-With': 'XMLHttpRequest'
-                                    }
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    loadPreviewExport();
-                                    $wire.set('selectedSiswaCount', data.count);
-                                });
-                        }
-                    });
-                });
-
-                const btnKosongkan = document.getElementById('btn-kosongkan-preview');
-                if (btnKosongkan) {
-                    btnKosongkan.addEventListener('click', function() {
-                        if (confirm('Kosongkan semua daftar pilihan?')) {
-                            fetch("{{ url('/siswa/preview-export/all') }}", {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'X-Requested-With': 'XMLHttpRequest'
-                                    }
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    loadPreviewExport();
-                                    $wire.set('selectedSiswaCount', 0);
-                                });
-                        }
-                    });
-                }
-            }
         </script>
     @endscript
