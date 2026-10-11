@@ -102,6 +102,8 @@
 ===================== */
         .sidebar {
             width: 260px;
+            min-width: 260px;
+            flex-shrink: 0;
             min-height: 100vh;
             background: var(--bg-sidebar);
         }
@@ -113,6 +115,7 @@
             text-decoration: none;
             margin: 4px 10px;
             border-radius: 8px;
+            white-space: nowrap;
         }
 
         .sidebar a:hover,
@@ -392,7 +395,7 @@
         @include('layouts.sidebar')
 
         <!-- CONTENT -->
-        <div class="flex-fill p-4">
+        <div class="flex-fill p-4" style="min-width: 0;">
 
             @if ($errors->any())
                 @foreach ($errors->all() as $e)

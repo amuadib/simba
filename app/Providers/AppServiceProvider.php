@@ -25,5 +25,28 @@ class AppServiceProvider extends ServiceProvider
             resource_path('views/livewire'),
             resource_path('views/pages'),
         ]);
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+                $dbSettings = \Illuminate\Support\Facades\Cache::rememberForever('custom_settings', function () {
+                    return \App\Models\Setting::whereNotNull('payload')->pluck('payload', 'key')->toArray();
+                });
+
+                $localConfig = config('local', []);
+
+                foreach ($dbSettings as $key => $value) {
+                    if (isset($localConfig[$key]) && is_array($localConfig[$key]) && is_array($value)) {
+                        $localConfig[$key] = array_replace_recursive($localConfig[$key], $value);
+                    } else {
+                        $localConfig[$key] = $value;
+                    }
+                }
+
+                config(['local' => $localConfig]);
+                config(['custom' => $localConfig]);
+            }
+        } catch (\Throwable $e) {
+            // Ignore during early setup/migrations
+        }
     }
 }

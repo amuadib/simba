@@ -49,3 +49,30 @@ if (!function_exists('logo_url')) {
     }
 }
 
+if (!function_exists('nama_lembaga')) {
+    function nama_lembaga($id)
+    {
+        if (!$id) {
+            return '-';
+        }
+        $items = config('local.lembaga') ?? config('custom.lembaga') ?? [];
+        $lembaga = $items[$id] ?? null;
+        if (is_array($lembaga)) {
+            return $lembaga['nama'] ?? $lembaga['singkatan'] ?? '-';
+        }
+        return is_string($lembaga) ? $lembaga : '-';
+    }
+}
+
+if (!function_exists('daftar_lembaga')) {
+    function daftar_lembaga()
+    {
+        $items = config('local.lembaga') ?? config('custom.lembaga') ?? [];
+        $result = [];
+        foreach ($items as $id => $item) {
+            $result[$id] = is_array($item) ? ($item['nama'] ?? $item['singkatan'] ?? "-") : $item;
+        }
+        return $result;
+    }
+}
+

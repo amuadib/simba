@@ -40,11 +40,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/database', [DatabaseController::class, 'index'])->name('database.index');
         Route::post('/database/export', [DatabaseController::class, 'export'])->name('database.export');
         Route::post('/database/import', [DatabaseController::class, 'import'])->name('database.import');
-        Route::get('/settings', [SettingController::class, 'index'])
-            ->name('settings.index');
-
-        Route::post('/settings', [SettingController::class, 'update'])
-            ->name('settings.update');
+        Volt::route('/settings', 'admin.setting.index')->name('settings.index');
     });
 
     Route::prefix('tags')->group(function () {

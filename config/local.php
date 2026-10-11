@@ -1,11 +1,48 @@
 <?php
 
 return [
+    'app' => [
+        'nama' => 'Sistem Informasi Lembaga',
+        'singkatan' => 'SIMBA',
+        'keterangan' => 'Sistem Informasi Lembaga Miftahul Ulum',
+    ],
     'lembaga' => [
-        1 => 'SDI Miftahul Ulum Klemunan',
-        2 => 'SMPI Miftahul Ulum',
-        3 => 'SMAI Miftahul Ulum',
-        99 => 'Yayasan Bastomiyah Rahman',
+        1 => [
+            'nama' => 'SDI Miftahul Ulum Klemunan',
+            'singkatan' => 'SDI',
+            'alamat' => 'Jl. Karangnongko KM 02, Klemunan, Kec. Boyolali, Kabupaten Boyolali, Jawa Tengah',
+            'kontak' => 'Pak Wawan (0812-3456-7890)',
+            'jam_kerja' => "Senin - Sabtu: 07:00 - 13:30\nJum'at: 07:00 - 10:00",
+            'logo' => 'logos/sd_mu.png', // Pastikan file ada di storage/app/public/logos/sd_mu.png
+            'kop' => 'kop/kop_sd_mu.png',   // Pastikan file ada di storage/app/public/kop/kop_sd_mu.png
+        ],
+        2 => [
+            'nama' => 'SMPI Miftahul Ulum',
+            'singkatan' => 'SMPI',
+            'alamat' => 'Jl. Karangnongko KM 02, Klemunan, Kec. Boyolali, Kabupaten Boyolali, Jawa Tengah',
+            'kontak' => 'Pak Rahmat (0812-3456-7891)',
+            'jam_kerja' => "Senin - Sabtu: 07:00 - 14:00\nJum'at: 07:00 - 11:00",
+            'logo' => 'logos/smp_mu.png',
+            'kop' => 'kop/kop_smp_mu.png',
+        ],
+        3 => [
+            'nama' => 'SMAI Miftahul Ulum',
+            'singkatan' => 'SMAI',
+            'alamat' => 'Jl. Karangnongko KM 02, Klemunan, Kec. Boyolali, Kabupaten Boyolali, Jawa Tengah',
+            'kontak' => 'Pak Haris (0812-3456-7892)',
+            'jam_kerja' => "Senin - Sabtu: 07:00 - 14:30\nJum'at: 07:00 - 11:30",
+            'logo' => 'logos/sma_mu.png',
+            'kop' => 'kop/kop_sma_mu.png',
+        ],
+        99 => [
+            'nama' => 'Yayasan Pendidikan Islam Bastomiyah Rahman',
+            'singkatan' => 'YPIB',
+            'alamat' => 'Jl. Sudirman No. 123, Boyolali Kota, Jawa Tengah',
+            'kontak' => 'Kantor Yayasan (0276-123456)',
+            'jam_kerja' => 'Senin - Jumat: 08:00 - 16:00',
+            'logo' => 'logos/ybr.png',
+            'kop' => 'kop/kop_ybr.png',
+        ],
     ],
     'jenis_nilai' => [
         1 => [

@@ -219,7 +219,7 @@ new class extends \Livewire\Volt\Component {
                     <div class="col">
                         <select wire:model="lembaga_id" class="form-control @error('lembaga_id') is-invalid @enderror">
                             <option value="">--Pilih Lembaga--</option>
-                            @foreach (config('local.lembaga', []) as $id => $namaLembaga)
+                            @foreach (daftar_lembaga() as $id => $namaLembaga)
                                 <option value="{{ $id }}">{{ $namaLembaga }}</option>
                             @endforeach
                         </select>
@@ -267,7 +267,7 @@ new class extends \Livewire\Volt\Component {
                     <div class="col">
                         <select wire:model="lembaga_id" class="form-control @error('lembaga_id') is-invalid @enderror">
                             <option value="">--Pilih Lembaga--</option>
-                            @foreach (config('local.lembaga', []) as $id => $namaLembaga)
+                            @foreach (daftar_lembaga() as $id => $namaLembaga)
                                 <option value="{{ $id }}">{{ $namaLembaga }}</option>
                             @endforeach
                         </select>
@@ -298,7 +298,7 @@ new class extends \Livewire\Volt\Component {
                                 <td>{{ $r->nama }}</td>
                                 <td>{{ $r->tingkat }}</td>
                                 <td>{{ $r->tahunAjaran->nama ?? '-' }}</td>
-                                <td>{{ config('local.lembaga')[$r->lembaga_id] ?? '-' }}</td>
+                                <td>{{ nama_lembaga($r->lembaga_id) }}</td>
                                 <td>
                                     <button wire:click="edit('{{ $r->id }}')"
                                         class="btn btn-sm btn-outline-warning">

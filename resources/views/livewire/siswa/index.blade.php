@@ -866,7 +866,7 @@ new class extends \Livewire\Volt\Component {
                                         <label class="form-label small fw-bold">Lembaga</label>
                                         <select wire:model="lembaga_id" class="form-select" required>
                                             <option value="">Pilih Lembaga</option>
-                                            @foreach (config('local.lembaga', []) as $id => $namaLembaga)
+                                            @foreach (daftar_lembaga() as $id => $namaLembaga)
                                                 <option value="{{ $id }}">{{ $namaLembaga }}</option>
                                             @endforeach
                                         </select>
@@ -978,7 +978,7 @@ new class extends \Livewire\Volt\Component {
                                         <div class="col-md-2"><strong>No KK</strong><br>{{ $sData->no_kk ?? '-' }}</div>
                                         <div class="col-md-3"><strong>Tempat Lahir</strong><br>{{ $sData->tempat_lahir ?? '-' }}</div>
                                         <div class="col-md-3"><strong>Tanggal Lahir</strong><br>{{ $sData->tanggal_lahir ? date('d M Y', strtotime($sData->tanggal_lahir)) : '-' }}</div>
-                                        <div class="col-md-2"><strong>Lembaga</strong><br>{{ config('local.lembaga', [])[$sData->lembaga_id] ?? '-' }}</div>
+                                        <div class="col-md-2"><strong>Lembaga</strong><br>{{ nama_lembaga($sData->lembaga_id) }}</div>
                                         <div class="col-md-4"><strong>Alamat</strong><br>{{ $sData->alamat ?? '-' }}</div>
                                         <div class="col-md-2"><strong>Telepon</strong><br>{{ $sData->telepon ?? '-' }}</div>
                                         <div class="col-md-3"><strong>Ayah</strong><br>{{ $sData->ayah ?? '-' }}</div>
