@@ -17,6 +17,8 @@ new class extends Component {
     public array $lembaga_items = [];
     public array $logos = [];
     public array $kops = [];
+    public array $ttds = [];
+    public array $stempels = [];
 
     public string $activeTab = 'app'; // 'app', 'lembaga', 'api'
 
@@ -57,11 +59,15 @@ new class extends Component {
             'singkatan' => '',
             'alamat' => '',
             'kontak' => '',
+            'kepala' => '',
+            'nip_kepala' => '',
             'telp' => '',
             'lat' => 0,
             'lon' => 0,
             'logo' => null,
             'kop' => null,
+            'ttd' => null,
+            'stempel' => null,
             'tingkat' => [],
             'jam_kerja' => [],
             'tingkat_string' => '',
@@ -75,7 +81,7 @@ new class extends Component {
         if (isset($this->lembaga_items[$id])) {
             unset($this->lembaga_items[$id]);
         }
-        unset($this->logos[$id], $this->kops[$id]);
+        unset($this->logos[$id], $this->kops[$id], $this->ttds[$id], $this->stempels[$id]);
         $this->dispatch('toast', message: "Lembaga #$id berhasil dihapus dari daftar", type: 'warning');
     }
 
@@ -95,6 +101,22 @@ new class extends Component {
         unset($this->kops[$id]);
     }
 
+    public function removeTtd($id): void
+    {
+        if (isset($this->lembaga_items[$id])) {
+            $this->lembaga_items[$id]['ttd'] = null;
+        }
+        unset($this->ttds[$id]);
+    }
+
+    public function removeStempel($id): void
+    {
+        if (isset($this->lembaga_items[$id])) {
+            $this->lembaga_items[$id]['stempel'] = null;
+        }
+        unset($this->stempels[$id]);
+    }
+
     public function save(): void
     {
         $this->validate([
@@ -104,6 +126,8 @@ new class extends Component {
             'lembaga_items' => 'array',
             'logos.*' => 'nullable|image|max:2048',
             'kops.*' => 'nullable|image|max:3072',
+            'ttds.*' => 'nullable|image|max:2048',
+            'stempels.*' => 'nullable|image|max:2048',
         ]);
 
         $appConfig = [
@@ -128,6 +152,22 @@ new class extends Component {
             if ($kopFile && isset($this->lembaga_items[$id])) {
                 $path = $kopFile->store('lembaga/kop', 'public');
                 $this->lembaga_items[$id]['kop'] = Storage::url($path);
+            }
+        }
+
+        // Upload TTD Kepala lembaga
+        foreach ($this->ttds as $id => $ttdFile) {
+            if ($ttdFile && isset($this->lembaga_items[$id])) {
+                $path = $ttdFile->store('lembaga/ttd', 'public');
+                $this->lembaga_items[$id]['ttd'] = Storage::url($path);
+            }
+        }
+
+        // Upload Stempel lembaga
+        foreach ($this->stempels as $id => $stempelFile) {
+            if ($stempelFile && isset($this->lembaga_items[$id])) {
+                $path = $stempelFile->store('lembaga/stempel', 'public');
+                $this->lembaga_items[$id]['stempel'] = Storage::url($path);
             }
         }
 
@@ -165,10 +205,21 @@ new class extends Component {
             if (!empty($firstLembaga['logo'])) {
                 Setting::setValue('logo', $firstLembaga['logo']);
             }
+            if (!empty($firstLembaga['ttd'])) {
+                Setting::setValue('ttd_kepala', $firstLembaga['ttd']);
+            }
+            if (!empty($firstLembaga['stempel'])) {
+                Setting::setValue('stempel_lembaga', $firstLembaga['stempel']);
+            }
+            if (!empty($firstLembaga['kepala'])) {
+                Setting::setValue('kepala_lembaga', $firstLembaga['kepala']);
+            }
         }
 
         $this->logos = [];
         $this->kops = [];
+        $this->ttds = [];
+        $this->stempels = [];
 
         $this->dispatch('toast', message: 'Pengaturan Sistem berhasil disimpan!', type: 'success');
     }
@@ -342,7 +393,7 @@ new class extends Component {
                                     <input type="text"
                                            wire:model="lembaga_items.{{ $id }}.kontak"
                                            class="form-control"
-                                           placeholder="Nama kepala / bendahara">
+                                           placeholder="Nama staf / bendahara">
                                 </div>
                             </div>
 
@@ -354,6 +405,28 @@ new class extends Component {
                                            wire:model="lembaga_items.{{ $id }}.tingkat_string"
                                            class="form-control"
                                            placeholder="Contoh: 1, 2, 3, 4, 5, 6">
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold">Nama Kepala Lembaga / Madrasah</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                    <input type="text"
+                                           wire:model="lembaga_items.{{ $id }}.kepala"
+                                           class="form-control"
+                                           placeholder="Contoh: H. Ahmad Dahlan, S.Pd.I">
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold">NIP / NIY Kepala Lembaga</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                                    <input type="text"
+                                           wire:model="lembaga_items.{{ $id }}.nip_kepala"
+                                           class="form-control"
+                                           placeholder="Contoh: 19800101 200501 1 001">
                                 </div>
                             </div>
 
@@ -373,11 +446,11 @@ new class extends Component {
                                           placeholder="Jl. Manggar RT 02 RW 06 Klemunan..."></textarea>
                             </div>
 
-                            {{-- BAGIAN LOGO & KOP SURAT --}}
+                            {{-- BAGIAN LOGO, KOP SURAT, TTD & STEMPEL --}}
                             <div class="col-12 pt-3 border-top mt-3">
                                 <div class="row g-4">
                                     {{-- Logo Lembaga --}}
-                                    <div class="col-12 col-md-6">
+                                    <div class="col-12 col-md-6 col-xl-3">
                                         <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
                                             <span><i class="bi bi-image me-1"></i>Logo Lembaga</span>
                                             <span wire:loading wire:target="logos.{{ $id }}" class="badge bg-info text-white">Mengunggah...</span>
@@ -410,13 +483,13 @@ new class extends Component {
                                     </div>
 
                                     {{-- Kop Surat Lembaga --}}
-                                    <div class="col-12 col-md-6">
+                                    <div class="col-12 col-md-6 col-xl-3">
                                         <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
                                             <span><i class="bi bi-file-earmark-richtext me-1"></i>Kop Surat</span>
                                             <span wire:loading wire:target="kops.{{ $id }}" class="badge bg-info text-white">Mengunggah...</span>
                                         </label>
                                         <div class="d-flex align-items-center gap-3 flex-wrap flex-sm-nowrap">
-                                            <div class="rounded border p-1 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 120px; height: 70px; overflow: hidden;">
+                                            <div class="rounded border p-1 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 90px; height: 70px; overflow: hidden;">
                                                 @if (isset($kops[$id]) && method_exists($kops[$id], 'temporaryUrl'))
                                                     <img src="{{ $kops[$id]->temporaryUrl() }}" alt="Preview Kop" class="img-fluid object-fit-contain" style="max-height: 60px;">
                                                 @elseif (!empty($lembaga['kop']))
@@ -435,7 +508,79 @@ new class extends Component {
                                                 @enderror
                                                 @if (!empty($lembaga['kop']))
                                                     <button type="button" wire:click="removeKop({{ $id }})" class="btn btn-link btn-sm text-danger p-0 mt-1">
-                                                        <i class="bi bi-x-circle me-1"></i>Hapus Kop Surat
+                                                        <i class="bi bi-x-circle me-1"></i>Hapus Kop
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- TTD Kepala Lembaga --}}
+                                    <div class="col-12 col-md-6 col-xl-3">
+                                        <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                                            <span><i class="bi bi-pen me-1"></i>TTD Kepala</span>
+                                            <span wire:loading wire:target="ttds.{{ $id }}" class="badge bg-info text-white">Mengunggah...</span>
+                                        </label>
+                                        <div class="d-flex align-items-center gap-3 flex-wrap flex-sm-nowrap">
+                                            <div class="rounded border p-1 d-flex align-items-center justify-content-center flex-shrink-0"
+                                                 style="width: 80px; height: 70px; overflow: hidden; background: repeating-conic-gradient(#e9ecef 0% 25%, #f8f9fa 0% 50%) 50% / 12px 12px;"
+                                                 title="Pratinjau TTD (latar transparan)">
+                                                @if (isset($ttds[$id]) && method_exists($ttds[$id], 'temporaryUrl'))
+                                                    <img src="{{ $ttds[$id]->temporaryUrl() }}" alt="Preview TTD" class="img-fluid object-fit-contain" style="max-height: 60px;">
+                                                @elseif (!empty($lembaga['ttd']))
+                                                    <img src="{{ asset($lembaga['ttd']) }}" alt="TTD Kepala" class="img-fluid object-fit-contain" style="max-height: 60px;">
+                                                @else
+                                                    <i class="bi bi-pen text-muted fs-3"></i>
+                                                @endif
+                                            </div>
+                                            <div class="flex-grow-1 min-w-0" style="min-width: 0;">
+                                                <input type="file"
+                                                       wire:model="ttds.{{ $id }}"
+                                                       accept="image/png,image/jpeg,image/webp"
+                                                       class="form-control form-control-sm">
+                                                <div class="form-text text-muted" style="font-size: 0.725rem;">Disarankan PNG transparan</div>
+                                                @error('ttds.'.$id)
+                                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                                @enderror
+                                                @if (!empty($lembaga['ttd']))
+                                                    <button type="button" wire:click="removeTtd({{ $id }})" class="btn btn-link btn-sm text-danger p-0 mt-1">
+                                                        <i class="bi bi-x-circle me-1"></i>Hapus TTD
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Stempel Lembaga --}}
+                                    <div class="col-12 col-md-6 col-xl-3">
+                                        <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                                            <span><i class="bi bi-patch-check me-1"></i>Stempel Lembaga</span>
+                                            <span wire:loading wire:target="stempels.{{ $id }}" class="badge bg-info text-white">Mengunggah...</span>
+                                        </label>
+                                        <div class="d-flex align-items-center gap-3 flex-wrap flex-sm-nowrap">
+                                            <div class="rounded border p-1 d-flex align-items-center justify-content-center flex-shrink-0"
+                                                 style="width: 80px; height: 70px; overflow: hidden; background: repeating-conic-gradient(#e9ecef 0% 25%, #f8f9fa 0% 50%) 50% / 12px 12px;"
+                                                 title="Pratinjau Stempel (latar transparan)">
+                                                @if (isset($stempels[$id]) && method_exists($stempels[$id], 'temporaryUrl'))
+                                                    <img src="{{ $stempels[$id]->temporaryUrl() }}" alt="Preview Stempel" class="img-fluid object-fit-contain" style="max-height: 60px;">
+                                                @elseif (!empty($lembaga['stempel']))
+                                                    <img src="{{ asset($lembaga['stempel']) }}" alt="Stempel Lembaga" class="img-fluid object-fit-contain" style="max-height: 60px;">
+                                                @else
+                                                    <i class="bi bi-patch-check text-muted fs-3"></i>
+                                                @endif
+                                            </div>
+                                            <div class="flex-grow-1 min-w-0" style="min-width: 0;">
+                                                <input type="file"
+                                                       wire:model="stempels.{{ $id }}"
+                                                       accept="image/png,image/jpeg,image/webp"
+                                                       class="form-control form-control-sm">
+                                                <div class="form-text text-muted" style="font-size: 0.725rem;">Disarankan PNG transparan</div>
+                                                @error('stempels.'.$id)
+                                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                                @enderror
+                                                @if (!empty($lembaga['stempel']))
+                                                    <button type="button" wire:click="removeStempel({{ $id }})" class="btn btn-link btn-sm text-danger p-0 mt-1">
+                                                        <i class="bi bi-x-circle me-1"></i>Hapus Stempel
                                                     </button>
                                                 @endif
                                             </div>
@@ -475,7 +620,7 @@ new class extends Component {
                     <div>
                         <h6 class="fw-bold mb-1">SIMBA sebagai Sistem Master</h6>
                         <p class="mb-0 small">
-                            Aplikasi <strong>SAKU-v2</strong> (dan aplikasi yayasan lainnya) akan mengambil master data lembaga (nama, tingkat, kontak, logo, kop) dari SIMBA melalui API berikut.
+                            Aplikasi <strong>SAKU-v2</strong> (dan aplikasi yayasan lainnya) akan mengambil master data lembaga (nama, tingkat, kontak, logo, kop, ttd kepala, stempel) dari SIMBA melalui API berikut.
                         </p>
                     </div>
                 </div>

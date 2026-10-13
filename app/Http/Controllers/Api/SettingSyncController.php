@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 
 class SettingSyncController extends Controller
@@ -18,9 +19,9 @@ class SettingSyncController extends Controller
             ], 401);
         }
 
-        $lembaga = config('local.lembaga') ?? [];
+        $lembaga = Setting::getValue('lembaga') ?? config('local.lembaga') ?? [];
 
-        // Format logo dan kop ke absolute URL agar client (SAKU-v2) bisa langsung menggunakannya
+        // Format logo, kop, dan ttd ke absolute URL agar client (SAKU-v2) bisa langsung menggunakannya
         if (is_array($lembaga)) {
             foreach ($lembaga as $id => &$item) {
                 if (! empty($item['logo']) && ! str_starts_with($item['logo'], 'http')) {
@@ -33,6 +34,18 @@ class SettingSyncController extends Controller
                     $item['kop_url'] = asset($item['kop']);
                 } else {
                     $item['kop_url'] = $item['kop'] ?? null;
+                }
+
+                if (! empty($item['ttd']) && ! str_starts_with($item['ttd'], 'http')) {
+                    $item['ttd_url'] = asset($item['ttd']);
+                } else {
+                    $item['ttd_url'] = $item['ttd'] ?? null;
+                }
+
+                if (! empty($item['stempel']) && ! str_starts_with($item['stempel'], 'http')) {
+                    $item['stempel_url'] = asset($item['stempel']);
+                } else {
+                    $item['stempel_url'] = $item['stempel'] ?? null;
                 }
             }
         }

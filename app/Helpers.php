@@ -55,7 +55,7 @@ if (!function_exists('nama_lembaga')) {
         if (!$id) {
             return '-';
         }
-        $items = config('local.lembaga') ?? config('custom.lembaga') ?? [];
+        $items = Setting::getValue('lembaga') ?? config('local.lembaga') ?? config('custom.lembaga') ?? [];
         $lembaga = $items[$id] ?? null;
         if (is_array($lembaga)) {
             return $lembaga['nama'] ?? $lembaga['singkatan'] ?? '-';
@@ -64,10 +64,60 @@ if (!function_exists('nama_lembaga')) {
     }
 }
 
+if (!function_exists('kepala_lembaga')) {
+    function kepala_lembaga($id = null)
+    {
+        if ($id) {
+            $items = Setting::getValue('lembaga') ?? config('local.lembaga') ?? config('custom.lembaga') ?? [];
+            $lembaga = $items[$id] ?? null;
+            if (is_array($lembaga) && !empty($lembaga['kepala'])) {
+                return $lembaga['kepala'];
+            }
+        }
+        return setting('kepala_lembaga', '-');
+    }
+}
+
+if (!function_exists('ttd_url')) {
+    function ttd_url($lembagaId = null)
+    {
+        if ($lembagaId) {
+            $items = Setting::getValue('lembaga') ?? config('local.lembaga') ?? config('custom.lembaga') ?? [];
+            if (isset($items[$lembagaId]['ttd']) && !empty($items[$lembagaId]['ttd'])) {
+                $ttd = $items[$lembagaId]['ttd'];
+                return str_starts_with($ttd, 'http') ? $ttd : asset($ttd);
+            }
+        }
+        $ttd = setting('ttd_kepala');
+        if ($ttd) {
+            return str_starts_with($ttd, 'http') ? $ttd : asset($ttd);
+        }
+        return null;
+    }
+}
+
+if (!function_exists('stempel_url')) {
+    function stempel_url($lembagaId = null)
+    {
+        if ($lembagaId) {
+            $items = Setting::getValue('lembaga') ?? config('local.lembaga') ?? config('custom.lembaga') ?? [];
+            if (isset($items[$lembagaId]['stempel']) && !empty($items[$lembagaId]['stempel'])) {
+                $stempel = $items[$lembagaId]['stempel'];
+                return str_starts_with($stempel, 'http') ? $stempel : asset($stempel);
+            }
+        }
+        $stempel = setting('stempel_lembaga');
+        if ($stempel) {
+            return str_starts_with($stempel, 'http') ? $stempel : asset($stempel);
+        }
+        return null;
+    }
+}
+
 if (!function_exists('daftar_lembaga')) {
     function daftar_lembaga()
     {
-        $items = config('local.lembaga') ?? config('custom.lembaga') ?? [];
+        $items = Setting::getValue('lembaga') ?? config('local.lembaga') ?? config('custom.lembaga') ?? [];
         $result = [];
         foreach ($items as $id => $item) {
             $result[$id] = is_array($item) ? ($item['nama'] ?? $item['singkatan'] ?? "-") : $item;

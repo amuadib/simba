@@ -41,11 +41,38 @@
                 </div>
 
                 <div class="mb-3">
+                    <label>Kepala Lembaga</label>
+                    <input type="text" name="kepala_lembaga" value="{{ setting('kepala_lembaga') }}" class="form-control" placeholder="Nama Kepala Lembaga">
+                </div>
+
+                <div class="mb-3">
                     <label>Logo</label><br>
 
                     <img src="{{ logo_url() }}" height="80" class="mb-2">
 
                     <input type="file" name="logo" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>TTD Kepala Lembaga</label><br>
+                    @if (ttd_url())
+                        <div class="p-2 border rounded d-inline-block mb-2 bg-light">
+                            <img src="{{ ttd_url() }}" height="60" alt="TTD Kepala">
+                        </div>
+                    @endif
+                    <input type="file" name="ttd" class="form-control" accept="image/*">
+                    <small class="text-muted">Disarankan format PNG transparan.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label>Stempel Lembaga</label><br>
+                    @if (stempel_url())
+                        <div class="p-2 border rounded d-inline-block mb-2 bg-light">
+                            <img src="{{ stempel_url() }}" height="60" alt="Stempel Lembaga">
+                        </div>
+                    @endif
+                    <input type="file" name="stempel" class="form-control" accept="image/*">
+                    <small class="text-muted">Disarankan format PNG transparan.</small>
                 </div>
 
                 <button class="btn btn-primary">Simpan</button>

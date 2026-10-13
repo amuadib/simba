@@ -27,7 +27,9 @@ class SettingController extends Controller
             'nama_lembaga'  => 'required',
             'alamat'  => 'required',
             'email'         => 'nullable|email',
-            'logo'          => 'nullable|image|mimes:png,jpg,jpeg|max:2048'
+            'logo'          => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'ttd'           => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
+            'stempel'       => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
         ]);
 
         Setting::setValue('nama_aplikasi', $request->nama_aplikasi);
@@ -35,6 +37,9 @@ class SettingController extends Controller
         Setting::setValue('alamat', $request->alamat);
         Setting::setValue('email', $request->email);
         Setting::setValue('telp', $request->telp);
+        if ($request->filled('kepala_lembaga')) {
+            Setting::setValue('kepala_lembaga', $request->kepala_lembaga);
+        }
 
         // Upload Logo
         if ($request->hasFile('logo')) {
@@ -48,6 +53,34 @@ class SettingController extends Controller
                 ->store('settings', 'public');
 
             Setting::setValue('logo', $path);
+        }
+
+        // Upload TTD Kepala
+        if ($request->hasFile('ttd')) {
+
+            if (setting('ttd_kepala')) {
+                $oldPath = str_replace('/storage/', '', setting('ttd_kepala'));
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            $path = $request->file('ttd')
+                ->store('settings/ttd', 'public');
+
+            Setting::setValue('ttd_kepala', Storage::url($path));
+        }
+
+        // Upload Stempel Lembaga
+        if ($request->hasFile('stempel')) {
+
+            if (setting('stempel_lembaga')) {
+                $oldPath = str_replace('/storage/', '', setting('stempel_lembaga'));
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            $path = $request->file('stempel')
+                ->store('settings/stempel', 'public');
+
+            Setting::setValue('stempel_lembaga', Storage::url($path));
         }
 
         return back()->with('success', 'Setting berhasil diperbarui');
