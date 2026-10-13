@@ -40,6 +40,15 @@ class SettingController extends Controller
         if ($request->filled('kepala_lembaga')) {
             Setting::setValue('kepala_lembaga', $request->kepala_lembaga);
         }
+        if ($request->has('lat')) {
+            Setting::setValue('lat', $request->lat);
+        }
+        if ($request->has('lon')) {
+            Setting::setValue('lon', $request->lon);
+        }
+        if ($request->has('maps_embed')) {
+            Setting::setValue('maps_embed', $request->maps_embed);
+        }
 
         // Upload Logo
         if ($request->hasFile('logo')) {

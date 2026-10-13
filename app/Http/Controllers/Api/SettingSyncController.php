@@ -47,6 +47,12 @@ class SettingSyncController extends Controller
                 } else {
                     $item['stempel_url'] = $item['stempel'] ?? null;
                 }
+
+                $item['email'] = $item['email'] ?? null;
+                $item['lat'] = $item['lat'] ?? null;
+                $item['lon'] = $item['lon'] ?? null;
+                $item['maps_embed'] = $item['maps_embed'] ?? null;
+                $item['maps_embed_url'] = gmaps_embed_url($id);
             }
         }
 

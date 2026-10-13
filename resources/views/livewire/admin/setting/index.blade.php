@@ -46,6 +46,11 @@ new class extends Component {
 
             $jamKerja = $lembaga['jam_kerja'] ?? [];
             $lembaga['jam_kerja_string'] = is_array($jamKerja) ? implode("\n", $jamKerja) : (string) $jamKerja;
+
+            $lembaga['email'] = $lembaga['email'] ?? '';
+            $lembaga['lat'] = $lembaga['lat'] ?? '';
+            $lembaga['lon'] = $lembaga['lon'] ?? '';
+            $lembaga['maps_embed'] = $lembaga['maps_embed'] ?? '';
         }
 
         $this->lembaga_items = $lembagaItems;
@@ -62,8 +67,10 @@ new class extends Component {
             'kepala' => '',
             'nip_kepala' => '',
             'telp' => '',
-            'lat' => 0,
-            'lon' => 0,
+            'email' => '',
+            'lat' => '',
+            'lon' => '',
+            'maps_embed' => '',
             'logo' => null,
             'kop' => null,
             'ttd' => null,
@@ -202,6 +209,9 @@ new class extends Component {
             if (!empty($firstLembaga['telp'])) {
                 Setting::setValue('telp', $firstLembaga['telp']);
             }
+            if (!empty($firstLembaga['email'])) {
+                Setting::setValue('email', $firstLembaga['email']);
+            }
             if (!empty($firstLembaga['logo'])) {
                 Setting::setValue('logo', $firstLembaga['logo']);
             }
@@ -214,6 +224,15 @@ new class extends Component {
             if (!empty($firstLembaga['kepala'])) {
                 Setting::setValue('kepala_lembaga', $firstLembaga['kepala']);
             }
+            if (!empty($firstLembaga['lat'])) {
+                Setting::setValue('lat', $firstLembaga['lat']);
+            }
+            if (!empty($firstLembaga['lon'])) {
+                Setting::setValue('lon', $firstLembaga['lon']);
+            }
+            if (!empty($firstLembaga['maps_embed'])) {
+                Setting::setValue('maps_embed', $firstLembaga['maps_embed']);
+            }
         }
 
         $this->logos = [];
@@ -222,6 +241,36 @@ new class extends Component {
         $this->stempels = [];
 
         $this->dispatch('toast', message: 'Pengaturan Sistem berhasil disimpan!', type: 'success');
+    }
+
+    public function getMapsEmbedUrl($id): ?string
+    {
+        $lembaga = $this->lembaga_items[$id] ?? null;
+        if (!$lembaga) {
+            return null;
+        }
+
+        $embed = trim($lembaga['maps_embed'] ?? '');
+        if (!empty($embed)) {
+            if (preg_match('/src=["\']([^"\']+)["\']/', $embed, $matches)) {
+                return $matches[1];
+            }
+            if (str_starts_with($embed, 'http')) {
+                return $embed;
+            }
+        }
+
+        $lat = trim((string) ($lembaga['lat'] ?? ''));
+        $lon = trim((string) ($lembaga['lon'] ?? ''));
+        if (!empty($lat) && !empty($lon) && (float) $lat != 0 && (float) $lon != 0) {
+            return "https://maps.google.com/maps?q={$lat},{$lon}&hl=id&z=16&output=embed";
+        }
+
+        if (!empty($lembaga['alamat'])) {
+            return "https://maps.google.com/maps?q=" . urlencode($lembaga['alamat']) . "&hl=id&z=15&output=embed";
+        }
+
+        return null;
     }
 };
 ?>
@@ -375,7 +424,7 @@ new class extends Component {
                                        placeholder="Contoh: SDI / SMPI / SMAI">
                             </div>
 
-                            <div class="col-12 col-md-6 col-xl-4">
+                            <div class="col-12 col-md-6 col-xl-3">
                                 <label class="form-label fw-semibold">Telepon / WhatsApp</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-telephone"></i></span>
@@ -386,7 +435,18 @@ new class extends Component {
                                 </div>
                             </div>
 
-                            <div class="col-12 col-md-6 col-xl-4">
+                            <div class="col-12 col-md-6 col-xl-3">
+                                <label class="form-label fw-semibold">Email Lembaga</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input type="email"
+                                           wire:model="lembaga_items.{{ $id }}.email"
+                                           class="form-control"
+                                           placeholder="info@sekolah.sch.id">
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-xl-3">
                                 <label class="form-label fw-semibold">Kontak Person (PIC)</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-person"></i></span>
@@ -397,7 +457,7 @@ new class extends Component {
                                 </div>
                             </div>
 
-                            <div class="col-12 col-md-12 col-xl-4">
+                            <div class="col-12 col-md-6 col-xl-3">
                                 <label class="form-label fw-semibold">Tingkat Kelas</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-layers"></i></span>
@@ -444,6 +504,112 @@ new class extends Component {
                                           rows="3"
                                           class="form-control"
                                           placeholder="Jl. Manggar RT 02 RW 06 Klemunan..."></textarea>
+                            </div>
+
+                            {{-- BAGIAN LOKASI & GOOGLE MAPS --}}
+                            <div class="col-12 pt-3 border-top mt-3">
+                                @php
+                                    $mapEmbedUrl = $this->getMapsEmbedUrl($id);
+                                @endphp
+                                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                                    <div>
+                                        <h6 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
+                                            <i class="bi bi-geo-alt-fill text-danger fs-5"></i>
+                                            <span>Lokasi & Peta Google Maps</span>
+                                        </h6>
+                                        <small class="text-muted">Atur koordinat GPS atau kode embed peta untuk ditampilkan di website</small>
+                                    </div>
+                                    @if (!empty($lembaga['lat']) && !empty($lembaga['lon']))
+                                        <a href="https://www.google.com/maps?q={{ $lembaga['lat'] }},{{ $lembaga['lon'] }}"
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                           class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 shadow-none">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                            <span>Buka di Google Maps</span>
+                                        </a>
+                                    @endif
+                                </div>
+
+                                <div class="row g-3">
+                                    {{-- Latitude --}}
+                                    <div class="col-12 col-sm-6 col-lg-3">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-compass me-1"></i>Latitude
+                                        </label>
+                                        <input type="text"
+                                               wire:model.live.debounce.500ms="lembaga_items.{{ $id }}.lat"
+                                               class="form-control form-control-sm"
+                                               placeholder="Contoh: -7.536065">
+                                        <div class="form-text text-muted" style="font-size: 0.725rem;">Garis Lintang (-90 s/d 90)</div>
+                                    </div>
+
+                                    {{-- Longitude --}}
+                                    <div class="col-12 col-sm-6 col-lg-3">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-compass me-1"></i>Longitude
+                                        </label>
+                                        <input type="text"
+                                               wire:model.live.debounce.500ms="lembaga_items.{{ $id }}.lon"
+                                               class="form-control form-control-sm"
+                                               placeholder="Contoh: 110.592812">
+                                        <div class="form-text text-muted" style="font-size: 0.725rem;">Garis Bujur (-180 s/d 180)</div>
+                                    </div>
+
+                                    {{-- Maps Embed HTML / URL --}}
+                                    <div class="col-12 col-lg-6">
+                                        <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                                            <span><i class="bi bi-code-slash me-1"></i>Google Maps Embed (Iframe / URL)</span>
+                                            <span class="badge bg-light text-muted border">Opsional</span>
+                                        </label>
+                                        <input type="text"
+                                               wire:model.live.debounce.500ms="lembaga_items.{{ $id }}.maps_embed"
+                                               class="form-control form-control-sm"
+                                               placeholder='Paste kode <iframe>...</iframe> atau URL embed'>
+                                        <div class="form-text text-muted" style="font-size: 0.725rem;">
+                                            Kode <code>&lt;iframe&gt;</code> dari Google Maps (Bagikan &gt; Sematkan peta) atau URL langsung.
+                                        </div>
+                                    </div>
+
+                                    {{-- Live Preview Embed Map --}}
+                                    <div class="col-12">
+                                        <div class="card border rounded-3 overflow-hidden bg-light shadow-none">
+                                            <div class="card-header bg-white py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+                                                <span class="small fw-bold text-muted d-flex align-items-center gap-1">
+                                                    <i class="bi bi-map me-1 text-primary"></i>Pratinjau Map Embed di Website
+                                                </span>
+                                                @if ($mapEmbedUrl)
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                        <i class="bi bi-check-circle me-1"></i>Peta Terhubung
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-secondary-subtle text-secondary border">
+                                                        <i class="bi bi-dash-circle me-1"></i>Belum Ada Peta
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <div class="card-body p-0 position-relative" style="min-height: 220px;">
+                                                @if ($mapEmbedUrl)
+                                                    <iframe src="{{ $mapEmbedUrl }}"
+                                                            width="100%"
+                                                            height="240"
+                                                            style="border:0; display:block;"
+                                                            allowfullscreen=""
+                                                            loading="lazy"
+                                                            referrerpolicy="no-referrer-when-downgrade">
+                                                    </iframe>
+                                                @else
+                                                    <div class="p-4 text-center text-muted d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
+                                                        <i class="bi bi-geo-alt display-6 text-muted mb-2 opacity-50"></i>
+                                                        <div class="fw-semibold">Pratinjau peta belum tersedia</div>
+                                                        <div class="small mt-1 text-muted" style="max-width: 460px;">
+                                                            Masukkan <strong>Latitude & Longitude</strong> atau tempelkan <strong>kode iframe Google Maps</strong> di atas untuk memunculkan peta interaktif.
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             {{-- BAGIAN LOGO, KOP SURAT, TTD & STEMPEL --}}

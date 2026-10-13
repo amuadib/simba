@@ -75,6 +75,32 @@
                     <small class="text-muted">Disarankan format PNG transparan.</small>
                 </div>
 
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Latitude</label>
+                        <input type="text" name="lat" value="{{ setting('lat') }}" class="form-control" placeholder="Contoh: -7.536065">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Longitude</label>
+                        <input type="text" name="lon" value="{{ setting('lon') }}" class="form-control" placeholder="Contoh: 110.592812">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label>Google Maps Embed (Iframe / URL)</label>
+                    <input type="text" name="maps_embed" value="{{ setting('maps_embed') }}" class="form-control" placeholder='Paste kode <iframe>...</iframe> atau link Google Maps'>
+                    <small class="text-muted">Dapat berupa kode embed iframe Google Maps atau URL langsung.</small>
+                </div>
+
+                @if (gmaps_embed_url())
+                    <div class="mb-3">
+                        <label>Pratinjau Peta</label>
+                        <div class="border rounded overflow-hidden">
+                            <iframe src="{{ gmaps_embed_url() }}" width="100%" height="220" style="border:0;" loading="lazy"></iframe>
+                        </div>
+                    </div>
+                @endif
+
                 <button class="btn btn-primary">Simpan</button>
             </form>
 

@@ -19,6 +19,10 @@ return [
             'kop' => 'kop/kop_sd_mu.png',   // Pastikan file ada di storage/app/public/kop/kop_sd_mu.png
             'ttd' => null,
             'stempel' => null,
+            'email' => '',
+            'lat' => '',
+            'lon' => '',
+            'maps_embed' => '',
         ],
         2 => [
             'nama' => 'SMPI Miftahul Ulum',
@@ -32,6 +36,10 @@ return [
             'kop' => 'kop/kop_smp_mu.png',
             'ttd' => null,
             'stempel' => null,
+            'email' => '',
+            'lat' => '',
+            'lon' => '',
+            'maps_embed' => '',
         ],
         3 => [
             'nama' => 'SMAI Miftahul Ulum',
@@ -45,6 +53,10 @@ return [
             'kop' => 'kop/kop_sma_mu.png',
             'ttd' => null,
             'stempel' => null,
+            'email' => '',
+            'lat' => '',
+            'lon' => '',
+            'maps_embed' => '',
         ],
         99 => [
             'nama' => 'Yayasan Pendidikan Islam Bastomiyah Rahman',
@@ -58,6 +70,10 @@ return [
             'kop' => 'kop/kop_ybr.png',
             'ttd' => null,
             'stempel' => null,
+            'email' => '',
+            'lat' => '',
+            'lon' => '',
+            'maps_embed' => '',
         ],
     ],
     'jenis_nilai' => [
