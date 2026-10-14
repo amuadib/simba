@@ -101,6 +101,15 @@ return [
         5 => 'Almarhum',
         6 => 'Keluar',
     ],
+    'status_pegawai' => [
+        1 => 'Aktif',
+        2 => 'Cuti',
+        3 => 'Non-Aktif',
+        4 => 'Mutasi',
+        5 => 'Pensiun',
+        6 => 'Keluar',
+        7 => 'Almarhum',
+    ],
     'saku' => [
         'key' => env('SAKU_KEY', 'secret-token-123'),
         'url' => env('SAKU_URL', 'https://saku-v2.lol'),

@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Volt::route('/siswa', 'siswa.index')->name('siswa.index');
+    Volt::route('/pegawai', 'pegawai.index')->name('pegawai.index');
     Volt::route('/pelajaran', 'pelajaran.index')->name('pelajaran.index');
     Volt::route('/rombel', 'rombel.index')->name('rombel.index');
     Volt::route('/pembelajaran', 'pembelajaran.index')->name('pembelajaran.index');

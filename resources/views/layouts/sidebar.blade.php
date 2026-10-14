@@ -24,6 +24,12 @@
             'label' => 'Siswa',
         ],
         [
+            'route' => 'pegawai.*',
+            'url' => 'pegawai.index',
+            'icon' => 'bi-person-badge',
+            'label' => 'Pegawai',
+        ],
+        [
             'route' => 'rombel.*',
             'url' => 'rombel.index',
             'icon' => 'bi-diagram-3',
