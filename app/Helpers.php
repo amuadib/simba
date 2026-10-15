@@ -110,6 +110,51 @@ if (! function_exists('kepala_lembaga')) {
     }
 }
 
+if (! function_exists('npsn_lembaga')) {
+    function npsn_lembaga($id = null)
+    {
+        if ($id) {
+            $items = Setting::getValue('lembaga') ?? config('local.lembaga') ?? config('custom.lembaga') ?? [];
+            $lembaga = $items[$id] ?? null;
+            if (is_array($lembaga) && ! empty($lembaga['npsn'])) {
+                return $lembaga['npsn'];
+            }
+        }
+
+        return setting('npsn', '-');
+    }
+}
+
+if (! function_exists('akreditasi_lembaga')) {
+    function akreditasi_lembaga($id = null)
+    {
+        if ($id) {
+            $items = Setting::getValue('lembaga') ?? config('local.lembaga') ?? config('custom.lembaga') ?? [];
+            $lembaga = $items[$id] ?? null;
+            if (is_array($lembaga) && ! empty($lembaga['akreditasi'])) {
+                return $lembaga['akreditasi'];
+            }
+        }
+
+        return setting('akreditasi', '-');
+    }
+}
+
+if (! function_exists('website_lembaga')) {
+    function website_lembaga($id = null)
+    {
+        if ($id) {
+            $items = Setting::getValue('lembaga') ?? config('local.lembaga') ?? config('custom.lembaga') ?? [];
+            $lembaga = $items[$id] ?? null;
+            if (is_array($lembaga) && ! empty($lembaga['website'])) {
+                return $lembaga['website'];
+            }
+        }
+
+        return setting('website', null);
+    }
+}
+
 if (! function_exists('ttd_url')) {
     function ttd_url($lembagaId = null)
     {

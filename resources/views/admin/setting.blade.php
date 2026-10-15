@@ -25,6 +25,21 @@
                     <input type="text" name="nama_lembaga" value="{{ setting('nama_lembaga') }}" class="form-control">
                 </div>
 
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label>NPSN</label>
+                        <input type="text" name="npsn" value="{{ setting('npsn') }}" class="form-control" placeholder="Contoh: 20512345">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>Status Akreditasi</label>
+                        <input type="text" name="akreditasi" value="{{ setting('akreditasi') }}" class="form-control" placeholder="Contoh: A / Unggul / B">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>Website Lembaga</label>
+                        <input type="text" name="website" value="{{ setting('website') }}" class="form-control" placeholder="https://sekolah.sch.id">
+                    </div>
+                </div>
+
                 <div class="mb-3">
                     <label>Alamat</label>
                     <textarea name="alamat" class="form-control">{{ setting('alamat') }}</textarea>

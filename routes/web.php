@@ -15,9 +15,11 @@ Route::get('/csrf-refresh', fn() => ['token' => csrf_token()]);
 
 use Livewire\Volt\Volt;
 Volt::route('/login', 'auth.login')->name('login')->middleware('guest');
-
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
-Volt::route('/', 'dashboard')->name('dashboard')->middleware('auth');
+
+Volt::route('/', 'welcome')->name('welcome');
+Volt::route('/welcome', 'welcome');
+Volt::route('/dashboard', 'dashboard')->name('dashboard')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
 

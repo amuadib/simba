@@ -3,7 +3,7 @@
 @endphp<nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-3">
         <li class="breadcrumb-item">
-            <a href="{{ url('/') }}">Home</a>
+            <a href="{{ route('dashboard') }}">Dashboard</a>
         </li>
 
         @foreach ($segments as $index => $segment)

@@ -18,8 +18,8 @@ new class extends Component {
     public function mount()
     {
         $this->totalSiswa = Siswa::count();
-        $lembagaList = config('local.lembaga') ?? [];
-            if (isset($lembagaList[99])) {
+        $lembagaList = \App\Models\Setting::getValue('lembaga') ?? config('local.lembaga') ?? [];
+        if (isset($lembagaList[99])) {
                 $this->lembaga = $lembagaList[99];
             } elseif (!empty($lembagaList)) {
                 ksort($lembagaList, SORT_NUMERIC);
@@ -165,16 +165,31 @@ new class extends Component {
             <img src="{{ logo_url() }}" alt="Logo" class="identity-logo">
             <div class="flex-fill">
                 <div class="identity-app">{{ setting('nama_aplikasi') ?? env('APP_NAME') }}</div>
-                <div class="identity-lembaga">{{ $lembaga['nama'] }}</div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="identity-lembaga">{{ $lembaga['nama'] ?? 'Lembaga' }}</div>
+                    @if (!empty($lembaga['akreditasi']))
+                        <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.75rem;">
+                            <i class="bi bi-patch-check-fill me-1"></i>Akreditasi {{ $lembaga['akreditasi'] }}
+                        </span>
+                    @endif
+                </div>
                 <div class="identity-contacts d-flex mt-1 flex-wrap gap-3">
-                    @if ($lembaga['alamat'])
+                    @if (!empty($lembaga['npsn']))
+                        <span><i class="bi bi-card-heading me-1"></i>NPSN: {{ $lembaga['npsn'] }}</span>
+                    @endif
+                    @if (!empty($lembaga['alamat']))
                         <span><i class="bi bi-geo-alt-fill me-1"></i>{{ $lembaga['alamat'] }}</span>
                     @endif
-                    @if ($lembaga['email'])
+                    @if (!empty($lembaga['email']))
                         <span><i class="bi bi-envelope-fill me-1"></i>{{ $lembaga['email'] }}</span>
                     @endif
-                    @if ($lembaga['kontak'])
+                    @if (!empty($lembaga['kontak']))
                         <span><i class="bi bi-telephone-fill me-1"></i>{{ $lembaga['kontak'] }}</span>
+                    @endif
+                    @if (!empty($lembaga['website']))
+                        <a href="{{ str_starts_with($lembaga['website'], 'http') ? $lembaga['website'] : 'https://' . $lembaga['website'] }}" target="_blank" rel="noopener" class="text-decoration-none text-muted">
+                            <i class="bi bi-globe me-1"></i>{{ $lembaga['website'] }}
+                        </a>
                     @endif
                 </div>
             </div>

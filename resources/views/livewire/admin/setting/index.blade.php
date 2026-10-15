@@ -48,6 +48,9 @@ new class extends Component {
             $lembaga['jam_kerja_string'] = is_array($jamKerja) ? implode("\n", $jamKerja) : (string) $jamKerja;
 
             $lembaga['email'] = $lembaga['email'] ?? '';
+            $lembaga['npsn'] = $lembaga['npsn'] ?? '';
+            $lembaga['akreditasi'] = $lembaga['akreditasi'] ?? '';
+            $lembaga['website'] = $lembaga['website'] ?? '';
             $lembaga['lat'] = $lembaga['lat'] ?? '';
             $lembaga['lon'] = $lembaga['lon'] ?? '';
             $lembaga['maps_embed'] = $lembaga['maps_embed'] ?? '';
@@ -62,6 +65,9 @@ new class extends Component {
         $this->lembaga_items[$newId] = [
             'nama' => 'Nama Lembaga Baru',
             'singkatan' => '',
+            'npsn' => '',
+            'akreditasi' => '',
+            'website' => '',
             'alamat' => '',
             'kontak' => '',
             'kepala' => '',
@@ -232,6 +238,15 @@ new class extends Component {
             }
             if (!empty($firstLembaga['maps_embed'])) {
                 Setting::setValue('maps_embed', $firstLembaga['maps_embed']);
+            }
+            if (!empty($firstLembaga['npsn'])) {
+                Setting::setValue('npsn', $firstLembaga['npsn']);
+            }
+            if (!empty($firstLembaga['akreditasi'])) {
+                Setting::setValue('akreditasi', $firstLembaga['akreditasi']);
+            }
+            if (!empty($firstLembaga['website'])) {
+                Setting::setValue('website', $firstLembaga['website']);
             }
         }
 
@@ -422,6 +437,39 @@ new class extends Component {
                                        wire:model="lembaga_items.{{ $id }}.singkatan"
                                        class="form-control"
                                        placeholder="Contoh: SDI / SMPI / SMAI">
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold">NPSN</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-card-heading"></i></span>
+                                    <input type="text"
+                                           wire:model="lembaga_items.{{ $id }}.npsn"
+                                           class="form-control"
+                                           placeholder="Contoh: 20512345">
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold">Status Akreditasi</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-patch-check"></i></span>
+                                    <input type="text"
+                                           wire:model="lembaga_items.{{ $id }}.akreditasi"
+                                           class="form-control"
+                                           placeholder="Contoh: A / Unggul / B">
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold">Website Lembaga</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                                    <input type="text"
+                                           wire:model="lembaga_items.{{ $id }}.website"
+                                           class="form-control"
+                                           placeholder="https://sdi-mu.sch.id">
+                                </div>
                             </div>
 
                             <div class="col-12 col-md-6 col-xl-3">

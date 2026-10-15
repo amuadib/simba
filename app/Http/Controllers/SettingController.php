@@ -40,6 +40,15 @@ class SettingController extends Controller
         if ($request->filled('kepala_lembaga')) {
             Setting::setValue('kepala_lembaga', $request->kepala_lembaga);
         }
+        if ($request->has('npsn')) {
+            Setting::setValue('npsn', $request->npsn);
+        }
+        if ($request->has('akreditasi')) {
+            Setting::setValue('akreditasi', $request->akreditasi);
+        }
+        if ($request->has('website')) {
+            Setting::setValue('website', $request->website);
+        }
         if ($request->has('lat')) {
             Setting::setValue('lat', $request->lat);
         }

@@ -10,6 +10,9 @@ return [
         1 => [
             'nama' => 'SDI Miftahul Ulum Klemunan',
             'singkatan' => 'SDI',
+            'npsn' => '',
+            'akreditasi' => 'A',
+            'website' => '',
             'alamat' => 'Jl. Karangnongko KM 02, Klemunan, Kec. Boyolali, Kabupaten Boyolali, Jawa Tengah',
             'kontak' => 'Pak Wawan (0812-3456-7890)',
             'kepala' => '',
@@ -27,6 +30,9 @@ return [
         2 => [
             'nama' => 'SMPI Miftahul Ulum',
             'singkatan' => 'SMPI',
+            'npsn' => '',
+            'akreditasi' => 'A',
+            'website' => '',
             'alamat' => 'Jl. Karangnongko KM 02, Klemunan, Kec. Boyolali, Kabupaten Boyolali, Jawa Tengah',
             'kontak' => 'Pak Rahmat (0812-3456-7891)',
             'kepala' => '',
@@ -44,6 +50,9 @@ return [
         3 => [
             'nama' => 'SMAI Miftahul Ulum',
             'singkatan' => 'SMAI',
+            'npsn' => '',
+            'akreditasi' => 'A',
+            'website' => '',
             'alamat' => 'Jl. Karangnongko KM 02, Klemunan, Kec. Boyolali, Kabupaten Boyolali, Jawa Tengah',
             'kontak' => 'Pak Haris (0812-3456-7892)',
             'kepala' => '',
@@ -61,6 +70,9 @@ return [
         99 => [
             'nama' => 'Yayasan Pendidikan Islam Bastomiyah Rahman',
             'singkatan' => 'YPIB',
+            'npsn' => '',
+            'akreditasi' => '',
+            'website' => '',
             'alamat' => 'Jl. Sudirman No. 123, Boyolali Kota, Jawa Tengah',
             'kontak' => 'Kantor Yayasan (0276-123456)',
             'kepala' => '',
