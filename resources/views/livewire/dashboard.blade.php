@@ -13,10 +13,20 @@ new class extends Component {
     public $chartData = ['labels' => [], 'series' => ['H' => [], 'S' => [], 'I' => [], 'A' => []]];
     public $filterKehadiran = '30_hari';
     public $jadwalHariIni = [];
+    public $lembaga = [];
 
     public function mount()
     {
         $this->totalSiswa = Siswa::count();
+        $lembagaList = config('local.lembaga') ?? [];
+            if (isset($lembagaList[99])) {
+                $this->lembaga = $lembagaList[99];
+            } elseif (!empty($lembagaList)) {
+                ksort($lembagaList, SORT_NUMERIC);
+                $this->lembaga = reset($lembagaList);
+            } else {
+                $this->lembaga = [];
+            }
 
         // Jadwal hari ini untuk user yang login
         $hariIni = (int) Carbon::today()->isoWeekday(); // 1=Senin ... 7=Ahad
@@ -155,16 +165,16 @@ new class extends Component {
             <img src="{{ logo_url() }}" alt="Logo" class="identity-logo">
             <div class="flex-fill">
                 <div class="identity-app">{{ setting('nama_aplikasi') ?? env('APP_NAME') }}</div>
-                <div class="identity-lembaga">{{ setting('nama_lembaga') ?? env('APP_NAME') }}</div>
+                <div class="identity-lembaga">{{ $lembaga['nama'] }}</div>
                 <div class="identity-contacts d-flex mt-1 flex-wrap gap-3">
-                    @if (setting('alamat'))
-                        <span><i class="bi bi-geo-alt-fill me-1"></i>{{ setting('alamat') }}</span>
+                    @if ($lembaga['alamat'])
+                        <span><i class="bi bi-geo-alt-fill me-1"></i>{{ $lembaga['alamat'] }}</span>
                     @endif
-                    @if (setting('email'))
-                        <span><i class="bi bi-envelope-fill me-1"></i>{{ setting('email') }}</span>
+                    @if ($lembaga['email'])
+                        <span><i class="bi bi-envelope-fill me-1"></i>{{ $lembaga['email'] }}</span>
                     @endif
-                    @if (setting('telp'))
-                        <span><i class="bi bi-telephone-fill me-1"></i>{{ setting('telp') }}</span>
+                    @if ($lembaga['kontak'])
+                        <span><i class="bi bi-telephone-fill me-1"></i>{{ $lembaga['kontak'] }}</span>
                     @endif
                 </div>
             </div>

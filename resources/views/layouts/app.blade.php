@@ -409,7 +409,7 @@
                 @yield('content')
             @endisset
             <footer class="text-muted mt-4 text-center">
-                © {{ date('Y') }} {{ setting('nama_lembaga') ?? env('APP_NAME') }}
+                © {{ date('Y') }} {{ config('local.lembaga.99.nama') ?? env('APP_NAME') }}
             </footer>
             <div class="d-none">عروة البارقي</div>
         </div>
