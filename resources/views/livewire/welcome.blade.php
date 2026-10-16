@@ -70,8 +70,8 @@ new #[Layout('layouts.welcome')] class extends Component {
                 ], $item);
 
                 $item['id'] = (int)$id;
-                $item['total_siswa'] = Siswa::where('lembaga_id', $id)->count();
-                $item['total_pegawai'] = Pegawai::where('lembaga_id', $id)->count();
+                $item['total_siswa'] = Siswa::where('status', 1)->where('lembaga_id', $id)->count();
+                $item['total_pegawai'] = Pegawai::where('status', 1)->where('lembaga_id', $id)->count();
 
                 $singkatan = strtoupper($item['singkatan'] ?? '');
                 $nama = strtoupper($item['nama'] ?? '');
@@ -107,8 +107,8 @@ new #[Layout('layouts.welcome')] class extends Component {
         // Agregat Statistik
         $this->stats = [
             'total_unit' => count($this->lembagaLain),
-            'total_siswa' => Siswa::count(),
-            'total_pegawai' => Pegawai::count(),
+            'total_siswa' => Siswa::where('status', 1)->count(),
+            'total_pegawai' => Pegawai::where('status', 1)->count(),
         ];
     }
 
