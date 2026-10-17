@@ -126,10 +126,10 @@ new class extends Component {
             data: {
                 labels: dataSet.labels,
                 datasets: [
-                    { label: 'Hadir', data: dataSet.series.H, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.1)', fill: true, tension: .3, pointRadius: 4 },
-                    { label: 'Izin', data: dataSet.series.I, borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,.1)', fill: true, tension: .3, pointRadius: 4 },
-                    { label: 'Sakit', data: dataSet.series.S, borderColor: '#facc15', backgroundColor: 'rgba(250,204,21,.1)', fill: true, tension: .3, pointRadius: 4 },
-                    { label: 'Alpa', data: dataSet.series.A, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.1)', fill: true, tension: .3, pointRadius: 4 }
+                    { label: 'Hadir', data: dataSet.series.H, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.12)', fill: true, tension: .3, pointRadius: 4 },
+                    { label: 'Izin', data: dataSet.series.I, borderColor: '#00b4d8', backgroundColor: 'rgba(0,180,216,.12)', fill: true, tension: .3, pointRadius: 4 },
+                    { label: 'Sakit', data: dataSet.series.S, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.12)', fill: true, tension: .3, pointRadius: 4 },
+                    { label: 'Alpa', data: dataSet.series.A, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.12)', fill: true, tension: .3, pointRadius: 4 }
                 ]
             },
             options: {
@@ -160,35 +160,45 @@ new class extends Component {
     }
 ">
     {{-- IDENTITY BANNER --}}
-    <div class="identity-banner card p-md-4 mb-4 p-3 shadow-sm">
-        <div class="d-flex align-items-center flex-wrap gap-3">
-            <img src="{{ logo_url() }}" alt="Logo" class="identity-logo">
-            <div class="flex-fill">
-                <div class="identity-app">{{ setting('nama_aplikasi') ?? env('APP_NAME') }}</div>
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <div class="identity-lembaga">{{ $lembaga['nama'] ?? 'Lembaga' }}</div>
+    <div class="relative overflow-hidden rounded-3xl p-4 md:p-6 mb-6 glass-panel border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">
+        <div class="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-[#0284c7] via-[#00b4d8] to-[#10b981]"></div>
+        
+        <div class="flex items-center flex-wrap gap-4 pl-2">
+            <div class="relative flex-shrink-0 w-20 h-20 rounded-2xl bg-gradient-to-tr from-sky-500/15 via-cyan-500/15 to-emerald-500/20 p-2 ring-1 ring-cyan-500/30 shadow-md flex items-center justify-center">
+                <img src="{{ logo_url() }}" alt="Logo" class="w-full h-full object-contain">
+            </div>
+            
+            <div class="flex-1 min-w-[240px]">
+                <div class="text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 font-display">
+                    {{ setting('nama_aplikasi') ?? env('APP_NAME') }}
+                </div>
+                <div class="flex items-center gap-2 flex-wrap mt-0.5">
+                    <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 dark:text-slate-100 font-display m-0">
+                        {{ $lembaga['nama'] ?? 'Lembaga' }}
+                    </h3>
                     @if (!empty($lembaga['akreditasi']))
-                        <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.75rem;">
-                            <i class="bi bi-patch-check-fill me-1"></i>Akreditasi {{ $lembaga['akreditasi'] }}
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                            <i class="bi bi-patch-check-fill"></i> Akreditasi {{ $lembaga['akreditasi'] }}
                         </span>
                     @endif
                 </div>
-                <div class="identity-contacts d-flex mt-1 flex-wrap gap-3">
+
+                <div class="flex items-center gap-3 md:gap-4 flex-wrap mt-2 text-xs text-slate-500 dark:text-slate-400">
                     @if (!empty($lembaga['npsn']))
-                        <span><i class="bi bi-card-heading me-1"></i>NPSN: {{ $lembaga['npsn'] }}</span>
+                        <span class="inline-flex items-center gap-1.5"><i class="bi bi-card-heading text-sky-500"></i>NPSN: {{ $lembaga['npsn'] }}</span>
                     @endif
                     @if (!empty($lembaga['alamat']))
-                        <span><i class="bi bi-geo-alt-fill me-1"></i>{{ $lembaga['alamat'] }}</span>
+                        <span class="inline-flex items-center gap-1.5"><i class="bi bi-geo-alt-fill text-emerald-500"></i>{{ $lembaga['alamat'] }}</span>
                     @endif
                     @if (!empty($lembaga['email']))
-                        <span><i class="bi bi-envelope-fill me-1"></i>{{ $lembaga['email'] }}</span>
+                        <span class="inline-flex items-center gap-1.5"><i class="bi bi-envelope-fill text-cyan-500"></i>{{ $lembaga['email'] }}</span>
                     @endif
                     @if (!empty($lembaga['kontak']))
-                        <span><i class="bi bi-telephone-fill me-1"></i>{{ $lembaga['kontak'] }}</span>
+                        <span class="inline-flex items-center gap-1.5"><i class="bi bi-telephone-fill text-lime-500"></i>{{ $lembaga['kontak'] }}</span>
                     @endif
                     @if (!empty($lembaga['website']))
-                        <a href="{{ str_starts_with($lembaga['website'], 'http') ? $lembaga['website'] : 'https://' . $lembaga['website'] }}" target="_blank" rel="noopener" class="text-decoration-none text-muted">
-                            <i class="bi bi-globe me-1"></i>{{ $lembaga['website'] }}
+                        <a href="{{ str_starts_with($lembaga['website'], 'http') ? $lembaga['website'] : 'https://' . $lembaga['website'] }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-cyan-600 hover:underline">
+                            <i class="bi bi-globe"></i>{{ $lembaga['website'] }}
                         </a>
                     @endif
                 </div>
@@ -196,74 +206,69 @@ new class extends Component {
         </div>
     </div>
 
-    {{-- STATS --}}
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-4 col-lg">
-            <div class="stat-card card h-100 p-3 shadow-sm">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon" style="background: rgba(99,102,241,.15); color:#6366f1;">
-                        <i class="bi bi-people-fill"></i>
-                    </div>
-                    <div>
-                        <div class="stat-label">Total Siswa</div>
-                        <div class="stat-value">{{ $totalSiswa }}</div>
-                    </div>
+    {{-- STATS CARDS --}}
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
+        {{-- Total Siswa --}}
+        <div class="glass-panel p-4 rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 hover:scale-[1.02] transition-transform shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-sky-500 to-cyan-500 text-white flex items-center justify-center text-xl shadow-md shadow-sky-500/30 flex-shrink-0">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-display">Total Siswa</div>
+                    <div class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 font-display">{{ $totalSiswa }}</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-6 col-md-4 col-lg">
-            <div class="stat-card card h-100 p-3 shadow-sm">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon" style="background: rgba(34,197,94,.15); color:#22c55e;">
-                        <i class="bi bi-check-circle-fill"></i>
-                    </div>
-                    <div>
-                        <div class="stat-label">Hadir</div>
-                        <div class="stat-value text-success">{{ $total['h'] }}</div>
-                    </div>
+        {{-- Hadir --}}
+        <div class="glass-panel p-4 rounded-2xl border border-slate-200/90 dark:border-emerald-500/20 hover:scale-[1.02] transition-transform shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-500 text-white flex items-center justify-center text-xl shadow-md shadow-emerald-500/30 flex-shrink-0">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-display">Hadir Hari Ini</div>
+                    <div class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-display">{{ $total['h'] }}</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-6 col-md-4 col-lg">
-            <div class="stat-card card h-100 p-3 shadow-sm">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon" style="background: rgba(250,204,21,.15); color:#facc15;">
-                        <i class="bi bi-bandaid-fill"></i>
-                    </div>
-                    <div>
-                        <div class="stat-label">Sakit</div>
-                        <div class="stat-value text-warning">{{ $total['s'] }}</div>
-                    </div>
+        {{-- Izin --}}
+        <div class="glass-panel p-4 rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 hover:scale-[1.02] transition-transform shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-500 to-sky-400 text-white flex items-center justify-center text-xl shadow-md shadow-cyan-500/30 flex-shrink-0">
+                    <i class="bi bi-card-text"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 font-display">Izin</div>
+                    <div class="text-2xl font-extrabold text-cyan-600 dark:text-cyan-400 font-display">{{ $total['i'] }}</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-6 col-md-4 col-lg">
-            <div class="stat-card card h-100 p-3 shadow-sm">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon" style="background: rgba(56,189,248,.15); color:#38bdf8;">
-                        <i class="bi bi-card-text"></i>
-                    </div>
-                    <div>
-                        <div class="stat-label">Izin</div>
-                        <div class="stat-value" style="color:#38bdf8;">{{ $total['i'] }}</div>
-                    </div>
+        {{-- Sakit --}}
+        <div class="glass-panel p-4 rounded-2xl border border-slate-200/90 dark:border-amber-500/20 hover:scale-[1.02] transition-transform shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-400 to-yellow-500 text-white flex items-center justify-center text-xl shadow-md shadow-amber-500/30 flex-shrink-0">
+                    <i class="bi bi-bandaid-fill"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-amber-500 font-display">Sakit</div>
+                    <div class="text-2xl font-extrabold text-amber-500 font-display">{{ $total['s'] }}</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-6 col-md-4 col-lg">
-            <div class="stat-card card h-100 p-3 shadow-sm">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon" style="background: rgba(239,68,68,.15); color:#ef4444;">
-                        <i class="bi bi-x-circle-fill"></i>
-                    </div>
-                    <div>
-                        <div class="stat-label">Alpa</div>
-                        <div class="stat-value text-danger">{{ $total['a'] }}</div>
-                    </div>
+        {{-- Alpa --}}
+        <div class="glass-panel p-4 rounded-2xl border border-slate-200/90 dark:border-rose-500/20 hover:scale-[1.02] transition-transform shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center text-xl shadow-md shadow-rose-500/30 flex-shrink-0">
+                    <i class="bi bi-x-circle-fill"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-rose-500 font-display">Alpa</div>
+                    <div class="text-2xl font-extrabold text-rose-500 font-display">{{ $total['a'] }}</div>
                 </div>
             </div>
         </div>

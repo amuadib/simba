@@ -31,86 +31,124 @@ new #[Layout('layouts.guest')] class extends Component {
         }
 
         throw ValidationException::withMessages([
-            'email' => 'Email atau password salah',
+            'email' => 'Email atau kata sandi tidak cocok dengan data kami',
         ]);
     }
 };
 
 ?>
 
-<div class="login-box">
-    <div class="card border-0">
-        <div class="card-body p-4 p-md-5">
+<div class="w-full">
+    {{-- Card Container with Glassmorphism and Logo Glow Border --}}
+    <div class="relative glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200/90 dark:border-cyan-500/20">
+        
+        {{-- Card Header --}}
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-500/20 via-cyan-500/15 to-emerald-500/20 p-2.5 ring-2 ring-cyan-500/40 shadow-lg shadow-cyan-500/20 mb-3 group hover:scale-105 transition-transform">
+                <img src="{{ logo_url() }}" alt="Logo" class="w-full h-full object-contain">
+            </div>
+            
+            <h2 class="text-2xl font-extrabold font-display text-gradient-logo mb-1">
+                {{ setting('nama_aplikasi') ?? env('APP_NAME') }}
+            </h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                Silakan masuk dengan akun terdaftar untuk melanjutkan
+            </p>
+        </div>
 
-            <div class="text-center mb-4">
-                <div class="d-inline-block p-3 rounded-circle bg-white shadow-sm mb-3 logo-container">
-                    <img src="{{ logo_url() }}" alt="Logo" style="height: 60px; width: 60px; object-fit: contain;">
+        {{-- Form Login --}}
+        <form wire:submit="login" class="space-y-4">
+            
+            {{-- Email --}}
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 font-display">
+                    Alamat Email
+                </label>
+                <div class="relative flex items-center">
+                    <span class="absolute left-3.5 text-cyan-600 dark:text-cyan-400 text-sm pointer-events-none">
+                        <i class="bi bi-envelope-at"></i>
+                    </span>
+                    <input type="email" 
+                           wire:model="email" 
+                           class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-cyan-500/25 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 transition-all @error('email') border-rose-500 @enderror"
+                           placeholder="nama@email.com" 
+                           required 
+                           autofocus 
+                           inputmode="email">
                 </div>
-                <h4 class="fw-bold mb-1">
-                    {{ setting('nama_aplikasi') ?? env('APP_NAME') }}
-                </h4>
+                @error('email') 
+                    <span class="text-xs text-rose-500 mt-1 block font-medium">{{ $message }}</span> 
+                @enderror
             </div>
 
-            <form wire:submit="login">
-                {{-- Email --}}
-                <div class="mb-4">
-                    <label class="form-label fw-semibold small">Alamat Email</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                        <input type="email" wire:model="email" class="form-control with-group @error('email') is-invalid @enderror" 
-                            placeholder="nama@contoh.com" required autofocus inputmode="email">
-                    </div>
-                    @error('email') <div class="invalid-feedback d-block mt-1">{{ $message }}</div> @enderror
+            {{-- Password --}}
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 font-display">
+                    Kata Sandi
+                </label>
+                <div class="relative flex items-center">
+                    <span class="absolute left-3.5 text-cyan-600 dark:text-cyan-400 text-sm pointer-events-none">
+                        <i class="bi bi-shield-lock"></i>
+                    </span>
+                    <input type="password" 
+                           wire:model="password" 
+                           id="passwordInput"
+                           class="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-cyan-500/25 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 transition-all @error('password') border-rose-500 @enderror"
+                           placeholder="••••••••" 
+                           required>
+                    <button type="button" 
+                            onclick="togglePasswordVisibility()" 
+                            class="absolute right-3.5 text-slate-400 hover:text-cyan-500 text-sm transition-colors"
+                            title="Tampilkan / Sembunyikan Sandi">
+                        <i class="bi bi-eye-slash" id="toggleIcon"></i>
+                    </button>
                 </div>
+                @error('password') 
+                    <span class="text-xs text-rose-500 mt-1 block font-medium">{{ $message }}</span> 
+                @enderror
+            </div>
 
-                {{-- Password --}}
-                <div class="mb-4">
-                    <label class="form-label fw-semibold small">Kata Sandi</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" wire:model="password" id="password" 
-                            class="form-control with-group @error('password') is-invalid @enderror"
-                            placeholder="••••••••" required>
-                        <span class="input-group-text bg-transparent border-start-0 password-toggle" onclick="togglePasswordVisibility()">
-                            <i class="bi bi-eye-slash" id="toggleIcon"></i>
-                        </span>
-                    </div>
-                    @error('password') <div class="invalid-feedback d-block mt-1">{{ $message }}</div> @enderror
-                </div>
+            {{-- Remember Me & Info --}}
+            <div class="flex items-center justify-between text-xs pt-1">
+                <label class="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300">
+                    <input type="checkbox" wire:model="remember" class="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500">
+                    <span>Ingat saya di perangkat ini</span>
+                </label>
+                <span class="text-slate-400 text-[11px]">Butuh bantuan? Hubungi Admin</span>
+            </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="form-check">
-                        <input type="checkbox" wire:model="remember" class="form-check-input" id="remember">
-                        <label class="form-check-label small" for="remember">
-                            Ingat saya
-                        </label>
-                    </div>
-                    <a href="#" class="small text-decoration-none fw-medium">Lupa sandi?</a>
-                </div>
-
-                {{-- Button --}}
-                <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2" wire:loading.attr="disabled">
-                    <span wire:loading.remove>Masuk ke Akun</span>
-                    <span wire:loading class="spinner-border spinner-border-sm" role="status"></span>
-                    <span wire:loading>Memproses...</span>
+            {{-- Submit Button --}}
+            <div class="pt-2">
+                <button type="submit" 
+                        class="w-full py-3 px-4 rounded-xl btn-logo-gradient flex items-center justify-center gap-2 text-sm font-bold shadow-lg"
+                        wire:loading.attr="disabled">
+                    <span wire:loading.remove class="flex items-center gap-2">
+                        <span>Masuk ke SIMBA</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </span>
+                    <span wire:loading class="flex items-center gap-2">
+                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                        <span>Memverifikasi Akun...</span>
+                    </span>
                 </button>
-            </form>
+            </div>
+        </form>
 
+        {{-- Footer Note --}}
+        <div class="mt-6 pt-4 border-t border-slate-200/70 dark:border-slate-800/70 text-center">
+            <p class="text-[11px] text-slate-400 m-0">
+                &copy; {{ date('Y') }} {{ config('local.lembaga.99.nama') ?? env('APP_NAME') }} • Hak Cipta Dilindungi
+            </p>
         </div>
-    </div>
-
-    <div class="text-center mt-4">
-        <p class="text-muted small">
-            &copy; {{ date('Y') }} {{ setting('nama_lembaga') ?? env('APP_NAME') }}
-        </p>
     </div>
 
     <script>
         function togglePasswordVisibility() {
-            const password = document.getElementById('password');
+            const pwd = document.getElementById('passwordInput');
             const icon = document.getElementById('toggleIcon');
-            const isPassword = password.type === 'password';
-            password.type = isPassword ? 'text' : 'password';
+            if (!pwd || !icon) return;
+            const isPassword = pwd.type === 'password';
+            pwd.type = isPassword ? 'text' : 'password';
             icon.className = isPassword ? 'bi bi-eye' : 'bi bi-eye-slash';
         }
     </script>

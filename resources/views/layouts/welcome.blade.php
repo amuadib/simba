@@ -17,6 +17,9 @@
     <link href="{{ asset('bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('bootstrap-icons.css') }}" rel="stylesheet">
 
+    {{-- Tailwind CSS v4 via Vite --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <script>
         // Apply theme immediately to prevent flashing
         (function() {
@@ -30,65 +33,65 @@
             --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
             --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 
-            /* LIGHT THEME */
+            /* LIGHT THEME (Logo Palette: Ocean Blue, Circuit Cyan, Emerald & Lime) */
             --bg-page: #f8fafc;
-            --bg-page-subtle: #f1f5f9;
-            --card-bg: rgba(255, 255, 255, 0.92);
+            --bg-page-subtle: #f0fdf4;
+            --card-bg: rgba(255, 255, 255, 0.94);
             --card-bg-solid: #ffffff;
             --card-border: rgba(226, 232, 240, 0.9);
-            --card-hover-border: rgba(99, 102, 241, 0.45);
+            --card-hover-border: rgba(2, 132, 199, 0.45);
             --text-heading: #0f172a;
             --text-body: #334155;
             --text-muted: #64748b;
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --primary-light: rgba(79, 70, 229, 0.08);
-            --accent-emerald: #059669;
-            --accent-emerald-light: rgba(5, 150, 105, 0.08);
-            --accent-amber: #d97706;
-            --accent-amber-light: rgba(217, 119, 6, 0.08);
-            --navbar-bg: rgba(255, 255, 255, 0.85);
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --primary-light: rgba(2, 132, 199, 0.08);
+            --accent-cyan: #00b4d8;
+            --accent-emerald: #10b981;
+            --accent-emerald-light: rgba(16, 185, 129, 0.08);
+            --accent-lime: #84cc16;
+            --navbar-bg: rgba(255, 255, 255, 0.88);
             --navbar-border: rgba(226, 232, 240, 0.8);
-            --footer-bg: #0f172a;
+            --footer-bg: #071528;
             --footer-text: #94a3b8;
-            --badge-bg: #e0e7ff;
-            --badge-text: #3730a3;
-            --card-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.06), 0 4px 6px -4px rgba(15, 23, 42, 0.02);
-            --card-shadow-hover: 0 20px 35px -5px rgba(79, 70, 229, 0.12), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
-            --hero-gradient: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 60%),
-                               radial-gradient(at 100% 10%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
-                               radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 60%);
+            --badge-bg: #e0f2fe;
+            --badge-text: #0369a1;
+            --card-shadow: 0 10px 30px -5px rgba(2, 132, 199, 0.06), 0 4px 6px -4px rgba(16, 185, 129, 0.03);
+            --card-shadow-hover: 0 20px 35px -5px rgba(2, 132, 199, 0.16), 0 10px 10px -5px rgba(16, 185, 129, 0.06);
+            --hero-gradient: radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.14) 0px, transparent 60%),
+                               radial-gradient(at 100% 10%, rgba(16, 185, 129, 0.10) 0px, transparent 50%),
+                               radial-gradient(at 50% 100%, rgba(0, 180, 216, 0.08) 0px, transparent 60%);
         }
 
         [data-theme="dark"] {
-            /* DARK THEME */
-            --bg-page: #090d16;
-            --bg-page-subtle: #0f172a;
-            --card-bg: rgba(15, 23, 42, 0.78);
-            --card-bg-solid: #0f172a;
-            --card-border: rgba(255, 255, 255, 0.08);
-            --card-hover-border: rgba(129, 140, 248, 0.5);
+            /* DARK THEME (Cosmic Deep Gear Navy) */
+            --bg-page: #060e1a;
+            --bg-page-subtle: #09172c;
+            --card-bg: rgba(10, 27, 50, 0.82);
+            --card-bg-solid: #0a1b32;
+            --card-border: rgba(56, 189, 248, 0.14);
+            --card-hover-border: rgba(56, 189, 248, 0.5);
             --text-heading: #f8fafc;
             --text-body: #cbd5e1;
             --text-muted: #94a3b8;
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --primary-light: rgba(99, 102, 241, 0.16);
+            --primary: #38bdf8;
+            --primary-hover: #0284c7;
+            --primary-light: rgba(56, 189, 248, 0.16);
+            --accent-cyan: #00b4d8;
             --accent-emerald: #10b981;
             --accent-emerald-light: rgba(16, 185, 129, 0.16);
-            --accent-amber: #f59e0b;
-            --accent-amber-light: rgba(245, 158, 11, 0.16);
-            --navbar-bg: rgba(9, 13, 22, 0.85);
-            --navbar-border: rgba(255, 255, 255, 0.08);
-            --footer-bg: #030712;
+            --accent-lime: #84cc16;
+            --navbar-bg: rgba(6, 14, 26, 0.88);
+            --navbar-border: rgba(56, 189, 248, 0.12);
+            --footer-bg: #040a14;
             --footer-text: #64748b;
-            --badge-bg: rgba(99, 102, 241, 0.18);
-            --badge-text: #a5b4fc;
-            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
-            --card-shadow-hover: 0 25px 40px -10px rgba(99, 102, 241, 0.25), 0 0 15px rgba(99, 102, 241, 0.15);
-            --hero-gradient: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.2) 0px, transparent 55%),
-                               radial-gradient(at 100% 20%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
-                               radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.14) 0px, transparent 60%);
+            --badge-bg: rgba(2, 132, 199, 0.22);
+            --badge-text: #7dd3fc;
+            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+            --card-shadow-hover: 0 25px 40px -10px rgba(2, 132, 199, 0.3), 0 0 15px rgba(0, 180, 216, 0.2);
+            --hero-gradient: radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.24) 0px, transparent 55%),
+                               radial-gradient(at 100% 20%, rgba(16, 185, 129, 0.16) 0px, transparent 50%),
+                               radial-gradient(at 50% 100%, rgba(0, 180, 216, 0.14) 0px, transparent 60%);
         }
 
         * {
@@ -187,13 +190,13 @@
 
         /* Buttons */
         .btn-primary-custom {
-            background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #0284c7 0%, #00b4d8 50%, #10b981 100%);
             border: none;
             color: #ffffff !important;
             font-weight: 600;
             border-radius: 12px;
             padding: 0.65rem 1.4rem;
-            box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 8px 20px -4px rgba(2, 132, 199, 0.45);
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             text-decoration: none;
             display: inline-flex;
@@ -203,7 +206,8 @@
 
         .btn-primary-custom:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 25px -4px rgba(79, 70, 229, 0.55);
+            background: linear-gradient(135deg, #0369a1 0%, #0284c7 50%, #059669 100%);
+            box-shadow: 0 12px 25px -4px rgba(0, 180, 216, 0.6);
             color: #ffffff !important;
         }
 

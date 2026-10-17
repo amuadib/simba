@@ -657,10 +657,14 @@ new class extends \Livewire\Volt\Component {
 
 <div>
     {{-- HEADER --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-            <h4 class="mb-0">Data Pegawai</h4>
-            <small class="text-muted">Kelola data tenaga pendidik dan kependidikan (Pegawai)</small>
+            <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">
+                Data Pegawai
+            </h1>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">
+                Kelola data tenaga pendidik, kependidikan & riwayat SK penugasan lembaga
+            </p>
         </div>
 
         <div wire:key="breadcrumb-wrapper" wire:ignore>
@@ -669,126 +673,120 @@ new class extends \Livewire\Volt\Component {
     </div>
 
     {{-- STATS CARDS --}}
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card shadow-sm border-0 border-start border-4 border-primary h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="text-muted small fw-semibold">Total Pegawai</div>
-                            <div class="fs-4 fw-bold text-primary">{{ $counts['total'] }}</div>
-                        </div>
-                        <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3">
-                            <i class="bi bi-people-fill fs-4"></i>
-                        </div>
-                    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+        {{-- Total Pegawai --}}
+        <div class="glass-panel p-4 rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 hover:scale-[1.02] transition-transform shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-display">Total Pegawai</div>
+                    <div class="text-2xl font-extrabold text-sky-600 dark:text-cyan-400 font-display mt-0.5">{{ $counts['total'] }}</div>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-sky-500 to-cyan-500 text-white flex items-center justify-center text-xl shadow-md shadow-sky-500/30">
+                    <i class="bi bi-people-fill"></i>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card shadow-sm border-0 border-start border-4 border-success h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="text-muted small fw-semibold">Pegawai Aktif</div>
-                            <div class="fs-4 fw-bold text-success">{{ $counts['aktif'] }}</div>
-                        </div>
-                        <div class="bg-success bg-opacity-10 text-success p-2 rounded-3">
-                            <i class="bi bi-person-check-fill fs-4"></i>
-                        </div>
-                    </div>
+
+        {{-- Pegawai Aktif --}}
+        <div class="glass-panel p-4 rounded-2xl border border-slate-200/90 dark:border-emerald-500/20 hover:scale-[1.02] transition-transform shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-display">Pegawai Aktif</div>
+                    <div class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-display mt-0.5">{{ $counts['aktif'] }}</div>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-500 text-white flex items-center justify-center text-xl shadow-md shadow-emerald-500/30">
+                    <i class="bi bi-person-check-fill"></i>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card shadow-sm border-0 border-start border-4 border-info h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="text-muted small fw-semibold">Laki-laki</div>
-                            <div class="fs-4 fw-bold text-info">{{ $counts['laki'] }}</div>
-                        </div>
-                        <div class="bg-info bg-opacity-10 text-info p-2 rounded-3">
-                            <i class="bi bi-gender-male fs-4"></i>
-                        </div>
-                    </div>
+
+        {{-- Laki-laki --}}
+        <div class="glass-panel p-4 rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 hover:scale-[1.02] transition-transform shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 font-display">Laki-laki</div>
+                    <div class="text-2xl font-extrabold text-cyan-600 dark:text-cyan-400 font-display mt-0.5">{{ $counts['laki'] }}</div>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 to-sky-400 text-white flex items-center justify-center text-xl shadow-md shadow-cyan-500/30">
+                    <i class="bi bi-gender-male"></i>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card shadow-sm border-0 border-start border-4 border-danger h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="text-muted small fw-semibold">Perempuan</div>
-                            <div class="fs-4 fw-bold text-danger">{{ $counts['perempuan'] }}</div>
-                        </div>
-                        <div class="bg-danger bg-opacity-10 text-danger p-2 rounded-3">
-                            <i class="bi bi-gender-female fs-4"></i>
-                        </div>
-                    </div>
+
+        {{-- Perempuan --}}
+        <div class="glass-panel p-4 rounded-2xl border border-slate-200/90 dark:border-pink-500/20 hover:scale-[1.02] transition-transform shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-pink-500 font-display">Perempuan</div>
+                    <div class="text-2xl font-extrabold text-pink-500 font-display mt-0.5">{{ $counts['perempuan'] }}</div>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-pink-500 to-rose-400 text-white flex items-center justify-center text-xl shadow-md shadow-pink-500/30">
+                    <i class="bi bi-gender-female"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- MAIN CARD --}}
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-
+    {{-- MAIN CARD CONTAINER --}}
+    <div class="glass-panel rounded-3xl p-4 md:p-6 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">
+        <div>
             {{-- TABS AREA --}}
             <div x-data="{ activeTab: 'filter' }">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" :class="{ 'active': activeTab === 'filter' }" @click="activeTab = 'filter'" type="button" role="tab">
-                            <i class="bi bi-funnel me-1"></i> Filter & Pencarian
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200/80 dark:border-slate-800">
+                    
+                    {{-- Nav Tabs Pills --}}
+                    <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 self-start">
+                        <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 font-display" 
+                                :class="activeTab === 'filter' ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
+                                @click="activeTab = 'filter'" type="button">
+                            <i class="bi bi-funnel"></i> Filter & Pencarian
                         </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" :class="{ 'active': activeTab === 'import' }" @click="activeTab = 'import'" type="button" role="tab">
-                            <i class="bi bi-upload me-1"></i> Import Excel
+                        <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 font-display" 
+                                :class="activeTab === 'import' ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
+                                @click="activeTab = 'import'" type="button">
+                            <i class="bi bi-upload"></i> Import Excel
                         </button>
-                    </li>
+                    </div>
 
-                    {{-- TOMBOL AKSI SEJAJAR TAB --}}
-                    <li class="nav-item ms-auto d-flex align-items-center gap-2 pe-1 pb-1 flex-wrap">
+                    {{-- Action Buttons --}}
+                    <div class="flex items-center gap-2 flex-wrap">
                         @if (count($checkedPegawai) > 0)
-                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalBulkUpdate">
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-xl px-3 py-1.5 text-xs font-semibold" data-bs-toggle="modal" data-bs-target="#modalBulkUpdate">
                                 <i class="bi bi-pencil-square me-1"></i> Update Status ({{ count($checkedPegawai) }})
                             </button>
-                            <button type="button" class="btn btn-outline-danger btn-sm" wire:click="prepareBulkDelete">
+                            <button type="button" class="btn btn-outline-danger btn-sm rounded-xl px-3 py-1.5 text-xs font-semibold" wire:click="prepareBulkDelete">
                                 <i class="bi bi-trash me-1"></i> Hapus ({{ count($checkedPegawai) }})
                             </button>
-                            <button type="button" class="btn btn-outline-success btn-sm" wire:click="bulkExport">
+                            <button type="button" class="btn btn-outline-success btn-sm rounded-xl px-3 py-1.5 text-xs font-semibold" wire:click="bulkExport">
                                 <i class="bi bi-file-earmark-excel me-1"></i> Ekspor ({{ count($checkedPegawai) }})
                             </button>
                         @endif
 
-                        <button type="button" wire:click="exportAll" class="btn btn-outline-success btn-sm">
-                            <i class="bi bi-download me-1"></i> Ekspor Semua
+                        <button type="button" wire:click="exportAll" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-all">
+                            <i class="bi bi-download text-emerald-500"></i> Ekspor Semua
                         </button>
 
-                        <button wire:click="create" class="btn btn-primary btn-sm">
-                            <i class="bi bi-plus-circle me-1"></i> Tambah Pegawai
+                        <button wire:click="create" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                            <i class="bi bi-plus-circle text-sm"></i> Tambah Pegawai
                         </button>
-                    </li>
-                </ul>
+                    </div>
+                </div>
 
                 <div class="tab-content mb-4">
                     {{-- TAB FILTER --}}
                     <div x-show="activeTab === 'filter'">
-                        <div class="rounded p-3" style="background-color: var(--table-bg); border: 1px solid var(--table-border);">
-                            <form wire:submit.prevent class="row g-2">
+                        <div class="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/80 dark:border-cyan-500/20 shadow-inner">
+                            <form wire:submit.prevent class="row g-2.5">
                                 <div class="col-md-3">
-                                    <div class="input-group">
-                                        <span class="input-group-text border-end-0" style="background-color: var(--bg-card); border-color: var(--table-border);">
-                                            <i class="bi bi-search text-muted"></i>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text border-end-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sky-500">
+                                            <i class="bi bi-search"></i>
                                         </span>
-                                        <input type="text" wire:model.live.debounce.300ms="q" class="form-control border-start-0" placeholder="Cari nama, NIY, NIK...">
+                                        <input type="text" wire:model.live.debounce.300ms="q" class="form-control form-control-sm border-start-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400" placeholder="Cari nama, NIY, NIK...">
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <select wire:model.live="lembaga_id" class="form-select">
+                                    <select wire:model.live="lembaga_id" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
                                         <option value="">-- Semua Lembaga --</option>
                                         @foreach ($daftarLembaga as $lid => $lname)
                                             <option value="{{ $lid }}">{{ $lname }}</option>
@@ -796,7 +794,7 @@ new class extends \Livewire\Volt\Component {
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <select wire:model.live="jabatan_id" class="form-select">
+                                    <select wire:model.live="jabatan_id" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
                                         <option value="">-- Semua Jabatan --</option>
                                         @foreach ($daftarJabatan as $jid => $jname)
                                             <option value="{{ $jid }}">{{ $jname }}</option>
@@ -804,7 +802,7 @@ new class extends \Livewire\Volt\Component {
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <select wire:model.live="status" class="form-select">
+                                    <select wire:model.live="status" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
                                         <option value="">-- Semua Status --</option>
                                         @foreach ($statusOptions as $k => $v)
                                             <option value="{{ $k }}">{{ $v }}</option>
@@ -812,15 +810,15 @@ new class extends \Livewire\Volt\Component {
                                     </select>
                                 </div>
                                 <div class="col-md-1">
-                                    <select wire:model.live="jenis_kelamin" class="form-select">
+                                    <select wire:model.live="jenis_kelamin" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
                                         <option value="">-- JK --</option>
                                         <option value="l">L</option>
                                         <option value="p">P</option>
                                     </select>
                                 </div>
                                 <div class="col-md-1">
-                                    <button type="button" wire:click="resetPage" class="btn btn-success w-100" title="Reset Filter">
-                                        <i class="bi bi-funnel"></i>
+                                    <button type="button" wire:click="resetPage" class="btn btn-sm btn-outline-secondary w-100 rounded-xl" title="Reset Filter">
+                                        <i class="bi bi-arrow-clockwise"></i>
                                     </button>
                                 </div>
                             </form>
@@ -829,21 +827,21 @@ new class extends \Livewire\Volt\Component {
 
                     {{-- TAB IMPORT --}}
                     <div x-show="activeTab === 'import'" style="display: none;">
-                        <div class="rounded border p-3" style="background-color: var(--table-bg); border-color: var(--table-border);">
+                        <div class="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/80 dark:border-cyan-500/20 shadow-inner">
                             <form wire:submit="import" class="row g-2 align-items-center">
                                 <div class="col-md-6">
-                                    <input type="file" wire:model="importFile" class="form-control" accept=".xlsx,.xls,.csv" required>
+                                    <input type="file" wire:model="importFile" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100" accept=".xlsx,.xls,.csv" required>
                                     @error('importFile')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
                                 </div>
                                 <div class="col-md-3">
-                                    <button type="submit" class="btn btn-warning w-100" wire:loading.attr="disabled">
+                                    <button type="submit" class="btn btn-warning btn-sm w-100 rounded-xl fw-bold" wire:loading.attr="disabled">
                                         <i class="bi bi-upload me-1"></i> IMPORT EXCEL
                                     </button>
                                 </div>
                                 <div class="col-md-3">
-                                    <button type="button" wire:click="exportTemplate" class="btn btn-outline-primary w-100" wire:loading.attr="disabled">
+                                    <button type="button" wire:click="exportTemplate" class="btn btn-outline-primary btn-sm w-100 rounded-xl fw-bold" wire:loading.attr="disabled">
                                         <i class="bi bi-download me-1"></i> UNDUH TEMPLATE
                                     </button>
                                 </div>
@@ -854,24 +852,24 @@ new class extends \Livewire\Volt\Component {
             </div>
 
             {{-- TABLE --}}
-            <div class="table-responsive">
-                <table class="table table-hover border align-middle mb-0">
-                    <thead class="table-light">
+            <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 overflow-hidden shadow-sm">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
                         <tr>
-                            <th style="width: 40px;" class="text-center">
+                            <th style="width: 40px;" class="text-center py-3">
                                 <div class="form-check d-flex justify-content-center m-0 p-0">
                                     <input class="form-check-input m-0" type="checkbox" wire:model.live="selectAll">
                                 </div>
                             </th>
-                            <th style="width: 50px;">No</th>
-                            <th>NIY</th>
-                            <th>Nama Pegawai</th>
-                            <th class="text-center">JK</th>
-                            <th>Lembaga Bertugas (SK)</th>
-                            <th>TMT</th>
-                            <th>Kontak</th>
-                            <th>Status</th>
-                            <th class="text-center" style="width: 155px;">Aksi</th>
+                            <th style="width: 50px;" class="py-3">No</th>
+                            <th class="py-3">NIY</th>
+                            <th class="py-3">Nama Pegawai</th>
+                            <th class="text-center py-3">JK</th>
+                            <th class="py-3">Lembaga Bertugas (SK)</th>
+                            <th class="py-3">TMT</th>
+                            <th class="py-3">Kontak</th>
+                            <th class="py-3">Status</th>
+                            <th class="text-center py-3" style="width: 155px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1023,18 +1021,18 @@ new class extends \Livewire\Volt\Component {
     {{-- MODAL PEGAWAI FORM & DETAIL --}}
     <div wire:ignore.self class="modal fade" id="modalPegawaiForm" data-bs-backdrop="static" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
+            <div class="modal-content rounded-2xl border border-slate-200 dark:border-cyan-500/20 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden">
+                <div class="modal-header bg-gradient-to-r from-sky-600 via-cyan-600 to-emerald-600 text-white rounded-t-2xl p-4 border-0">
+                    <h5 class="modal-title font-display font-bold text-white flex items-center gap-2 text-base">
                         @if ($action == 'edit')
-                            <i class="bi bi-pencil-square me-2 text-warning"></i> Edit Data Pegawai
+                            <i class="bi bi-pencil-square text-amber-300"></i> Edit Data Pegawai
                         @elseif ($action == 'create')
-                            <i class="bi bi-plus-circle me-2 text-primary"></i> Tambah Data Pegawai
+                            <i class="bi bi-plus-circle text-cyan-200"></i> Tambah Data Pegawai
                         @else
-                            <i class="bi bi-person-vcard me-2 text-info"></i> Detail Data Pegawai
+                            <i class="bi bi-person-vcard text-emerald-200"></i> Detail Data Pegawai
                         @endif
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetForm"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" wire:click="resetForm"></button>
                 </div>
                 <div class="modal-body">
                     @if ($action == 'edit' || $action == 'create')
@@ -1385,17 +1383,17 @@ new class extends \Livewire\Volt\Component {
     {{-- MODAL KELOLA SK PENUGASAN --}}
     <div wire:ignore.self class="modal fade" id="modalSkPenugasan" data-bs-backdrop="static" tabindex="-1">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title d-flex align-items-center gap-2">
-                        <i class="bi bi-file-earmark-medical"></i> Kelola SK Penugasan Lembaga
+            <div class="modal-content rounded-2xl border border-slate-200 dark:border-cyan-500/20 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden">
+                <div class="modal-header bg-gradient-to-r from-sky-600 via-cyan-600 to-emerald-600 text-white rounded-t-2xl p-4 border-0">
+                    <h5 class="modal-title font-display font-bold text-white flex items-center gap-2 text-base">
+                        <i class="bi bi-file-earmark-medical text-cyan-200"></i> Kelola SK Penugasan Lembaga
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" wire:click="resetSkForm"></button>
                 </div>
                 <div class="modal-body p-4">
                     @if ($selectedPegawai)
                         {{-- PROFIL PEGAWAI SINGKAT --}}
-                        <div class="d-flex align-items-center justify-content-between p-3 rounded mb-4 border" style="background-color: var(--table-bg);">
+                        <div class="d-flex align-items-center justify-content-between p-3.5 rounded-2xl mb-4 border border-slate-200/80 dark:border-cyan-500/20 bg-slate-50/80 dark:bg-slate-800/50 shadow-inner">
                             <div class="d-flex align-items-center gap-3">
                                 @if ($selectedPegawai->foto && Storage::disk('public')->exists($selectedPegawai->foto))
                                     <img src="{{ asset('storage/' . $selectedPegawai->foto) }}" class="rounded-circle object-fit-cover shadow-sm" style="width: 50px; height: 50px;">
@@ -1655,35 +1653,37 @@ new class extends \Livewire\Volt\Component {
     {{-- MODAL BULK UPDATE --}}
     <div wire:ignore.self class="modal fade" id="modalBulkUpdate" tabindex="-1">
         <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Update Data Massal</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-content rounded-2xl border border-slate-200 dark:border-cyan-500/20 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden">
+                <div class="modal-header bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-t-2xl p-4 border-0">
+                    <h5 class="modal-title font-display font-bold text-white flex items-center gap-2 text-base">
+                        <i class="bi bi-pencil-square text-cyan-200"></i> Update Data Massal
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <p class="small text-muted">
-                        Perubahan akan diterapkan pada <strong>{{ count($checkedPegawai) }}</strong> pegawai yang dipilih.
+                <div class="modal-body p-4">
+                    <p class="small text-slate-500 dark:text-slate-400 mb-3">
+                        Perubahan akan diterapkan pada <strong class="text-sky-600 dark:text-cyan-400 font-bold">{{ count($checkedPegawai) }}</strong> pegawai yang dipilih.
                     </p>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Pilih Lembaga Baru</label>
-                        <select wire:model="bulkLembagaId" class="form-select">
+                        <label class="form-label text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">Pilih Lembaga Baru</label>
+                        <select wire:model="bulkLembagaId" class="form-select form-select-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
                             <option value="">-- Tetap (Tidak Berubah) --</option>
                             @foreach ($daftarLembaga as $lid => $lname)
                                 <option value="{{ $lid }}">{{ $lname }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Pilih Status Baru</label>
-                        <select wire:model="bulkStatus" class="form-select">
+                    <div class="mb-4">
+                        <label class="form-label text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">Pilih Status Baru</label>
+                        <select wire:model="bulkStatus" class="form-select form-select-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
                             <option value="">-- Tetap (Tidak Berubah) --</option>
                             @foreach ($statusOptions as $k => $v)
                                 <option value="{{ $k }}">{{ $v }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <button wire:click="bulkUpdate" class="btn btn-primary w-100" wire:loading.attr="disabled">
-                        <i class="bi bi-save me-1"></i> SIMPAN PERUBAHAN MASSAL
+                    <button wire:click="bulkUpdate" class="btn-logo-gradient w-100 py-2.5 rounded-xl font-bold shadow-md flex items-center justify-center gap-2" wire:loading.attr="disabled">
+                        <i class="bi bi-check2-circle"></i> SIMPAN PERUBAHAN MASSAL
                     </button>
                 </div>
             </div>
@@ -1693,21 +1693,28 @@ new class extends \Livewire\Volt\Component {
     {{-- MODAL BULK DELETE --}}
     <div wire:ignore.self class="modal fade" id="modalBulkDelete" tabindex="-1">
         <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Konfirmasi Hapus Massal</h5>
+            <div class="modal-content rounded-2xl border border-rose-500/30 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden">
+                <div class="modal-header bg-gradient-to-r from-rose-600 to-red-700 text-white rounded-t-2xl p-4 border-0">
+                    <h5 class="modal-title font-display font-bold text-white flex items-center gap-2 text-base">
+                        <i class="bi bi-exclamation-triangle text-amber-300"></i> Konfirmasi Hapus Massal
+                    </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <p>Anda yakin ingin menghapus <strong>{{ count($checkedPegawai) }}</strong> pegawai yang dipilih?</p>
-                    <p class="text-danger small"><i class="bi bi-info-circle me-1"></i>Tindakan ini permanen dan tidak dapat dibatalkan!</p>
+                <div class="modal-body p-4">
+                    <p class="text-slate-700 dark:text-slate-300">Anda yakin ingin menghapus <strong class="text-rose-500">{{ count($checkedPegawai) }}</strong> pegawai yang dipilih?</p>
+                    <p class="text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center gap-1.5 mb-3">
+                        <i class="bi bi-info-circle"></i> Tindakan ini permanen dan tidak dapat dibatalkan!
+                    </p>
 
-                    <div class="mb-3">
-                        <label class="form-label">Ketik karakter berikut untuk konfirmasi: <strong class="fs-5 ms-2 user-select-none">{{ $randomConfirmString }}</strong></label>
-                        <input type="text" wire:model="confirmText" class="form-control" placeholder="Ketik karakter konfirmasi..." autocomplete="off">
+                    <div class="mb-4">
+                        <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-400">
+                            Ketik karakter berikut untuk konfirmasi: 
+                            <strong class="font-mono text-base ms-1 text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-900 user-select-none">{{ $randomConfirmString }}</strong>
+                        </label>
+                        <input type="text" wire:model="confirmText" class="form-control form-control-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100" placeholder="Ketik karakter konfirmasi..." autocomplete="off">
                     </div>
 
-                    <button wire:click="bulkDelete" class="btn btn-danger w-100" wire:loading.attr="disabled">
+                    <button wire:click="bulkDelete" class="btn btn-danger w-100 py-2.5 rounded-xl font-bold shadow-md shadow-rose-500/20" wire:loading.attr="disabled">
                         <i class="bi bi-trash me-1"></i> HAPUS PEGAWAI TERPILIH
                     </button>
                 </div>

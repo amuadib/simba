@@ -6,6 +6,157 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+
+    /* Logo Palette: Deep Gear Blue, Electric Circuit Cyan, Radiant Swoosh Green & Lime */
+    --color-gear-950: #041325;
+    --color-gear-900: #072242;
+    --color-gear-800: #0b3a6e;
+    --color-gear-700: #0284c7;
+    --color-gear-600: #0369a1;
+    --color-gear-500: #0ea5e9;
+    --color-gear-400: #38bdf8;
+
+    --color-circuit-cyan: #00b4d8;
+    --color-circuit-glow: #67e8f9;
+
+    --color-swoosh-emerald: #10b981;
+    --color-swoosh-green: #22c55e;
+    --color-swoosh-lime: #84cc16;
+    --color-swoosh-glow: #86efac;
+}
+
+/* ========================================================
+   LOGO COLOR PALETTE & MODERN COMPONENT UTILITIES
+======================================================== */
+
+:root {
+    --bg-page: #f8fafc;
+    --bg-page-subtle: #f0fdf4;
+    --surface-card: #ffffff;
+    --surface-card-subtle: #f8fafc;
+    --border-card: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+
+    /* Theme Logo Accents */
+    --logo-blue-deep: #0369a1;
+    --logo-blue: #0284c7;
+    --logo-cyan: #00b4d8;
+    --logo-emerald: #10b981;
+    --logo-lime: #84cc16;
+}
+
+[data-theme="dark"] {
+    --bg-page: #060e1a;
+    --bg-page-subtle: #09172c;
+    --surface-card: #0a1b32;
+    --surface-card-subtle: #0f2442;
+    --border-card: rgba(56, 189, 248, 0.14);
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+}
+
+/* Gradient Text matching Logo Swoosh & Gear */
+.text-gradient-logo {
+    background: linear-gradient(135deg, #0284c7 0%, #00b4d8 50%, #10b981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-cyan {
+    background: linear-gradient(135deg, #00b4d8 0%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-emerald {
+    background: linear-gradient(135deg, #10b981 0%, #84cc16 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Glassmorphism Panels */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.05), 0 8px 10px -6px rgba(16, 185, 129, 0.03);
+}
+
+[data-theme="dark"] .glass-panel {
+    background: rgba(10, 27, 50, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(56, 189, 248, 0.16);
+    box-shadow: 0 14px 35px -8px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(2, 132, 199, 0.12);
+}
+
+/* Logo Gradient Button */
+.btn-logo-gradient {
+    background: linear-gradient(135deg, #0284c7 0%, #00b4d8 50%, #10b981 100%);
+    color: #ffffff;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+}
+
+.btn-logo-gradient:hover {
+    background: linear-gradient(135deg, #0369a1 0%, #0284c7 50%, #059669 100%);
+    box-shadow: 0 6px 20px rgba(0, 180, 216, 0.45);
+    transform: translateY(-1px);
+    color: #ffffff;
+}
+
+/* Subtle Circuit & Gear Background Patterns */
+.bg-circuit-ambient {
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(2, 132, 199, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(0, 180, 216, 0.05) 0%, transparent 50%);
+}
+
+[data-theme="dark"] .bg-circuit-ambient {
+    background-image: 
+        radial-gradient(circle at 10% 15%, rgba(2, 132, 199, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 90% 85%, rgba(16, 185, 129, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(0, 180, 216, 0.10) 0%, transparent 55%);
+}
+
+/* Logo-glow border */
+.border-logo-glow {
+    position: relative;
+}
+.border-logo-glow::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, #0284c7, #00b4d8, #10b981);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* Modern clean scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.3);
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(2, 132, 199, 0.6);
 }
