@@ -46,7 +46,17 @@ class PegawaiController extends Controller
             $validated['foto'] = $request->file('foto')->store('pegawai', 'public');
         }
 
-        Pegawai::create($validated);
+        $pegawai = Pegawai::create($validated);
+
+        if (!empty($validated['lembaga_id'])) {
+            $pegawai->skPenugasan()->create([
+                'lembaga_id' => $validated['lembaga_id'],
+                'tmt_tugas' => $validated['tmt'] ?? null,
+                'jabatan' => 'Tenaga Pendidik / Kependidikan',
+                'is_induk' => true,
+                'status' => '1',
+            ]);
+        }
 
         return back()->with('success', 'Pegawai berhasil ditambahkan');
     }
@@ -92,6 +102,11 @@ class PegawaiController extends Controller
     {
         if ($pegawai->foto && \Illuminate\Support\Facades\Storage::disk('public')->exists($pegawai->foto)) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($pegawai->foto);
+        }
+        foreach ($pegawai->skPenugasan as $sk) {
+            if ($sk->file_sk && \Illuminate\Support\Facades\Storage::disk('public')->exists($sk->file_sk)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($sk->file_sk);
+            }
         }
         $pegawai->delete();
         return back()->with('success', 'Pegawai berhasil dihapus');

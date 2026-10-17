@@ -126,11 +126,70 @@ class Pegawai extends Model
     }
 
     /**
-     * Get nama lembaga pegawai.
+     * Relasi ke semua SK Penugasan pegawai.
+     */
+    public function skPenugasan(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SkPenugasan::class, 'pegawai_id')->orderByDesc('is_induk')->orderBy('created_at');
+    }
+
+    /**
+     * Relasi ke SK Penugasan aktif saja.
+     */
+    public function penugasanAktif(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SkPenugasan::class, 'pegawai_id')->where('status', '1')->orderByDesc('is_induk');
+    }
+
+    /**
+     * Relasi ke SK Penugasan lembaga induk (satmikal).
+     */
+    public function penugasanInduk(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(SkPenugasan::class, 'pegawai_id')->where('is_induk', true);
+    }
+
+    /**
+     * Get nama lembaga utama/induk pegawai.
      */
     public function getNamaLembagaAttribute(): string
     {
+        if ($this->relationLoaded('skPenugasan') && $this->skPenugasan->isNotEmpty()) {
+            $induk = $this->skPenugasan->firstWhere('is_induk', true) ?? $this->skPenugasan->first();
+            return nama_lembaga($induk->lembaga_id);
+        }
         return nama_lembaga($this->lembaga_id);
+    }
+
+    /**
+     * Get ringkasan semua lembaga tempat bertugas.
+     */
+    public function getDaftarNamaLembagaAttribute(): string
+    {
+        if ($this->skPenugasan && $this->skPenugasan->isNotEmpty()) {
+            return $this->skPenugasan->map(fn($sk) => nama_lembaga($sk->lembaga_id, true) . ($sk->is_induk ? ' (Induk)' : '') . ($sk->jabatan ? ' - ' . nama_jabatan($sk->jabatan) : ''))->implode(', ');
+        }
+        return nama_lembaga($this->lembaga_id, true);
+    }
+
+    /**
+     * Get ID jabatan induk pegawai.
+     */
+    public function getJabatanAttribute()
+    {
+        $induk = $this->relationLoaded('skPenugasan')
+            ? ($this->skPenugasan->firstWhere('is_induk', true) ?? $this->skPenugasan->first())
+            : $this->penugasanInduk;
+
+        return $induk?->jabatan;
+    }
+
+    /**
+     * Get nama jabatan induk pegawai.
+     */
+    public function getNamaJabatanAttribute(): string
+    {
+        return nama_jabatan($this->jabatan);
     }
 
     /**

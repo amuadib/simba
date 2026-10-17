@@ -208,6 +208,34 @@ if (! function_exists('daftar_lembaga')) {
     }
 }
 
+if (! function_exists('daftar_jabatan')) {
+    function daftar_jabatan()
+    {
+        return config('local.jabatan', []);
+    }
+}
+
+if (! function_exists('nama_jabatan')) {
+    function nama_jabatan($id)
+    {
+        if (! $id) {
+            return '-';
+        }
+        $items = daftar_jabatan();
+        if (isset($items[$id])) {
+            return $items[$id];
+        }
+        if (is_numeric($id) && isset($items[(int) $id])) {
+            return $items[(int) $id];
+        }
+        $flipped = array_flip($items);
+        if (isset($flipped[$id])) {
+            return $id;
+        }
+        return is_numeric($id) ? '-' : (string) $id;
+    }
+}
+
 if (! function_exists('gmaps_embed_url')) {
     function gmaps_embed_url($lembagaId = null)
     {

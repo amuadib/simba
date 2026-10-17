@@ -42,7 +42,7 @@ class PegawaiExport implements FromCollection, WithHeadings, WithMapping, Should
             ]);
         }
 
-        $query = Pegawai::query()->when($this->ids, fn($q) => $q->whereIn('id', $this->ids));
+        $query = Pegawai::with('skPenugasan')->when($this->ids, fn($q) => $q->whereIn('id', $this->ids));
         if ($this->ids) {
             return $query->get()->sortBy(fn($p) => array_search($p->id, $this->ids));
         }
@@ -132,7 +132,7 @@ class PegawaiExport implements FromCollection, WithHeadings, WithMapping, Should
             $pegawai->tmt ? $pegawai->tmt->format('d/m/Y') : '-',
             $pegawai->alamat ?: '-',
             $pegawai->no_hp ?: '-',
-            nama_lembaga($pegawai->lembaga_id),
+            $pegawai->daftar_nama_lembaga ?: nama_lembaga($pegawai->lembaga_id),
             $pegawai->status_label,
         ];
     }

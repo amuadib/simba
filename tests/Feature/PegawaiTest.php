@@ -302,4 +302,228 @@ class PegawaiTest extends TestCase
             'jenis_kelamin' => 'l',
         ]);
     }
+
+    public function test_sk_penugasan_model_and_relations(): void
+    {
+        $pegawai = Pegawai::create([
+            'nama' => 'Guru Multi Lembaga',
+            'jenis_kelamin' => 'l',
+            'lembaga_id' => 1,
+            'status' => '1',
+        ]);
+
+        $sk1 = $pegawai->skPenugasan()->create([
+            'lembaga_id' => 1,
+            'nomor_sk' => '001/SK-SDI/2025',
+            'tanggal_sk' => '2025-01-01',
+            'tmt_tugas' => '2025-01-02',
+            'jabatan' => 3, // Guru Kelas
+            'is_induk' => true,
+            'status' => '1',
+        ]);
+
+        $sk2 = $pegawai->skPenugasan()->create([
+            'lembaga_id' => 2,
+            'nomor_sk' => '002/SK-SMPI/2025',
+            'tanggal_sk' => '2025-02-01',
+            'tmt_tugas' => '2025-02-05',
+            'jabatan' => 4, // Guru Mapel
+            'is_induk' => false,
+            'status' => '1',
+        ]);
+
+        $this->assertCount(2, $pegawai->skPenugasan);
+        $this->assertCount(2, $pegawai->penugasanAktif);
+        $this->assertEquals(1, $pegawai->penugasanInduk->lembaga_id);
+        $this->assertEquals(3, $sk1->jabatan);
+        $this->assertEquals('Guru Kelas', $sk1->nama_jabatan);
+        $this->assertEquals('Guru Mapel', $sk2->nama_jabatan);
+        $this->assertEquals('Aktif', $sk1->status_label);
+        $this->assertStringContainsString('SDI', $pegawai->daftar_nama_lembaga);
+        $this->assertStringContainsString('SMPI', $pegawai->daftar_nama_lembaga);
+        $this->assertStringContainsString('Guru Kelas', $pegawai->daftar_nama_lembaga);
+    }
+
+    public function test_can_manage_multiple_sk_penugasan_via_livewire(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->make([
+            'id' => (string) \Illuminate\Support\Str::uuid(),
+            'role' => 'admin',
+        ]);
+        $this->actingAs($user);
+
+        // 1. Create Pegawai
+        $pegawai = Pegawai::create([
+            'nama' => 'Ustadz Abdullah',
+            'jenis_kelamin' => 'l',
+            'lembaga_id' => 1,
+            'status' => '1',
+        ]);
+
+        // Automatically has initial penugasan
+        $initialSk = $pegawai->skPenugasan()->create([
+            'lembaga_id' => 1,
+            'nomor_sk' => '010/YPIB/2024',
+            'tmt_tugas' => '2024-07-01',
+            'jabatan' => 3,
+            'is_induk' => true,
+            'status' => '1',
+        ]);
+
+        // 2. Add second SK penugasan at Lembaga 2
+        $fileSk = UploadedFile::fake()->create('sk_penugasan_smp.pdf', 100, 'application/pdf');
+
+        Volt::test('pegawai.index')
+            ->call('kelolaSk', $pegawai->id)
+            ->set('sk_lembaga_id', 2)
+            ->set('sk_nomor', '025/YPIB/2025')
+            ->set('sk_tanggal', '2025-01-10')
+            ->set('sk_tmt_tugas', '2025-01-15')
+            ->set('sk_jabatan', 4)
+            ->set('sk_is_induk', false)
+            ->set('sk_status', '1')
+            ->set('sk_file', $fileSk)
+            ->call('saveSk')
+            ->assertHasNoErrors()
+            ->assertDispatched('toast', message: 'SK Penugasan berhasil ditambahkan');
+
+        $this->assertDatabaseHas('sk_penugasan', [
+            'pegawai_id' => $pegawai->id,
+            'lembaga_id' => 2,
+            'nomor_sk' => '025/YPIB/2025',
+            'jabatan' => 4,
+            'is_induk' => false,
+        ]);
+
+        $secondSk = \App\Models\SkPenugasan::where('nomor_sk', '025/YPIB/2025')->first();
+        $this->assertNotNull($secondSk->file_sk);
+        Storage::disk('public')->assertExists($secondSk->file_sk);
+
+        // 3. Edit second SK penugasan
+        Volt::test('pegawai.index')
+            ->set('selectedPegawaiId', $pegawai->id)
+            ->call('editSk', $secondSk->id)
+            ->set('sk_jabatan', 2) // Ubah ke Kepala Sekolah
+            ->call('saveSk')
+            ->assertDispatched('toast', message: 'SK Penugasan berhasil diperbarui');
+
+        $this->assertDatabaseHas('sk_penugasan', [
+            'id' => $secondSk->id,
+            'jabatan' => 2,
+        ]);
+
+        // 4. Set second SK as Lembaga Induk
+        Volt::test('pegawai.index')
+            ->set('selectedPegawaiId', $pegawai->id)
+            ->call('setIndukSk', $secondSk->id)
+            ->assertDispatched('toast');
+
+        $this->assertTrue((bool) $secondSk->fresh()->is_induk);
+        $this->assertFalse((bool) $initialSk->fresh()->is_induk);
+        $this->assertEquals(2, $pegawai->fresh()->lembaga_id);
+
+        // 5. Delete initial SK
+        Volt::test('pegawai.index')
+            ->set('selectedPegawaiId', $pegawai->id)
+            ->call('deleteSk', $initialSk->id)
+            ->assertDispatched('toast', message: 'SK Penugasan berhasil dihapus');
+
+        $this->assertDatabaseMissing('sk_penugasan', [
+            'id' => $initialSk->id,
+        ]);
+    }
+
+    public function test_filter_by_lembaga_finds_pegawai_with_multiple_penugasan(): void
+    {
+        $user = User::factory()->make([
+            'id' => (string) \Illuminate\Support\Str::uuid(),
+            'role' => 'admin',
+        ]);
+        $this->actingAs($user);
+
+        $pegawai = Pegawai::create([
+            'nama' => 'Guru Multi Satmikal',
+            'jenis_kelamin' => 'p',
+            'lembaga_id' => 1,
+            'status' => '1',
+        ]);
+
+        // Tugas di lembaga 1 (induk) dan lembaga 2 (tambahan)
+        $pegawai->skPenugasan()->create([
+            'lembaga_id' => 1,
+            'is_induk' => true,
+            'status' => '1',
+        ]);
+
+        $pegawai->skPenugasan()->create([
+            'lembaga_id' => 2,
+            'is_induk' => false,
+            'status' => '1',
+        ]);
+
+        // Filter lembaga 1 -> muncul
+        Volt::test('pegawai.index')
+            ->set('lembaga_id', 1)
+            ->assertSee('Guru Multi Satmikal');
+
+        // Filter lembaga 2 -> muncul juga
+        Volt::test('pegawai.index')
+            ->set('lembaga_id', 2)
+            ->assertSee('Guru Multi Satmikal');
+
+        // Filter lembaga 3 -> tidak muncul
+        Volt::test('pegawai.index')
+            ->set('lembaga_id', 3)
+            ->assertDontSee('Guru Multi Satmikal');
+    }
+
+    public function test_filter_by_jabatan_finds_pegawai(): void
+    {
+        $user = User::factory()->make([
+            'id' => (string) \Illuminate\Support\Str::uuid(),
+            'role' => 'admin',
+        ]);
+        $this->actingAs($user);
+
+        $p1 = Pegawai::create([
+            'nama' => 'Pak Kepala Sekolah',
+            'jenis_kelamin' => 'l',
+            'lembaga_id' => 1,
+            'status' => '1',
+        ]);
+        $p1->skPenugasan()->create([
+            'lembaga_id' => 1,
+            'jabatan' => 2, // Kepala Sekolah
+            'is_induk' => true,
+            'status' => '1',
+        ]);
+
+        $p2 = Pegawai::create([
+            'nama' => 'Ibu Guru Kelas Tiga',
+            'jenis_kelamin' => 'p',
+            'lembaga_id' => 1,
+            'status' => '1',
+        ]);
+        $p2->skPenugasan()->create([
+            'lembaga_id' => 1,
+            'jabatan' => 3, // Guru Kelas
+            'is_induk' => true,
+            'status' => '1',
+        ]);
+
+        // Filter jabatan 2 (Kepala Sekolah) -> Pak Kepala Sekolah ada, Ibu Guru Kelas tidak ada
+        Volt::test('pegawai.index')
+            ->set('jabatan_id', 2)
+            ->assertSee('Pak Kepala Sekolah')
+            ->assertDontSee('Ibu Guru Kelas Tiga');
+
+        // Filter jabatan 3 (Guru Kelas) -> Ibu Guru Kelas ada, Pak Kepala Sekolah tidak ada
+        Volt::test('pegawai.index')
+            ->set('jabatan_id', 3)
+            ->assertSee('Ibu Guru Kelas Tiga')
+            ->assertDontSee('Pak Kepala Sekolah');
+    }
 }
+

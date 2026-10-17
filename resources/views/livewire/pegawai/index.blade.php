@@ -3,11 +3,14 @@
 <?php
 
 use App\Models\Pegawai;
+use App\Models\SkPenugasan;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\PegawaiImport;
 use App\Exports\PegawaiExport;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 new class extends \Livewire\Volt\Component {
     use WithPagination, WithFileUploads;
@@ -17,16 +20,34 @@ new class extends \Livewire\Volt\Component {
     public $status = '';
     public $jenis_kelamin = '';
     public $lembaga_id = '';
+    public $jabatan_id = '';
 
     // Action State
     public $action = ''; // '', 'create', 'edit', 'show'
     public $editingId = null;
     public $showId = null;
 
-    // Form Fields
+    // Form Fields Pegawai
     public $niy, $nuptk, $nama, $gelar_depan, $gelar_belakang, $form_jenis_kelamin = 'l';
     public $nik, $tempat_lahir, $tanggal_lahir, $tmt, $no_hp, $alamat, $form_status = '1', $form_lembaga_id = 99;
     public $foto, $existing_foto;
+    public $form_nomor_sk = '', $form_jabatan = '';
+
+    // SK Penugasan Modal State & Form
+    public $selectedPegawaiId = null;
+    public $sk_id = null;
+    public $sk_lembaga_id = 99;
+    public $sk_nomor = '';
+    public $sk_tanggal = '';
+    public $sk_tmt_tugas = '';
+    public $sk_tmt_selesai = '';
+    public $sk_jabatan = '';
+    public $sk_is_induk = false;
+    public $sk_status = '1';
+    public $sk_keterangan = '';
+    public $sk_file = null;
+    public $sk_existing_file = null;
+    public $isEditingSk = false;
 
     // Checkbox Selection
     public $checkedPegawai = [];
@@ -45,7 +66,7 @@ new class extends \Livewire\Volt\Component {
 
     public function updated($property)
     {
-        if (in_array($property, ['q', 'status', 'jenis_kelamin', 'lembaga_id'])) {
+        if (in_array($property, ['q', 'status', 'jenis_kelamin', 'lembaga_id', 'jabatan_id'])) {
             $this->resetPage();
             $this->checkedPegawai = [];
             $this->selectAll = false;
@@ -58,13 +79,27 @@ new class extends \Livewire\Volt\Component {
             $this->checkedPegawai = Pegawai::query()
                 ->when($this->status, fn($q, $s) => $q->where('status', $s))
                 ->when($this->jenis_kelamin, fn($q, $jk) => $q->where('jenis_kelamin', strtolower($jk)))
-                ->when($this->lembaga_id, fn($q, $lid) => $q->where('lembaga_id', $lid))
-                ->when($this->q, fn($q, $search) => $q->where(function ($q) use ($search) {
-                    $q->where('nama', 'like', "%{$search}%")
-                        ->orWhere('niy', 'like', "%{$search}%")
-                        ->orWhere('nik', 'like', "%{$search}%")
-                        ->orWhere('no_hp', 'like', "%{$search}%");
+                ->when($this->lembaga_id, fn($q, $lid) => $q->where(function ($sub) use ($lid) {
+                    $sub->where('lembaga_id', $lid)
+                        ->orWhereHas('skPenugasan', fn($sk) => $sk->where('lembaga_id', $lid));
                 }))
+                ->when($this->jabatan_id, fn($q, $jid) => $q->whereHas('skPenugasan', fn($sk) => $sk->where('jabatan', $jid)))
+                ->when($this->q, function ($q, $search) {
+                    $matchedJabatanIds = collect(daftar_jabatan())
+                        ->filter(fn($name) => stripos($name, $search) !== false)
+                        ->keys()
+                        ->toArray();
+
+                    $q->where(function ($sub) use ($search, $matchedJabatanIds) {
+                        $sub->where('nama', 'like', "%{$search}%")
+                            ->orWhere('niy', 'like', "%{$search}%")
+                            ->orWhere('nuptk', 'like', "%{$search}%")
+                            ->orWhere('nik', 'like', "%{$search}%")
+                            ->orWhere('no_hp', 'like', "%{$search}%")
+                            ->orWhereHas('skPenugasan', fn($sk) => $sk->where('nomor_sk', 'like', "%{$search}%")
+                                ->when(!empty($matchedJabatanIds), fn($s) => $s->orWhereIn('jabatan', $matchedJabatanIds)));
+                    });
+                })
                 ->pluck('id')
                 ->map(fn($id) => (string) $id)
                 ->toArray();
@@ -92,10 +127,15 @@ new class extends \Livewire\Volt\Component {
             return;
         }
 
-        $pegawais = Pegawai::whereIn('id', $this->checkedPegawai)->get();
+        $pegawais = Pegawai::with('skPenugasan')->whereIn('id', $this->checkedPegawai)->get();
         foreach ($pegawais as $p) {
-            if ($p->foto && \Illuminate\Support\Facades\Storage::disk('public')->exists($p->foto)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($p->foto);
+            if ($p->foto && Storage::disk('public')->exists($p->foto)) {
+                Storage::disk('public')->delete($p->foto);
+            }
+            foreach ($p->skPenugasan as $sk) {
+                if ($sk->file_sk && Storage::disk('public')->exists($sk->file_sk)) {
+                    Storage::disk('public')->delete($sk->file_sk);
+                }
             }
             $p->delete();
         }
@@ -116,7 +156,7 @@ new class extends \Livewire\Volt\Component {
         return Excel::download(new PegawaiExport([], 'data'), 'SIMBA-ekspor-semua-pegawai-' . date('YmdHis') . '.xlsx');
     }
 
-    // --- CRUD ACTIONS ---
+    // --- CRUD ACTIONS PEGAWAI ---
 
     public function create()
     {
@@ -143,6 +183,8 @@ new class extends \Livewire\Volt\Component {
             'foto' => 'nullable|image|max:2048',
             'form_lembaga_id' => 'required',
             'form_status' => 'required',
+            'form_nomor_sk' => 'nullable|string|max:255',
+            'form_jabatan' => 'nullable|integer',
         ]);
 
         $niy = trim((string) $this->niy);
@@ -152,7 +194,7 @@ new class extends \Livewire\Volt\Component {
 
         $fotoPath = $this->foto ? $this->foto->store('pegawai', 'public') : null;
 
-        Pegawai::create([
+        $pegawai = Pegawai::create([
             'nama' => $this->nama,
             'niy' => $niy,
             'nuptk' => $this->nuptk ?: null,
@@ -169,6 +211,18 @@ new class extends \Livewire\Volt\Component {
             'lembaga_id' => $this->form_lembaga_id ?: 99,
             'status' => (string) $this->form_status,
         ]);
+
+        // Buat penugasan awal di lembaga induk
+        if ($this->form_lembaga_id) {
+            $pegawai->skPenugasan()->create([
+                'lembaga_id' => $this->form_lembaga_id,
+                'nomor_sk' => $this->form_nomor_sk ?: null,
+                'tmt_tugas' => $this->tmt ?: null,
+                'jabatan' => $this->form_jabatan ?: null,
+                'is_induk' => true,
+                'status' => '1',
+            ]);
+        }
 
         $this->resetForm();
         $this->dispatch('close-modal', id: 'modalPegawaiForm');
@@ -189,7 +243,7 @@ new class extends \Livewire\Volt\Component {
         $this->editingId = $id;
         $this->action = 'edit';
 
-        $pegawai = Pegawai::findOrFail($id);
+        $pegawai = Pegawai::with('skPenugasan')->findOrFail($id);
         $this->nama = $pegawai->nama;
         $this->niy = $pegawai->niy;
         $this->nuptk = $pegawai->nuptk;
@@ -206,6 +260,10 @@ new class extends \Livewire\Volt\Component {
         $this->foto = null;
         $this->form_lembaga_id = $pegawai->lembaga_id ?: 99;
         $this->form_status = (string) $pegawai->status;
+
+        $indukSk = $pegawai->skPenugasan->firstWhere('is_induk', true);
+        $this->form_nomor_sk = $indukSk?->nomor_sk ?? '';
+        $this->form_jabatan = $indukSk?->jabatan ?? '';
 
         $this->dispatch('show-modal-pegawai');
     }
@@ -228,6 +286,8 @@ new class extends \Livewire\Volt\Component {
             'foto' => 'nullable|image|max:2048',
             'form_lembaga_id' => 'required',
             'form_status' => 'required',
+            'form_nomor_sk' => 'nullable|string|max:255',
+            'form_jabatan' => 'nullable|integer',
         ]);
 
         $pegawai = Pegawai::findOrFail($this->editingId);
@@ -239,8 +299,8 @@ new class extends \Livewire\Volt\Component {
 
         $fotoPath = $pegawai->foto;
         if ($this->foto) {
-            if ($pegawai->foto && \Illuminate\Support\Facades\Storage::disk('public')->exists($pegawai->foto)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($pegawai->foto);
+            if ($pegawai->foto && Storage::disk('public')->exists($pegawai->foto)) {
+                Storage::disk('public')->delete($pegawai->foto);
             }
             $fotoPath = $this->foto->store('pegawai', 'public');
         }
@@ -263,6 +323,25 @@ new class extends \Livewire\Volt\Component {
             'status' => (string) $this->form_status,
         ]);
 
+        // Pastikan ada sk_penugasan induk yang selaras
+        $indukSk = $pegawai->skPenugasan()->where('is_induk', true)->first();
+        if ($indukSk) {
+            $indukSk->update([
+                'lembaga_id' => $this->form_lembaga_id ?: 99,
+                'nomor_sk' => $this->form_nomor_sk ?: null,
+                'jabatan' => $this->form_jabatan ?: null,
+            ]);
+        } else {
+            $pegawai->skPenugasan()->create([
+                'lembaga_id' => $this->form_lembaga_id ?: 99,
+                'nomor_sk' => $this->form_nomor_sk ?: null,
+                'tmt_tugas' => $this->tmt ?: null,
+                'jabatan' => $this->form_jabatan ?: null,
+                'is_induk' => true,
+                'status' => '1',
+            ]);
+        }
+
         $this->resetForm();
         $this->dispatch('close-modal', id: 'modalPegawaiForm');
         $this->dispatch('toast', message: 'Pegawai berhasil diperbarui', type: 'success');
@@ -270,9 +349,14 @@ new class extends \Livewire\Volt\Component {
 
     public function delete($id)
     {
-        $pegawai = Pegawai::findOrFail($id);
-        if ($pegawai->foto && \Illuminate\Support\Facades\Storage::disk('public')->exists($pegawai->foto)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($pegawai->foto);
+        $pegawai = Pegawai::with('skPenugasan')->findOrFail($id);
+        if ($pegawai->foto && Storage::disk('public')->exists($pegawai->foto)) {
+            Storage::disk('public')->delete($pegawai->foto);
+        }
+        foreach ($pegawai->skPenugasan as $sk) {
+            if ($sk->file_sk && Storage::disk('public')->exists($sk->file_sk)) {
+                Storage::disk('public')->delete($sk->file_sk);
+            }
         }
         $pegawai->delete();
         $this->dispatch('toast', message: 'Pegawai berhasil dihapus', type: 'success');
@@ -283,7 +367,8 @@ new class extends \Livewire\Volt\Component {
         $this->reset([
             'nama', 'niy', 'nuptk', 'tmt', 'tempat_lahir', 'tanggal_lahir',
             'nik', 'alamat', 'no_hp', 'gelar_depan', 'gelar_belakang',
-            'foto', 'existing_foto', 'action', 'editingId', 'showId'
+            'foto', 'existing_foto', 'action', 'editingId', 'showId',
+            'form_nomor_sk', 'form_jabatan'
         ]);
         $this->form_jenis_kelamin = 'l';
         $this->form_lembaga_id = 99;
@@ -317,6 +402,27 @@ new class extends \Livewire\Volt\Component {
 
         Pegawai::whereIn('id', $this->checkedPegawai)->update($updateData);
 
+        if (!empty($this->bulkLembagaId)) {
+            foreach ($this->checkedPegawai as $pId) {
+                $p = Pegawai::find($pId);
+                if ($p) {
+                    $existing = $p->skPenugasan()->where('lembaga_id', $this->bulkLembagaId)->first();
+                    if ($existing) {
+                        $p->skPenugasan()->where('id', '!=', $existing->id)->update(['is_induk' => false]);
+                        $existing->update(['is_induk' => true, 'status' => '1']);
+                    } else {
+                        $p->skPenugasan()->update(['is_induk' => false]);
+                        $p->skPenugasan()->create([
+                            'lembaga_id' => $this->bulkLembagaId,
+                            'jabatan' => null,
+                            'is_induk' => true,
+                            'status' => '1',
+                        ]);
+                    }
+                }
+            }
+        }
+
         $this->reset(['bulkStatus', 'bulkLembagaId', 'checkedPegawai', 'selectAll']);
         $this->dispatch('close-modal', id: 'modalBulkUpdate');
         $this->dispatch('toast', message: 'Data pegawai berhasil diperbarui secara massal', type: 'success');
@@ -342,21 +448,185 @@ new class extends \Livewire\Volt\Component {
         return Excel::download(new PegawaiExport([], 'template-import'), 'SIMBA-template-import-pegawai-' . date('YmdHis') . '.xlsx');
     }
 
+    // --- MANAJEMEN SK PENUGASAN ---
+
+    public function kelolaSk($pegawaiId)
+    {
+        $this->selectedPegawaiId = $pegawaiId;
+        $this->resetSkForm();
+        $this->dispatch('show-modal-sk');
+    }
+
+    public function resetSkForm()
+    {
+        $this->reset([
+            'sk_id', 'sk_nomor', 'sk_tanggal', 'sk_tmt_tugas', 'sk_tmt_selesai',
+            'sk_jabatan', 'sk_keterangan', 'sk_file', 'sk_existing_file', 'isEditingSk'
+        ]);
+        $this->sk_lembaga_id = 99;
+        $this->sk_status = '1';
+        $this->sk_is_induk = false;
+    }
+
+    public function editSk($skId)
+    {
+        $sk = SkPenugasan::findOrFail($skId);
+        $this->sk_id = $sk->id;
+        $this->sk_lembaga_id = $sk->lembaga_id;
+        $this->sk_nomor = $sk->nomor_sk ?? '';
+        $this->sk_tanggal = $sk->tanggal_sk ? $sk->tanggal_sk->format('Y-m-d') : '';
+        $this->sk_tmt_tugas = $sk->tmt_tugas ? $sk->tmt_tugas->format('Y-m-d') : '';
+        $this->sk_tmt_selesai = $sk->tmt_selesai ? $sk->tmt_selesai->format('Y-m-d') : '';
+        $this->sk_jabatan = $sk->jabatan ?? '';
+        $this->sk_is_induk = (bool) $sk->is_induk;
+        $this->sk_status = (string) $sk->status;
+        $this->sk_keterangan = $sk->keterangan ?? '';
+        $this->sk_existing_file = $sk->file_sk;
+        $this->sk_file = null;
+        $this->isEditingSk = true;
+    }
+
+    public function cancelEditSk()
+    {
+        $this->resetSkForm();
+    }
+
+    public function saveSk()
+    {
+        $this->validate([
+            'sk_lembaga_id' => 'required',
+            'sk_nomor' => 'nullable|string|max:255',
+            'sk_tanggal' => 'nullable|date',
+            'sk_tmt_tugas' => 'nullable|date',
+            'sk_tmt_selesai' => 'nullable|date',
+            'sk_jabatan' => 'nullable|integer',
+            'sk_status' => 'required',
+            'sk_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'sk_keterangan' => 'nullable|string|max:500',
+        ]);
+
+        $pegawai = Pegawai::findOrFail($this->selectedPegawaiId);
+
+        $filePath = $this->sk_existing_file;
+        if ($this->sk_file) {
+            if ($this->sk_existing_file && Storage::disk('public')->exists($this->sk_existing_file)) {
+                Storage::disk('public')->delete($this->sk_existing_file);
+            }
+            $filePath = $this->sk_file->store('sk_penugasan', 'public');
+        }
+
+        $existingCount = $pegawai->skPenugasan()->count();
+        $isInduk = $this->sk_is_induk || $existingCount === 0;
+
+        if ($isInduk) {
+            $pegawai->skPenugasan()->where('id', '!=', $this->sk_id)->update(['is_induk' => false]);
+            $pegawai->update(['lembaga_id' => $this->sk_lembaga_id]);
+        }
+
+        if ($this->isEditingSk && $this->sk_id) {
+            $sk = SkPenugasan::findOrFail($this->sk_id);
+            $sk->update([
+                'lembaga_id' => $this->sk_lembaga_id,
+                'nomor_sk' => $this->sk_nomor ?: null,
+                'tanggal_sk' => $this->sk_tanggal ?: null,
+                'tmt_tugas' => $this->sk_tmt_tugas ?: null,
+                'tmt_selesai' => $this->sk_tmt_selesai ?: null,
+                'jabatan' => $this->sk_jabatan ?: null,
+                'is_induk' => $isInduk,
+                'status' => (string) $this->sk_status,
+                'file_sk' => $filePath,
+                'keterangan' => $this->sk_keterangan ?: null,
+            ]);
+            $message = 'SK Penugasan berhasil diperbarui';
+        } else {
+            $pegawai->skPenugasan()->create([
+                'lembaga_id' => $this->sk_lembaga_id,
+                'nomor_sk' => $this->sk_nomor ?: null,
+                'tanggal_sk' => $this->sk_tanggal ?: null,
+                'tmt_tugas' => $this->sk_tmt_tugas ?: null,
+                'tmt_selesai' => $this->sk_tmt_selesai ?: null,
+                'jabatan' => $this->sk_jabatan ?: null,
+                'is_induk' => $isInduk,
+                'status' => (string) $this->sk_status,
+                'file_sk' => $filePath,
+                'keterangan' => $this->sk_keterangan ?: null,
+            ]);
+            $message = 'SK Penugasan berhasil ditambahkan';
+        }
+
+        $this->resetSkForm();
+        $this->dispatch('toast', message: $message, type: 'success');
+    }
+
+    public function deleteSk($skId)
+    {
+        $sk = SkPenugasan::findOrFail($skId);
+        $pegawaiId = $sk->pegawai_id;
+        $wasInduk = $sk->is_induk;
+
+        if ($sk->file_sk && Storage::disk('public')->exists($sk->file_sk)) {
+            Storage::disk('public')->delete($sk->file_sk);
+        }
+        $sk->delete();
+
+        if ($wasInduk) {
+            $another = SkPenugasan::where('pegawai_id', $pegawaiId)->first();
+            if ($another) {
+                $another->update(['is_induk' => true]);
+                Pegawai::where('id', $pegawaiId)->update(['lembaga_id' => $another->lembaga_id]);
+            }
+        }
+
+        if ($this->sk_id === $skId) {
+            $this->resetSkForm();
+        }
+
+        $this->dispatch('toast', message: 'SK Penugasan berhasil dihapus', type: 'success');
+    }
+
+    public function setIndukSk($skId)
+    {
+        $sk = SkPenugasan::findOrFail($skId);
+        SkPenugasan::where('pegawai_id', $sk->pegawai_id)->update(['is_induk' => false]);
+        $sk->update(['is_induk' => true]);
+        Pegawai::where('id', $sk->pegawai_id)->update(['lembaga_id' => $sk->lembaga_id]);
+
+        $this->dispatch('toast', message: 'Lembaga induk berhasil diatur ke ' . nama_lembaga($sk->lembaga_id), type: 'success');
+    }
+
     public function with()
     {
         $pegawai = Pegawai::query()
+            ->with('skPenugasan')
             ->orderBy('niy')
             ->when($this->status, fn($q, $s) => $q->where('status', $s))
             ->when($this->jenis_kelamin, fn($q, $jk) => $q->where('jenis_kelamin', strtolower($jk)))
-            ->when($this->lembaga_id, fn($q, $lid) => $q->where('lembaga_id', $lid))
-            ->when($this->q, fn($q, $search) => $q->where(function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                    ->orWhere('niy', 'like', "%{$search}%")
-                    ->orWhere('nuptk', 'like', "%{$search}%")
-                    ->orWhere('nik', 'like', "%{$search}%")
-                    ->orWhere('no_hp', 'like', "%{$search}%");
+            ->when($this->lembaga_id, fn($q, $lid) => $q->where(function ($sub) use ($lid) {
+                $sub->where('lembaga_id', $lid)
+                    ->orWhereHas('skPenugasan', fn($sk) => $sk->where('lembaga_id', $lid));
             }))
+            ->when($this->jabatan_id, fn($q, $jid) => $q->whereHas('skPenugasan', fn($sk) => $sk->where('jabatan', $jid)))
+            ->when($this->q, function ($q, $search) {
+                $matchedJabatanIds = collect(daftar_jabatan())
+                    ->filter(fn($name) => stripos($name, $search) !== false)
+                    ->keys()
+                    ->toArray();
+
+                $q->where(function ($sub) use ($search, $matchedJabatanIds) {
+                    $sub->where('nama', 'like', "%{$search}%")
+                        ->orWhere('niy', 'like', "%{$search}%")
+                        ->orWhere('nuptk', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%")
+                        ->orWhere('no_hp', 'like', "%{$search}%")
+                        ->orWhereHas('skPenugasan', fn($sk) => $sk->where('nomor_sk', 'like', "%{$search}%")
+                            ->when(!empty($matchedJabatanIds), fn($s) => $s->orWhereIn('jabatan', $matchedJabatanIds)));
+                });
+            })
             ->paginate(25);
+
+        $selectedPegawai = $this->selectedPegawaiId
+            ? Pegawai::with('skPenugasan')->find($this->selectedPegawaiId)
+            : null;
 
         $counts = [
             'total' => Pegawai::count(),
@@ -367,8 +637,10 @@ new class extends \Livewire\Volt\Component {
 
         return [
             'pegawaiList' => $pegawai,
+            'selectedPegawai' => $selectedPegawai,
             'counts' => $counts,
             'daftarLembaga' => daftar_lembaga(),
+            'daftarJabatan' => daftar_jabatan(),
             'statusOptions' => config('local.status_pegawai', [
                 1 => 'Aktif',
                 2 => 'Cuti',
@@ -507,12 +779,12 @@ new class extends \Livewire\Volt\Component {
                     <div x-show="activeTab === 'filter'">
                         <div class="rounded p-3" style="background-color: var(--table-bg); border: 1px solid var(--table-border);">
                             <form wire:submit.prevent class="row g-2">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="input-group">
                                         <span class="input-group-text border-end-0" style="background-color: var(--bg-card); border-color: var(--table-border);">
                                             <i class="bi bi-search text-muted"></i>
                                         </span>
-                                        <input type="text" wire:model.live.debounce.300ms="q" class="form-control border-start-0" placeholder="Cari nama, NIY, NIK, No HP...">
+                                        <input type="text" wire:model.live.debounce.300ms="q" class="form-control border-start-0" placeholder="Cari nama, NIY, NIK...">
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -524,6 +796,14 @@ new class extends \Livewire\Volt\Component {
                                     </select>
                                 </div>
                                 <div class="col-md-2">
+                                    <select wire:model.live="jabatan_id" class="form-select">
+                                        <option value="">-- Semua Jabatan --</option>
+                                        @foreach ($daftarJabatan as $jid => $jname)
+                                            <option value="{{ $jid }}">{{ $jname }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
                                     <select wire:model.live="status" class="form-select">
                                         <option value="">-- Semua Status --</option>
                                         @foreach ($statusOptions as $k => $v)
@@ -531,11 +811,11 @@ new class extends \Livewire\Volt\Component {
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-1">
                                     <select wire:model.live="jenis_kelamin" class="form-select">
-                                        <option value="">-- Semua JK --</option>
-                                        <option value="l">Laki-laki</option>
-                                        <option value="p">Perempuan</option>
+                                        <option value="">-- JK --</option>
+                                        <option value="l">L</option>
+                                        <option value="p">P</option>
                                     </select>
                                 </div>
                                 <div class="col-md-1">
@@ -587,11 +867,11 @@ new class extends \Livewire\Volt\Component {
                             <th>NIY</th>
                             <th>Nama Pegawai</th>
                             <th class="text-center">JK</th>
-                            <th>Lembaga</th>
+                            <th>Lembaga Bertugas (SK)</th>
                             <th>TMT</th>
                             <th>Kontak</th>
                             <th>Status</th>
-                            <th class="text-center" style="width: 130px;">Aksi</th>
+                            <th class="text-center" style="width: 155px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -611,7 +891,7 @@ new class extends \Livewire\Volt\Component {
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        @if ($p->foto && \Illuminate\Support\Facades\Storage::disk('public')->exists($p->foto))
+                                        @if ($p->foto && Storage::disk('public')->exists($p->foto))
                                             <img src="{{ asset('storage/' . $p->foto) }}" alt="Foto" class="rounded-circle object-fit-cover shadow-sm flex-shrink-0" style="width: 36px; height: 36px;">
                                         @else
                                             <div class="rounded-circle d-flex align-items-center justify-content-center text-secondary bg-light border flex-shrink-0" style="width: 36px; height: 36px; font-size: 0.85rem;">
@@ -634,7 +914,31 @@ new class extends \Livewire\Volt\Component {
                                     @endif
                                 </td>
                                 <td>
-                                    {{ nama_lembaga($p->lembaga_id,true) }}
+                                    @php
+                                        $activeSks = $p->skPenugasan->where('status', '1');
+                                    @endphp
+                                    @if ($activeSks->isNotEmpty())
+                                        <div class="d-flex flex-wrap gap-1 align-items-center">
+                                            @foreach ($activeSks as $sk)
+                                                <span class="badge {{ $sk->is_induk ? 'bg-primary' : 'bg-info text-dark' }} d-inline-flex align-items-center gap-1 shadow-sm"
+                                                      title="{{ $sk->is_induk ? '[Lembaga Induk] ' : '[Tugas Tambahan] ' }}{{ nama_lembaga($sk->lembaga_id) }}{{ $sk->jabatan ? ' - ' . $sk->nama_jabatan : '' }}{{ $sk->nomor_sk ? ' (SK: ' . $sk->nomor_sk . ')' : '' }}"
+                                                      style="font-size: 0.75rem; cursor: pointer;"
+                                                      wire:click="kelolaSk('{{ $p->id }}')">
+                                                    @if ($sk->is_induk)
+                                                        <i class="bi bi-star-fill text-warning" style="font-size: 0.65rem;" title="Lembaga Induk (Satmikal)"></i>
+                                                    @endif
+                                                    {{ nama_lembaga($sk->lembaga_id, true) }}
+                                                    @if ($sk->jabatan)
+                                                        <span class="opacity-75 small">({{ Str::limit($sk->nama_jabatan, 14) }})</span>
+                                                    @endif
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span class="badge bg-secondary" wire:click="kelolaSk('{{ $p->id }}')" style="cursor: pointer;" title="Klik untuk kelola SK penugasan">
+                                            {{ nama_lembaga($p->lembaga_id, true) }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td>
                                     @if ($p->tmt)
@@ -683,8 +987,14 @@ new class extends \Livewire\Volt\Component {
                                         <button wire:click="show('{{ $p->id }}')" class="btn btn-outline-info" title="Lihat Detail">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        <button wire:click="edit('{{ $p->id }}')" class="btn btn-outline-warning" title="Edit">
+                                        <button wire:click="edit('{{ $p->id }}')" class="btn btn-outline-warning" title="Edit Pegawai">
                                             <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button wire:click="kelolaSk('{{ $p->id }}')" class="btn btn-outline-primary" title="Kelola SK Penugasan ({{ $p->skPenugasan->count() }} SK)">
+                                            <i class="bi bi-file-earmark-text"></i>
+                                            @if ($p->skPenugasan->count() > 0)
+                                                <span class="badge bg-primary text-white ms-1" style="font-size: 0.65rem;">{{ $p->skPenugasan->count() }}</span>
+                                            @endif
                                         </button>
                                         <button wire:click="delete('{{ $p->id }}')" wire:confirm="Apakah Anda yakin ingin menghapus data pegawai ini?" class="btn btn-outline-danger" title="Hapus">
                                             <i class="bi bi-trash"></i>
@@ -797,15 +1107,33 @@ new class extends \Livewire\Volt\Component {
                                 @error('tmt') <span class="text-danger small">{{ $message }}</span> @enderror
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Lembaga <span class="text-danger">*</span></label>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Lembaga Induk / Satmikal Utama <span class="text-danger">*</span></label>
                                 <select wire:model="form_lembaga_id" class="form-select" required>
                                     <option value="">-- Pilih Lembaga --</option>
                                     @foreach ($daftarLembaga as $lid => $lname)
                                         <option value="{{ $lid }}">{{ $lname }}</option>
                                     @endforeach
                                 </select>
+                                <div class="form-text text-muted" style="font-size: 0.72rem;">Lembaga tugas utama. Penugasan di lembaga lainnya dapat dikelola lewat <strong>SK Penugasan</strong>.</div>
                                 @error('form_lembaga_id') <span class="text-danger small">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Jabatan / Tugas</label>
+                                <select wire:model="form_jabatan" class="form-select">
+                                    <option value="">-- Pilih Jabatan --</option>
+                                    @foreach ($daftarJabatan as $jid => $jname)
+                                        <option value="{{ $jid }}">{{ $jname }}</option>
+                                    @endforeach
+                                </select>
+                                @error('form_jabatan') <span class="text-danger small">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Nomor SK Penugasan (Awal)</label>
+                                <input wire:model="form_nomor_sk" class="form-control" placeholder="Nomor Surat Keputusan">
+                                @error('form_nomor_sk') <span class="text-danger small">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="col-md-6">
@@ -953,6 +1281,77 @@ new class extends \Livewire\Volt\Component {
                                             <div class="fw-semibold">{{ $pData->alamat ?: '-' }}</div>
                                         </div>
                                     </div>
+                                    <div class="col-12 mt-3">
+                                        <div class="card shadow-none border">
+                                            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                                                <span class="fw-bold small text-primary"><i class="bi bi-file-earmark-medical me-1"></i> Riwayat Lembaga Bertugas & SK Penugasan</span>
+                                                <button type="button" class="btn btn-primary btn-sm py-0 px-2" wire:click="kelolaSk('{{ $pData->id }}')" data-bs-dismiss="modal">
+                                                    <i class="bi bi-gear me-1"></i> Kelola SK Penugasan
+                                                </button>
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered align-middle mb-0" style="font-size: 0.85rem;">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Lembaga</th>
+                                                            <th>Jabatan / Tugas</th>
+                                                            <th>No. SK & Tanggal</th>
+                                                            <th>Masa Tugas</th>
+                                                            <th class="text-center">Status</th>
+                                                            <th class="text-center">Berkas</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @forelse ($pData->skPenugasan as $sk)
+                                                            <tr>
+                                                                <td>
+                                                                    <span class="fw-semibold">{{ nama_lembaga($sk->lembaga_id) }}</span>
+                                                                    @if ($sk->is_induk)
+                                                                        <span class="badge bg-primary ms-1"><i class="bi bi-star-fill text-warning me-1"></i>Induk</span>
+                                                                    @else
+                                                                        <span class="badge bg-secondary ms-1">Tambahan</span>
+                                                                    @endif
+                                                                </td>
+                                                                <td>{{ $sk->nama_jabatan ?: '-' }}</td>
+                                                                <td>
+                                                                    <div>{{ $sk->nomor_sk ?: '-' }}</div>
+                                                                    @if ($sk->tanggal_sk)
+                                                                        <small class="text-muted">Tgl: {{ $sk->tanggal_sk->format('d/m/Y') }}</small>
+                                                                    @endif
+                                                                </td>
+                                                                <td>
+                                                                    <div>TMT: {{ $sk->tmt_tugas ? $sk->tmt_tugas->format('d/m/Y') : '-' }}</div>
+                                                                    @if ($sk->tmt_selesai)
+                                                                        <small class="text-muted">s/d {{ $sk->tmt_selesai->format('d/m/Y') }}</small>
+                                                                    @else
+                                                                        <small class="text-success">s/d Sekarang</small>
+                                                                    @endif
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <span class="badge {{ $sk->status == '1' ? 'bg-success' : 'bg-secondary' }}">
+                                                                        {{ $sk->status_label }}
+                                                                    </span>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    @if ($sk->file_sk && Storage::disk('public')->exists($sk->file_sk))
+                                                                        <a href="{{ asset('storage/' . $sk->file_sk) }}" target="_blank" class="btn btn-outline-danger btn-sm py-0 px-2" title="Unduh / Lihat Dokumen SK">
+                                                                            <i class="bi bi-file-earmark-pdf"></i> Unduh
+                                                                        </a>
+                                                                    @else
+                                                                        <span class="text-muted small">-</span>
+                                                                    @endif
+                                                                </td>
+                                                            </tr>
+                                                        @empty
+                                                            <tr>
+                                                                <td colspan="6" class="text-center text-muted py-2">Belum ada penugasan tercatat</td>
+                                                            </tr>
+                                                        @endforelse
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="col-12">
                                         <div class="p-3 rounded border small text-muted" style="background-color: var(--table-bg);">
                                             <div class="row">
@@ -965,14 +1364,289 @@ new class extends \Livewire\Volt\Component {
                                 </div>
 
                                 <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                                    <button type="button" class="btn btn-warning btn-sm" wire:click="edit('{{ $pData->id }}')">
-                                        <i class="bi bi-pencil me-1"></i> Edit Pegawai
-                                    </button>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-warning btn-sm" wire:click="edit('{{ $pData->id }}')">
+                                            <i class="bi bi-pencil me-1"></i> Edit Pegawai
+                                        </button>
+                                        <button type="button" class="btn btn-primary btn-sm" wire:click="kelolaSk('{{ $pData->id }}')" data-bs-dismiss="modal">
+                                            <i class="bi bi-file-earmark-medical me-1"></i> Kelola SK Penugasan
+                                        </button>
+                                    </div>
                                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" wire:click="resetForm">Tutup</button>
                                 </div>
                             </div>
                         @endif
                     @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL KELOLA SK PENUGASAN --}}
+    <div wire:ignore.self class="modal fade" id="modalSkPenugasan" data-bs-backdrop="static" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title d-flex align-items-center gap-2">
+                        <i class="bi bi-file-earmark-medical"></i> Kelola SK Penugasan Lembaga
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" wire:click="resetSkForm"></button>
+                </div>
+                <div class="modal-body p-4">
+                    @if ($selectedPegawai)
+                        {{-- PROFIL PEGAWAI SINGKAT --}}
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded mb-4 border" style="background-color: var(--table-bg);">
+                            <div class="d-flex align-items-center gap-3">
+                                @if ($selectedPegawai->foto && Storage::disk('public')->exists($selectedPegawai->foto))
+                                    <img src="{{ asset('storage/' . $selectedPegawai->foto) }}" class="rounded-circle object-fit-cover shadow-sm" style="width: 50px; height: 50px;">
+                                @else
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white {{ strtolower($selectedPegawai->jenis_kelamin) === 'p' ? 'bg-danger' : 'bg-primary' }}" style="width: 50px; height: 50px;">
+                                        <i class="bi {{ strtolower($selectedPegawai->jenis_kelamin) === 'p' ? 'bi-gender-female' : 'bi-gender-male' }} fs-4"></i>
+                                    </div>
+                                @endif
+                                <div>
+                                    <h5 class="mb-0 fw-bold">{!! setNamaPegawai($selectedPegawai->nama, $selectedPegawai->gelar_depan, $selectedPegawai->gelar_belakang) !!}</h5>
+                                    <div class="small text-muted d-flex gap-2 align-items-center mt-1 flex-wrap">
+                                        <span>NIY: <strong>{{ $selectedPegawai->niy ?: '-' }}</strong></span>
+                                        <span>•</span>
+                                        <span>Lembaga Induk: <strong class="text-primary">{{ nama_lembaga($selectedPegawai->lembaga_id) }}</strong></span>
+                                        <span>•</span>
+                                        <span>Status: <span class="badge bg-success">{{ $selectedPegawai->status_label }}</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="badge bg-light text-dark border px-3 py-2 fs-6">
+                                    <i class="bi bi-buildings me-1 text-primary"></i> {{ $selectedPegawai->skPenugasan->count() }} Penugasan Terdaftar
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- DAFTAR SK PENUGASAN SAAT INI --}}
+                        <div class="card shadow-sm border mb-4">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                                <span class="fw-bold"><i class="bi bi-list-check me-1 text-primary"></i> Riwayat Lembaga Bertugas & SK Penugasan</span>
+                                <small class="text-muted">1 Pegawai dapat bertugas di lebih dari 1 lembaga</small>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Lembaga</th>
+                                            <th>Jabatan / Tugas</th>
+                                            <th>Nomor SK & Tgl</th>
+                                            <th>Masa Penugasan</th>
+                                            <th class="text-center">Induk</th>
+                                            <th class="text-center">Status</th>
+                                            <th class="text-center">Dokumen</th>
+                                            <th class="text-center" style="width: 140px;">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($selectedPegawai->skPenugasan as $skItem)
+                                            <tr class="{{ $sk_id === $skItem->id ? 'table-warning' : '' }}">
+                                                <td>
+                                                    <div class="fw-bold">{{ nama_lembaga($skItem->lembaga_id) }}</div>
+                                                    <span class="badge bg-secondary-subtle text-secondary border" style="font-size: 0.7rem;">
+                                                        {{ nama_lembaga($skItem->lembaga_id, true) }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-semibold">{{ $skItem->nama_jabatan ?: '-' }}</span>
+                                                    @if ($skItem->keterangan)
+                                                        <div class="text-muted small" style="font-size: 0.75rem;">{{ $skItem->keterangan }}</div>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if ($skItem->nomor_sk)
+                                                        <div class="font-monospace fw-semibold" style="font-size: 0.85rem;">{{ $skItem->nomor_sk }}</div>
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                    @if ($skItem->tanggal_sk)
+                                                        <small class="text-muted d-block" style="font-size: 0.72rem;">SK: {{ $skItem->tanggal_sk->format('d/m/Y') }}</small>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <div>TMT: {{ $skItem->tmt_tugas ? $skItem->tmt_tugas->format('d/m/Y') : '-' }}</div>
+                                                    @if ($skItem->tmt_selesai)
+                                                        <small class="text-muted">s/d {{ $skItem->tmt_selesai->format('d/m/Y') }}</small>
+                                                    @else
+                                                        <small class="text-success">s/d Sekarang</small>
+                                                    @endif
+                                                </td>
+                                                <td class="text-center">
+                                                    @if ($skItem->is_induk)
+                                                        <span class="badge bg-primary d-inline-flex align-items-center gap-1 shadow-sm px-2 py-1">
+                                                            <i class="bi bi-star-fill text-warning"></i> Lembaga Induk
+                                                        </span>
+                                                    @else
+                                                        <button type="button" wire:click="setIndukSk('{{ $skItem->id }}')" class="btn btn-outline-secondary btn-sm py-0 px-2" title="Jadikan sebagai Lembaga Induk">
+                                                            <i class="bi bi-star me-1"></i> Jadikan Induk
+                                                        </button>
+                                                    @endif
+                                                </td>
+                                                <td class="text-center">
+                                                    @if ($skItem->status == '1')
+                                                        <span class="badge bg-success">Aktif</span>
+                                                    @else
+                                                        <span class="badge bg-secondary">Selesai</span>
+                                                    @endif
+                                                </td>
+                                                <td class="text-center">
+                                                    @if ($skItem->file_sk && Storage::disk('public')->exists($skItem->file_sk))
+                                                        <a href="{{ asset('storage/' . $skItem->file_sk) }}" target="_blank" class="btn btn-outline-danger btn-sm py-0 px-2" title="Lihat / Download File SK">
+                                                            <i class="bi bi-file-earmark-pdf"></i> Unduh
+                                                        </a>
+                                                    @else
+                                                        <span class="text-muted small">-</span>
+                                                    @endif
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" wire:click="editSk('{{ $skItem->id }}')" class="btn btn-outline-warning" title="Edit SK Penugasan">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" wire:click="deleteSk('{{ $skItem->id }}')" wire:confirm="Hapus penugasan di lembaga ini?" class="btn btn-outline-danger" title="Hapus SK Penugasan">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="8" class="text-center py-4 text-muted">
+                                                    <i class="bi bi-building-exclamation fs-3 d-block mb-1"></i>
+                                                    Belum ada SK penugasan lembaga untuk pegawai ini.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- FORM INPUT / EDIT SK PENUGASAN --}}
+                        <div class="card border {{ $isEditingSk ? 'border-warning shadow' : 'border-primary shadow-sm' }}">
+                            <div class="card-header {{ $isEditingSk ? 'bg-warning bg-opacity-25 text-dark' : 'bg-primary bg-opacity-10 text-primary' }} d-flex justify-content-between align-items-center py-2">
+                                <span class="fw-bold">
+                                    <i class="bi {{ $isEditingSk ? 'bi-pencil-square' : 'bi-plus-circle' }} me-1"></i>
+                                    {{ $isEditingSk ? 'Edit SK Penugasan Lembaga' : 'Tambah SK Penugasan / Penugasan di Lembaga Lain' }}
+                                </span>
+                                @if ($isEditingSk)
+                                    <button type="button" wire:click="cancelEditSk" class="btn btn-outline-secondary btn-sm py-0 px-2">
+                                        <i class="bi bi-x me-1"></i> Batal Edit (Tambah Baru)
+                                    </button>
+                                @endif
+                            </div>
+                            <div class="card-body p-3">
+                                <form wire:submit.prevent="saveSk" class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Lembaga Penugasan <span class="text-danger">*</span></label>
+                                        <select wire:model="sk_lembaga_id" class="form-select" required>
+                                            <option value="">-- Pilih Lembaga --</option>
+                                            @foreach ($daftarLembaga as $lid => $lname)
+                                                <option value="{{ $lid }}">{{ $lname }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('sk_lembaga_id') <span class="text-danger small">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Jabatan / Tugas</label>
+                                        <select wire:model="sk_jabatan" class="form-select">
+                                            <option value="">-- Pilih Jabatan --</option>
+                                            @foreach ($daftarJabatan as $jid => $jname)
+                                                <option value="{{ $jid }}">{{ $jname }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('sk_jabatan') <span class="text-danger small">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Nomor SK Penugasan</label>
+                                        <input wire:model="sk_nomor" class="form-control" placeholder="Nomor Surat Keputusan">
+                                        @error('sk_nomor') <span class="text-danger small">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Tanggal SK Ditetapkan</label>
+                                        <input type="date" wire:model="sk_tanggal" class="form-control">
+                                        @error('sk_tanggal') <span class="text-danger small">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">TMT Tugas (Mulai)</label>
+                                        <input type="date" wire:model="sk_tmt_tugas" class="form-control">
+                                        @error('sk_tmt_tugas') <span class="text-danger small">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">TMT Selesai (Opsional)</label>
+                                        <input type="date" wire:model="sk_tmt_selesai" class="form-control">
+                                        <div class="form-text" style="font-size: 0.72rem;">Kosongkan jika masih aktif / tetap</div>
+                                        @error('sk_tmt_selesai') <span class="text-danger small">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Status Penugasan <span class="text-danger">*</span></label>
+                                        <select wire:model="sk_status" class="form-select" required>
+                                            <option value="1">Aktif</option>
+                                            <option value="0">Non-Aktif / Selesai</option>
+                                        </select>
+                                        @error('sk_status') <span class="text-danger small">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Unggah Dokumen SK (PDF / Gambar, Max 5MB)</label>
+                                        <input type="file" wire:model="sk_file" class="form-control" accept=".pdf,image/*">
+                                        <div wire:loading wire:target="sk_file" class="small text-primary mt-1">
+                                            <span class="spinner-border spinner-border-sm me-1"></span> Mengunggah berkas SK...
+                                        </div>
+                                        @error('sk_file') <span class="text-danger small">{{ $message }}</span> @enderror
+                                        @if ($sk_existing_file && Storage::disk('public')->exists($sk_existing_file))
+                                            <div class="mt-1 small">
+                                                <i class="bi bi-file-earmark-check text-success me-1"></i> File SK tersimpan:
+                                                <a href="{{ asset('storage/' . $sk_existing_file) }}" target="_blank" class="text-decoration-none">Lihat Dokumen</a>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Keterangan Tambahan</label>
+                                        <input wire:model="sk_keterangan" class="form-control" placeholder="Catatan atau keterangan penugasan">
+                                        @error('sk_keterangan') <span class="text-danger small">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="form-check p-2 rounded bg-light border">
+                                            <input wire:model="sk_is_induk" class="form-check-input ms-0 me-2" type="checkbox" id="checkIsInduk">
+                                            <label class="form-check-label fw-bold small text-primary" for="checkIsInduk">
+                                                <i class="bi bi-star-fill text-warning me-1"></i> Jadikan Lembaga ini sebagai Lembaga Induk (Satmikal Utama)
+                                            </label>
+                                            <div class="form-text ms-4" style="font-size: 0.72rem;">Jika dicentang, status lembaga induk pada penugasan lainnya akan dialihkan ke lembaga ini.</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 d-flex justify-content-end gap-2 pt-2 border-top">
+                                        @if ($isEditingSk)
+                                            <button type="button" class="btn btn-secondary" wire:click="cancelEditSk">Batal Edit</button>
+                                            <button type="submit" class="btn btn-warning" wire:loading.attr="disabled">
+                                                <i class="bi bi-save me-1"></i> Perbarui SK Penugasan
+                                            </button>
+                                        @else
+                                            <button type="submit" class="btn btn-primary" wire:loading.attr="disabled">
+                                                <i class="bi bi-plus-circle me-1"></i> Tambahkan SK Penugasan
+                                            </button>
+                                        @endif
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetSkForm">Tutup</button>
                 </div>
             </div>
         </div>
@@ -1059,6 +1733,13 @@ new class extends \Livewire\Volt\Component {
 
             $wire.on('show-modal-pegawai', () => {
                 const el = document.getElementById('modalPegawaiForm');
+                if (el) {
+                    new bootstrap.Modal(el).show();
+                }
+            });
+
+            $wire.on('show-modal-sk', () => {
+                const el = document.getElementById('modalSkPenugasan');
                 if (el) {
                     new bootstrap.Modal(el).show();
                 }

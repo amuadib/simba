@@ -6,6 +6,21 @@ return [
         'singkatan' => 'SIMBA',
         'keterangan' => 'Sistem Informasi Lembaga Miftahul Ulum',
     ],
+    'jabatan' => [
+        1 => 'Ketua',
+        2 => 'Kepala Sekolah',
+        3 => 'Guru Kelas',
+        4 => 'Guru Mapel',
+        5 => 'Staf Tata Usaha',
+        6 => 'Guru Ekstrakurikuler',
+        7 => 'Pendamping Santri',
+        8 => 'Juru Masak',
+        9 => 'Staf Kebersihan',
+        10 => 'Staf Keamanan',
+        11 => 'Operator Sekolah',
+        12 => 'Staf Lainnya',
+        13 => 'Jabatan Lainnya',
+    ],
     'lembaga' => [
         1 => [
             'nama' => 'SDI Miftahul Ulum Klemunan',

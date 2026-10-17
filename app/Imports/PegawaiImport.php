@@ -106,7 +106,39 @@ class PegawaiImport implements ToCollection, WithHeadingRow
                 if ($pegawai) {
                     $pegawai->update($payload);
                 } else {
-                    Pegawai::create($payload);
+                    $pegawai = Pegawai::create($payload);
+                }
+
+                if ($pegawai && $lembaga_id) {
+                    $existingSk = $pegawai->skPenugasan()->where('lembaga_id', $lembaga_id)->first();
+                    if (!$existingSk) {
+                        $hasInduk = $pegawai->skPenugasan()->where('is_induk', true)->exists();
+
+                        $jabatanRaw = trim((string) ($row['jabatan'] ?? $row['jabatan_id'] ?? ''));
+                        $jabatanId = null;
+                        if (is_numeric($jabatanRaw) && (int) $jabatanRaw >= 1 && (int) $jabatanRaw <= 13) {
+                            $jabatanId = (int) $jabatanRaw;
+                        } elseif (!empty($jabatanRaw)) {
+                            foreach (daftar_jabatan() as $jid => $jname) {
+                                if (stripos($jname, $jabatanRaw) !== false || stripos($jabatanRaw, $jname) !== false) {
+                                    $jabatanId = $jid;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!$jabatanId) {
+                            $jabatanId = ($lembaga_id == 1) ? 3 : (($lembaga_id == 99) ? 12 : 4);
+                        }
+
+                        $pegawai->skPenugasan()->create([
+                            'lembaga_id' => $lembaga_id,
+                            'tmt_tugas' => $tmt,
+                            'jabatan' => $jabatanId,
+                            'is_induk' => !$hasInduk,
+                            'status' => '1',
+                        ]);
+                    }
                 }
 
                 $this->rowsSuccess++;
