@@ -92,6 +92,7 @@ new class extends Component {
             'jam_kerja_string' => '',
         ];
         $this->activeTab = 'lembaga';
+        $this->dispatch('lembaga-added', id: $newId);
     }
 
     public function removeLembaga($id): void
@@ -389,38 +390,116 @@ new class extends Component {
 
     {{-- KONTEN TAB 2: DAFTAR LEMBAGA --}}
     @if ($activeTab === 'lembaga')
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-            <div>
-                <h5 class="mb-0 fw-bold text-slate-800 dark:text-slate-100 font-display">Multi-Lembaga Yayasan</h5>
-                <small class="text-muted">Kelola seluruh lembaga sekolah/madrasah dan yayasan di bawah naungan sistem</small>
-            </div>
-            <button type="button" wire:click="addLembaga" class="btn-logo-gradient inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-sm hover:shadow-md transition-all">
-                <i class="bi bi-plus-circle"></i>
-                <span>Tambah Lembaga</span>
-            </button>
-        </div>
+        <div x-data="{
+            openLembaga: [{{ !empty($lembaga_items) ? (int) array_key_first($lembaga_items) : 1 }}],
+            toggle(id) {
+                const numId = Number(id);
+                if (this.openLembaga.includes(numId)) {
+                    this.openLembaga = this.openLembaga.filter(i => i !== numId);
+                } else {
+                    this.openLembaga.push(numId);
+                }
+            },
+            isOpen(id) {
+                return this.openLembaga.includes(Number(id));
+            },
+            expandAll(allIds) {
+                this.openLembaga = allIds.map(Number);
+            },
+            collapseAll() {
+                this.openLembaga = [];
+            }
+        }"
+        x-on:lembaga-added.window="const newId = Number($event.detail.id); if (!openLembaga.includes(newId)) { openLembaga.push(newId); }"
+        class="w-100">
 
-        <div class="space-y-4">
-            @forelse ($lembaga_items as $id => $lembaga)
-                <div class="card shadow-sm border border-slate-200/90 dark:border-cyan-500/20 mb-4 rounded-2xl overflow-hidden" wire:key="lembaga-card-{{ $id }}">
-                    <div class="card-header bg-slate-50/90 dark:bg-slate-800/90 border-b border-slate-200/90 dark:border-cyan-500/20 py-3.5 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <div class="d-flex align-items-center gap-2.5 flex-wrap">
-                            <span class="badge bg-primary px-2.5 py-1.5 rounded-lg text-xs font-bold">#{{ $id }}</span>
-                            <span class="fw-bold fs-6 text-slate-900 dark:text-slate-100 text-truncate" style="max-width: 400px;">{{ $lembaga['nama'] ?? 'Lembaga Tanpa Nama' }}</span>
-                            @if (!empty($lembaga['singkatan']))
-                                <span class="badge bg-sky-100 text-sky-700 dark:bg-cyan-500/20 dark:text-cyan-300 border border-sky-200 dark:border-cyan-500/30 rounded-md">({{ $lembaga['singkatan'] }})</span>
-                            @endif
-                        </div>
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h5 class="mb-0 fw-bold text-slate-800 dark:text-slate-100 font-display">Multi-Lembaga Yayasan</h5>
+                    <small class="text-muted">Kelola seluruh lembaga sekolah/madrasah dan yayasan di bawah naungan sistem</small>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    @if (count($lembaga_items) > 1)
                         <button type="button"
-                                wire:click="removeLembaga({{ $id }})"
-                                wire:confirm="Yakin ingin menghapus lembaga #{{ $id }} ({{ $lembaga['nama'] ?? '' }})?"
-                                class="btn btn-outline-danger btn-sm rounded-xl px-3 py-1.5 text-xs font-semibold d-flex align-items-center gap-1.5">
-                            <i class="bi bi-trash"></i>
-                            <span>Hapus Lembaga</span>
+                                class="btn btn-outline-secondary btn-sm rounded-xl px-3 py-2 text-xs font-semibold d-flex align-items-center gap-1.5 shadow-2xs"
+                                @click="openLembaga.length === {{ count($lembaga_items) }} ? collapseAll() : expandAll(@js(array_map('intval', array_keys($lembaga_items))))">
+                            <i class="bi" :class="openLembaga.length === {{ count($lembaga_items) }} ? 'bi-chevron-contract' : 'bi-chevron-expand'"></i>
+                            <span x-text="openLembaga.length === {{ count($lembaga_items) }} ? 'Tutup Semua' : 'Buka Semua'">Buka Semua</span>
                         </button>
-                    </div>
+                    @endif
+                    <button type="button" wire:click="addLembaga" class="btn-logo-gradient inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-sm hover:shadow-md transition-all">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Tambah Lembaga</span>
+                    </button>
+                </div>
+            </div>
 
-                    <div class="card-body p-4">
+            <div class="space-y-3">
+                @forelse ($lembaga_items as $id => $lembaga)
+                    <div class="card shadow-sm border border-slate-200/90 dark:border-cyan-500/20 mb-3 rounded-2xl overflow-hidden transition-all duration-200"
+                         :class="isOpen({{ $id }}) ? 'ring-1 ring-sky-500/30 dark:ring-cyan-500/30' : ''"
+                         wire:key="lembaga-card-{{ $id }}">
+                        
+                        {{-- Header Accordion --}}
+                        <div class="card-header bg-slate-50/90 dark:bg-slate-800/90 border-b border-slate-200/90 dark:border-cyan-500/20 py-3.5 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2 select-none"
+                             role="button"
+                             tabindex="0"
+                             @click="toggle({{ $id }})"
+                             @keydown.enter.prevent="toggle({{ $id }})"
+                             @keydown.space.prevent="toggle({{ $id }})"
+                             style="cursor: pointer;">
+                            
+                            <div class="d-flex align-items-center gap-2.5 flex-wrap">
+                                <span class="badge bg-primary px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-2xs">#{{ $id }}</span>
+                                <span class="fw-bold fs-6 text-slate-900 dark:text-slate-100 text-truncate" style="max-width: 360px;">
+                                    {{ $lembaga['nama'] ?? 'Lembaga Tanpa Nama' }}
+                                </span>
+                                @if (!empty($lembaga['singkatan']))
+                                    <span class="badge bg-sky-100 text-sky-700 dark:bg-cyan-500/20 dark:text-cyan-300 border border-sky-200 dark:border-cyan-500/30 rounded-md">
+                                        ({{ $lembaga['singkatan'] }})
+                                    </span>
+                                @endif
+
+                                {{-- Ringkasan singkat saat tertutup --}}
+                                @if (!empty($lembaga['npsn']))
+                                    <span class="badge bg-slate-200/80 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300 text-[11px] font-normal border border-slate-300/60 dark:border-slate-600/50 d-none d-sm-inline-flex align-items-center gap-1">
+                                        <i class="bi bi-card-heading text-sky-500"></i> NPSN: {{ $lembaga['npsn'] }}
+                                    </span>
+                                @endif
+                                @if (!empty($lembaga['kepala']))
+                                    <span class="badge bg-slate-200/80 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300 text-[11px] font-normal border border-slate-300/60 dark:border-slate-600/50 d-none d-md-inline-flex align-items-center gap-1 text-truncate" style="max-width: 220px;">
+                                        <i class="bi bi-person text-sky-500"></i> {{ $lembaga['kepala'] }}
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button"
+                                        @click.stop
+                                        wire:click="removeLembaga({{ $id }})"
+                                        wire:confirm="Yakin ingin menghapus lembaga #{{ $id }} ({{ $lembaga['nama'] ?? '' }})?"
+                                        class="btn btn-outline-danger btn-sm rounded-xl px-2.5 py-1.5 text-xs font-semibold d-flex align-items-center gap-1"
+                                        title="Hapus Lembaga">
+                                    <i class="bi bi-trash"></i>
+                                    <span class="d-none d-sm-inline">Hapus</span>
+                                </button>
+
+                                <div class="d-flex align-items-center justify-content-center rounded-xl bg-slate-200/80 dark:bg-slate-700/70 text-slate-700 dark:text-slate-200 transition-transform duration-200 shadow-2xs"
+                                     style="width: 32px; height: 32px;"
+                                     :style="isOpen({{ $id }}) ? 'transform: rotate(180deg);' : ''"
+                                     aria-label="Toggle detail">
+                                    <i class="bi bi-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Konten Accordion Body --}}
+                        <div class="card-body p-4 border-top border-slate-200/70 dark:border-slate-800/80"
+                             x-show="isOpen({{ $id }})"
+                             x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 -translate-y-2"
+                             x-transition:enter-end="opacity-100 translate-y-0">
                         <div class="row g-3">
                             <div class="col-12 col-md-8">
                                 <label class="form-label fw-semibold">Nama Lembaga <span class="text-danger">*</span></label>
@@ -817,7 +896,8 @@ new class extends Component {
                 </div>
             @endforelse
         </div>
-    @endif
+    </div>
+@endif
 
     {{-- KONTEN TAB 3: INTEGRASI CLIENT (SAKU-v2) --}}
     @if ($activeTab === 'api')

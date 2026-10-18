@@ -113,6 +113,10 @@
             --form-label-color: #f1f5f9;
         }
 
+        [x-cloak] {
+            display: none !important;
+        }
+
         body {
             font-family: var(--font-sans);
             background: var(--bg-main);
