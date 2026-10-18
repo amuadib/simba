@@ -383,10 +383,10 @@ new class extends \Livewire\Volt\Component {
 ?>
 
 <div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-            <h4 class="mb-0">Data Siswa</h4>
-            <small class="text-muted">Kelola data siswa</small>
+            <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Data Siswa</h1>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Kelola data peserta didik, rombongan belajar & status keaktifan</p>
         </div>
 
         <div wire:key="breadcrumb-wrapper" wire:ignore>
@@ -394,47 +394,61 @@ new class extends \Livewire\Volt\Component {
         </div>
     </div>
 
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body">
+    <div class="glass-panel rounded-3xl p-4 md:p-6 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">
+        <div>
 
             {{-- TABS AREA --}}
             <div x-data="{ activeTab: 'filter' }">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" :class="{ 'active': activeTab === 'filter' }" @click="activeTab = 'filter'" type="button" role="tab">
-                            <i class="bi bi-funnel me-1"></i> Filter
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200/80 dark:border-slate-800">
+                    
+                    {{-- Nav Tabs Pills --}}
+                    <div class="inline-flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/80 shadow-xs self-start">
+                        <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 font-display" 
+                                :class="activeTab === 'filter' 
+                                    ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-cyan-400 shadow-xs border border-slate-200/80 dark:border-cyan-500/30' 
+                                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60'"
+                                @click="activeTab = 'filter'" type="button">
+                            <i class="bi bi-funnel-fill text-sky-500 dark:text-cyan-400"></i>
+                            <span>Filter</span>
                         </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" :class="{ 'active': activeTab === 'import' }" @click="activeTab = 'import'" type="button" role="tab">
-                            <i class="bi bi-upload me-1"></i> Import
+                        <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 font-display" 
+                                :class="activeTab === 'import' 
+                                    ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-cyan-400 shadow-xs border border-slate-200/80 dark:border-cyan-500/30' 
+                                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60'"
+                                @click="activeTab = 'import'" type="button">
+                            <i class="bi bi-upload text-sky-500 dark:text-cyan-400"></i>
+                            <span>Import</span>
                         </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" :class="{ 'active': activeTab === 'cashout-template' }" @click="activeTab = 'cashout-template'" type="button" role="tab">
-                            <i class="bi bi-file-earmark-excel me-1"></i> Template Cashout
+                        <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 font-display" 
+                                :class="activeTab === 'cashout-template' 
+                                    ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-cyan-400 shadow-xs border border-slate-200/80 dark:border-cyan-500/30' 
+                                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60'"
+                                @click="activeTab = 'cashout-template'" type="button">
+                            <i class="bi bi-file-earmark-excel-fill text-emerald-500"></i>
+                            <span>Template Cashout</span>
                         </button>
-                    </li>
+                    </div>
 
                     {{-- TOMBOL AKSI SEJAJAR TAB --}}
-                    <li class="nav-item ms-auto d-flex align-items-center gap-2 pe-1 pb-1">
+                    <div class="flex items-center gap-2 flex-wrap">
                         @if (count($checkedSiswa) > 0)
-                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-xl px-3 py-1.5 text-xs font-semibold" data-bs-toggle="modal"
                                 data-bs-target="#modalBulkUpdate">
                                 <i class="bi bi-pencil-square me-1"></i> Update ({{ count($checkedSiswa) }})
                             </button>
-                            <button type="button" class="btn btn-outline-danger btn-sm" wire:click="prepareBulkDelete">
+                            <button type="button" class="btn btn-outline-danger btn-sm rounded-xl px-3 py-1.5 text-xs font-semibold" wire:click="prepareBulkDelete">
                                 <i class="bi bi-trash me-1"></i> Hapus ({{ count($checkedSiswa) }})
                             </button>
-                            <button type="button" class="btn btn-outline-success btn-sm" wire:click="bulkExport">
+                            <button type="button" class="btn btn-outline-success btn-sm rounded-xl px-3 py-1.5 text-xs font-semibold" wire:click="bulkExport">
                                 <i class="bi bi-file-earmark-excel me-1"></i> Ekspor ({{ count($checkedSiswa) }})
                             </button>
                         @endif
 
-                        <button wire:click="create" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle me-1"></i>
-                            Tambah Siswa</button>
-                    </li>
-                </ul>
+                        <button wire:click="create" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                            <i class="bi bi-plus-circle text-sm"></i> Tambah Siswa
+                        </button>
+                    </div>
+                </div>
 
                 <div class="tab-content mb-4">
                     <div x-show="activeTab === 'cashout-template'">
@@ -620,19 +634,19 @@ new class extends \Livewire\Volt\Component {
                     </div>
                     {{-- FILTER AREA --}}
                     <div x-show="activeTab === 'filter'">
-                        <div class="rounded p-3" style="background-color: var(--table-bg); border: 1px solid var(--table-border);">
-                        
-                            <form wire:submit.prevent class="row g-2">
+                        <div class="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/90 dark:border-cyan-500/20 shadow-xs">
+                            <form wire:submit.prevent class="row g-2.5 items-center">
                                 <div class="col-md-4">
-                                    <div class="input-group">
-                                        <span class="input-group-text border-end-0" style="background-color: var(--bg-card); border-color: var(--table-border);"><i
-                                                class="bi bi-search text-muted"></i></span>
+                                    <div class="input-group input-group-sm shadow-xs rounded-xl overflow-hidden">
+                                        <span class="input-group-text border-end-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sky-500 ps-3">
+                                            <i class="bi bi-search"></i>
+                                        </span>
                                         <input type="text" wire:model.live.debounce.300ms="q"
-                                            class="form-control border-start-0" placeholder="Cari nama siswa...">
+                                            class="form-control form-control-sm border-start-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 text-xs py-2" placeholder="Cari nama siswa, NISN...">
                                     </div>
                                 </div>
                                 <div class="col-md-2">
-                                    <select wire:model.live="rombel_id" class="form-select">
+                                    <select wire:model.live="rombel_id" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-2 shadow-xs font-medium">
                                         <option value="">-- Semua Rombel --</option>
                                         @foreach ($rombels as $k)
                                             <option value="{{ $k->id }}">{{ $k->nama }}</option>
@@ -640,7 +654,7 @@ new class extends \Livewire\Volt\Component {
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <select wire:model.live="status" class="form-select">
+                                    <select wire:model.live="status" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-2 shadow-xs font-medium">
                                         <option value="">-- Semua Status --</option>
                                         @foreach ($statusOptions as $k => $v)
                                             <option value="{{ $k }}">{{ $v }}</option>
@@ -648,7 +662,7 @@ new class extends \Livewire\Volt\Component {
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <select wire:model.live="tag_id" class="form-select">
+                                    <select wire:model.live="tag_id" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-2 shadow-xs font-medium">
                                         <option value="">-- Semua Tag --</option>
                                         @foreach ($tags as $tag)
                                             <option value="{{ $tag->id }}">{{ $tag->nama }}</option>
@@ -656,8 +670,10 @@ new class extends \Livewire\Volt\Component {
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <button type="button" wire:click="resetPage" class="btn btn-success w-100"><i
-                                            class="bi bi-funnel me-1"></i> Filter</button>
+                                    <button type="button" wire:click="resetPage" class="w-100 py-2 px-2.5 rounded-xl bg-white hover:bg-rose-50 dark:bg-slate-900 dark:hover:bg-rose-950/40 text-slate-600 hover:text-rose-600 dark:text-slate-300 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs" title="Reset Filter">
+                                        <i class="bi bi-arrow-counterclockwise text-sm"></i>
+                                        <span>Reset Filter</span>
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -665,25 +681,25 @@ new class extends \Livewire\Volt\Component {
 
                     {{-- IMPORT AREA --}}
                     <div x-show="activeTab === 'import'" style="display: none;">
-                        <div class="bg-light rounded border p-3">
-                            <form wire:submit="import" class="row g-2">
+                        <div class="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/90 dark:border-cyan-500/20 shadow-xs">
+                            <form wire:submit="import" class="row g-2 align-items-center">
                                 <div class="col-md-6">
-                                    <input type="file" wire:model="importFile" class="form-control"
+                                    <input type="file" wire:model="importFile" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl"
                                         accept=".xlsx,.csv" required>
                                     @error('importFile')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
                                 </div>
-                                <div class="col-md-2">
-                                    <button type="submit" class="btn btn-warning w-100"
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-warning btn-sm w-100 rounded-xl fw-bold py-2 shadow-xs"
                                         wire:loading.attr="disabled">
-                                        <i class="bi bi-upload"></i> IMPORT
+                                        <i class="bi bi-upload me-1"></i> IMPORT EXCEL
                                     </button>
                                 </div>
-                                <div class="col-md-2">
-                                    <button type="button" wire:click="exportTemplate" class="btn btn-primary w-100"
+                                <div class="col-md-3">
+                                    <button type="button" wire:click="exportTemplate" class="btn btn-outline-primary btn-sm w-100 rounded-xl fw-bold py-2 shadow-xs"
                                         wire:loading.attr="disabled">
-                                        <i class="bi bi-download"></i> TEMPLATE
+                                        <i class="bi bi-download me-1"></i> UNDUH TEMPLATE
                                     </button>
                                 </div>
                             </form>
@@ -693,22 +709,22 @@ new class extends \Livewire\Volt\Component {
             </div>
 
             {{-- TABLE --}}
-            <div class="table-responsive">
-                <table class="table-hover table border align-middle">
-                    <thead class="table-light">
+            <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 overflow-hidden shadow-sm">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
                         <tr>
-                            <th style="width: 40px;" class="text-center">
+                            <th style="width: 40px;" class="text-center py-3">
                                 <div class="form-check d-flex justify-content-center m-0 p-0">
                                     <input class="form-check-input m-0" type="checkbox" wire:model.live="selectAll">
                                 </div>
                             </th>
-                            <th>No</th>
-                            <th>Nama</th>
-                            <th>NISN</th>
-                            <th>Rombel</th>
-                            <th>Status</th>
-                            <th>Tag</th>
-                            <th class="text-center">Aksi</th>
+                            <th class="py-3">No</th>
+                            <th class="py-3">Nama</th>
+                            <th class="py-3">NISN</th>
+                            <th class="py-3">Rombel</th>
+                            <th class="py-3">Status</th>
+                            <th class="py-3">Tag</th>
+                            <th class="text-center py-3">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

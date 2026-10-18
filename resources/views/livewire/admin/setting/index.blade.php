@@ -61,7 +61,12 @@ new class extends Component {
 
     public function addLembaga(): void
     {
-        $newId = empty($this->lembaga_items) ? 1 : max(array_keys($this->lembaga_items)) + 1;
+        $existingKeys = array_filter(array_keys($this->lembaga_items), fn($k) => is_numeric($k) && (int)$k !== 99);
+        $newId = empty($existingKeys) ? 1 : max(array_map('intval', $existingKeys)) + 1;
+        while ($newId === 99 || isset($this->lembaga_items[$newId])) {
+            $newId++;
+        }
+
         $this->lembaga_items[$newId] = [
             'nama' => 'Nama Lembaga Baru',
             'singkatan' => '',
@@ -294,7 +299,7 @@ new class extends Component {
     {{-- Header Halaman --}}
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h4 class="mb-0 fw-bold">Pengaturan Sistem (Master)</h4>
+            <h4 class="mb-0 fw-bold text-gradient-logo font-display">Pengaturan Sistem (Master)</h4>
             <small class="text-muted">Kelola data master aplikasi dan multi-lembaga yayasan</small>
         </div>
         <div wire:key="breadcrumb-wrapper" wire:ignore>
@@ -303,36 +308,30 @@ new class extends Component {
     </div>
 
     {{-- Navigasi Tab & Tombol Simpan --}}
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <ul class="nav nav-pills gap-2 flex-wrap" role="tablist">
-            <li class="nav-item">
-                <button type="button"
-                        class="nav-link {{ $activeTab === 'app' ? 'active' : '' }} d-flex align-items-center gap-2"
-                        wire:click="$set('activeTab', 'app')">
-                    <i class="bi bi-gear-fill"></i>
-                    <span>Informasi Aplikasi</span>
-                </button>
-            </li>
-            <li class="nav-item">
-                <button type="button"
-                        class="nav-link {{ $activeTab === 'lembaga' ? 'active' : '' }} d-flex align-items-center gap-2"
-                        wire:click="$set('activeTab', 'lembaga')">
-                    <i class="bi bi-buildings"></i>
-                    <span>Daftar Lembaga</span>
-                    <span class="badge bg-secondary rounded-pill ms-1">{{ count($lembaga_items) }}</span>
-                </button>
-            </li>
-            <li class="nav-item">
-                <button type="button"
-                        class="nav-link {{ $activeTab === 'api' ? 'active' : '' }} d-flex align-items-center gap-2"
-                        wire:click="$set('activeTab', 'api')">
-                    <i class="bi bi-link-45deg"></i>
-                    <span>Integrasi Client (SAKU-v2)</span>
-                </button>
-            </li>
-        </ul>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div class="inline-flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex-wrap">
+            <button type="button"
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 font-display {{ $activeTab === 'app' ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-cyan-400 shadow-xs border border-slate-200/80 dark:border-cyan-500/30' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60' }}"
+                    wire:click="$set('activeTab', 'app')">
+                <i class="bi bi-gear-fill text-sky-500 dark:text-cyan-400"></i>
+                <span>Informasi Aplikasi</span>
+            </button>
+            <button type="button"
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 font-display {{ $activeTab === 'lembaga' ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-cyan-400 shadow-xs border border-slate-200/80 dark:border-cyan-500/30' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60' }}"
+                    wire:click="$set('activeTab', 'lembaga')">
+                <i class="bi bi-buildings text-sky-500 dark:text-cyan-400"></i>
+                <span>Daftar Lembaga</span>
+                <span class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full {{ $activeTab === 'lembaga' ? 'bg-sky-100 text-sky-700 dark:bg-cyan-500/20 dark:text-cyan-300' : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300' }}">{{ count($lembaga_items) }}</span>
+            </button>
+            <button type="button"
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 font-display {{ $activeTab === 'api' ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-cyan-400 shadow-xs border border-slate-200/80 dark:border-cyan-500/30' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60' }}"
+                    wire:click="$set('activeTab', 'api')">
+                <i class="bi bi-link-45deg text-sky-500 dark:text-cyan-400"></i>
+                <span>Integrasi Client (SAKU-v2)</span>
+            </button>
+        </div>
 
-        <button type="button" wire:click="save" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+        <button type="button" wire:click="save" class="btn-logo-gradient inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition-all">
             <span wire:loading wire:target="save" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             <i wire:loading.remove wire:target="save" class="bi bi-save2"></i>
             <span>Simpan Pengaturan</span>
@@ -341,10 +340,10 @@ new class extends Component {
 
     {{-- KONTEN TAB 1: INFORMASI APLIKASI --}}
     @if ($activeTab === 'app')
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-white border-bottom py-3">
-                <h6 class="mb-0 fw-bold text-primary">
-                    <i class="bi bi-sliders me-2"></i>Informasi Master Aplikasi
+        <div class="card shadow-sm border border-slate-200/90 dark:border-cyan-500/20 mb-4 rounded-2xl overflow-hidden">
+            <div class="card-header bg-slate-50/90 dark:bg-slate-800/90 border-b border-slate-200/90 dark:border-cyan-500/20 py-3.5 px-4">
+                <h6 class="mb-0 fw-bold text-sky-600 dark:text-cyan-400 d-flex align-items-center gap-2">
+                    <i class="bi bi-sliders"></i> Informasi Master Aplikasi
                 </h6>
             </div>
             <div class="card-body p-4">
@@ -390,12 +389,12 @@ new class extends Component {
 
     {{-- KONTEN TAB 2: DAFTAR LEMBAGA --}}
     @if ($activeTab === 'lembaga')
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <div>
-                <h5 class="mb-0 fw-bold">Multi-Lembaga Yayasan</h5>
+                <h5 class="mb-0 fw-bold text-slate-800 dark:text-slate-100 font-display">Multi-Lembaga Yayasan</h5>
                 <small class="text-muted">Kelola seluruh lembaga sekolah/madrasah dan yayasan di bawah naungan sistem</small>
             </div>
-            <button type="button" wire:click="addLembaga" class="btn btn-success btn-sm d-flex align-items-center gap-1 shadow-sm">
+            <button type="button" wire:click="addLembaga" class="btn-logo-gradient inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-sm hover:shadow-md transition-all">
                 <i class="bi bi-plus-circle"></i>
                 <span>Tambah Lembaga</span>
             </button>
@@ -403,19 +402,19 @@ new class extends Component {
 
         <div class="space-y-4">
             @forelse ($lembaga_items as $id => $lembaga)
-                <div class="card shadow-sm border-0 mb-4" wire:key="lembaga-card-{{ $id }}">
-                    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <span class="badge bg-primary px-2.5 py-1.5 fs-6">#{{ $id }}</span>
-                            <span class="fw-bold fs-6 text-truncate" style="max-width: 400px;">{{ $lembaga['nama'] ?? 'Lembaga Tanpa Nama' }}</span>
+                <div class="card shadow-sm border border-slate-200/90 dark:border-cyan-500/20 mb-4 rounded-2xl overflow-hidden" wire:key="lembaga-card-{{ $id }}">
+                    <div class="card-header bg-slate-50/90 dark:bg-slate-800/90 border-b border-slate-200/90 dark:border-cyan-500/20 py-3.5 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2.5 flex-wrap">
+                            <span class="badge bg-primary px-2.5 py-1.5 rounded-lg text-xs font-bold">#{{ $id }}</span>
+                            <span class="fw-bold fs-6 text-slate-900 dark:text-slate-100 text-truncate" style="max-width: 400px;">{{ $lembaga['nama'] ?? 'Lembaga Tanpa Nama' }}</span>
                             @if (!empty($lembaga['singkatan']))
-                                <span class="badge bg-light text-dark border">({{ $lembaga['singkatan'] }})</span>
+                                <span class="badge bg-sky-100 text-sky-700 dark:bg-cyan-500/20 dark:text-cyan-300 border border-sky-200 dark:border-cyan-500/30 rounded-md">({{ $lembaga['singkatan'] }})</span>
                             @endif
                         </div>
                         <button type="button"
                                 wire:click="removeLembaga({{ $id }})"
                                 wire:confirm="Yakin ingin menghapus lembaga #{{ $id }} ({{ $lembaga['nama'] ?? '' }})?"
-                                class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1">
+                                class="btn btn-outline-danger btn-sm rounded-xl px-3 py-1.5 text-xs font-semibold d-flex align-items-center gap-1.5">
                             <i class="bi bi-trash"></i>
                             <span>Hapus Lembaga</span>
                         </button>
@@ -620,22 +619,22 @@ new class extends Component {
 
                                     {{-- Live Preview Embed Map --}}
                                     <div class="col-12">
-                                        <div class="card border rounded-3 overflow-hidden bg-light shadow-none">
-                                            <div class="card-header bg-white py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
-                                                <span class="small fw-bold text-muted d-flex align-items-center gap-1">
-                                                    <i class="bi bi-map me-1 text-primary"></i>Pratinjau Map Embed di Website
+                                        <div class="card border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-none">
+                                            <div class="card-header bg-slate-50 dark:bg-slate-800/90 py-2.5 px-3 border-b border-slate-200 dark:border-slate-700 d-flex align-items-center justify-content-between">
+                                                <span class="small fw-bold text-slate-700 dark:text-slate-300 d-flex align-items-center gap-1.5">
+                                                    <i class="bi bi-map me-1 text-sky-500 dark:text-cyan-400"></i>Pratinjau Map Embed di Website
                                                 </span>
                                                 @if ($mapEmbedUrl)
-                                                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                    <span class="badge bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-md">
                                                         <i class="bi bi-check-circle me-1"></i>Peta Terhubung
                                                     </span>
                                                 @else
-                                                    <span class="badge bg-secondary-subtle text-secondary border">
+                                                    <span class="badge bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-md">
                                                         <i class="bi bi-dash-circle me-1"></i>Belum Ada Peta
                                                     </span>
                                                 @endif
                                             </div>
-                                            <div class="card-body p-0 position-relative" style="min-height: 220px;">
+                                            <div class="card-body p-0 position-relative bg-slate-100/50 dark:bg-slate-900/60" style="min-height: 220px;">
                                                 @if ($mapEmbedUrl)
                                                     <iframe src="{{ $mapEmbedUrl }}"
                                                             width="100%"
@@ -670,7 +669,7 @@ new class extends Component {
                                             <span wire:loading wire:target="logos.{{ $id }}" class="badge bg-info text-white">Mengunggah...</span>
                                         </label>
                                         <div class="d-flex align-items-center gap-3 flex-wrap flex-sm-nowrap">
-                                            <div class="rounded border p-1 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 70px; height: 70px; overflow: hidden;">
+                                            <div class="rounded-xl border p-1 bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 70px; height: 70px; overflow: hidden;">
                                                 @if (isset($logos[$id]) && method_exists($logos[$id], 'temporaryUrl'))
                                                     <img src="{{ $logos[$id]->temporaryUrl() }}" alt="Preview Logo" class="img-fluid object-fit-contain" style="max-height: 60px;">
                                                 @elseif (!empty($lembaga['logo']))
@@ -703,7 +702,7 @@ new class extends Component {
                                             <span wire:loading wire:target="kops.{{ $id }}" class="badge bg-info text-white">Mengunggah...</span>
                                         </label>
                                         <div class="d-flex align-items-center gap-3 flex-wrap flex-sm-nowrap">
-                                            <div class="rounded border p-1 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 90px; height: 70px; overflow: hidden;">
+                                            <div class="rounded-xl border p-1 bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 90px; height: 70px; overflow: hidden;">
                                                 @if (isset($kops[$id]) && method_exists($kops[$id], 'temporaryUrl'))
                                                     <img src="{{ $kops[$id]->temporaryUrl() }}" alt="Preview Kop" class="img-fluid object-fit-contain" style="max-height: 60px;">
                                                 @elseif (!empty($lembaga['kop']))
@@ -736,8 +735,8 @@ new class extends Component {
                                             <span wire:loading wire:target="ttds.{{ $id }}" class="badge bg-info text-white">Mengunggah...</span>
                                         </label>
                                         <div class="d-flex align-items-center gap-3 flex-wrap flex-sm-nowrap">
-                                            <div class="rounded border p-1 d-flex align-items-center justify-content-center flex-shrink-0"
-                                                 style="width: 80px; height: 70px; overflow: hidden; background: repeating-conic-gradient(#e9ecef 0% 25%, #f8f9fa 0% 50%) 50% / 12px 12px;"
+                                            <div class="rounded-xl border p-1 d-flex align-items-center justify-content-center flex-shrink-0 border-slate-200 dark:border-slate-700"
+                                                 style="width: 80px; height: 70px; overflow: hidden; background: repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 12px 12px;"
                                                  title="Pratinjau TTD (latar transparan)">
                                                 @if (isset($ttds[$id]) && method_exists($ttds[$id], 'temporaryUrl'))
                                                     <img src="{{ $ttds[$id]->temporaryUrl() }}" alt="Preview TTD" class="img-fluid object-fit-contain" style="max-height: 60px;">
@@ -772,8 +771,8 @@ new class extends Component {
                                             <span wire:loading wire:target="stempels.{{ $id }}" class="badge bg-info text-white">Mengunggah...</span>
                                         </label>
                                         <div class="d-flex align-items-center gap-3 flex-wrap flex-sm-nowrap">
-                                            <div class="rounded border p-1 d-flex align-items-center justify-content-center flex-shrink-0"
-                                                 style="width: 80px; height: 70px; overflow: hidden; background: repeating-conic-gradient(#e9ecef 0% 25%, #f8f9fa 0% 50%) 50% / 12px 12px;"
+                                            <div class="rounded-xl border p-1 d-flex align-items-center justify-content-center flex-shrink-0 border-slate-200 dark:border-slate-700"
+                                                 style="width: 80px; height: 70px; overflow: hidden; background: repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 12px 12px;"
                                                  title="Pratinjau Stempel (latar transparan)">
                                                 @if (isset($stempels[$id]) && method_exists($stempels[$id], 'temporaryUrl'))
                                                     <img src="{{ $stempels[$id]->temporaryUrl() }}" alt="Preview Stempel" class="img-fluid object-fit-contain" style="max-height: 60px;">
@@ -806,13 +805,13 @@ new class extends Component {
                     </div>
                 </div>
             @empty
-                <div class="card shadow-sm border-0 p-5 text-center">
+                <div class="card shadow-sm border border-slate-200/90 dark:border-cyan-500/20 p-5 text-center rounded-2xl">
                     <i class="bi bi-building-exclamation text-muted display-4 mb-3"></i>
                     <h5 class="text-muted">Belum ada data lembaga terdaftar.</h5>
                     <p class="text-muted small">Klik tombol di bawah untuk menambahkan lembaga pertama.</p>
                     <div>
-                        <button type="button" wire:click="addLembaga" class="btn btn-primary btn-sm">
-                            <i class="bi bi-plus-circle me-1"></i>Tambah Lembaga
+                        <button type="button" wire:click="addLembaga" class="btn-logo-gradient inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-sm">
+                            <i class="bi bi-plus-circle"></i> Tambah Lembaga
                         </button>
                     </div>
                 </div>
@@ -822,14 +821,14 @@ new class extends Component {
 
     {{-- KONTEN TAB 3: INTEGRASI CLIENT (SAKU-v2) --}}
     @if ($activeTab === 'api')
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-white border-bottom py-3">
-                <h6 class="mb-0 fw-bold text-primary">
-                    <i class="bi bi-hdd-network me-2"></i>Konfigurasi Simba Master & API Client (SAKU-v2)
+        <div class="card shadow-sm border border-slate-200/90 dark:border-cyan-500/20 mb-4 rounded-2xl overflow-hidden">
+            <div class="card-header bg-slate-50/90 dark:bg-slate-800/90 border-b border-slate-200/90 dark:border-cyan-500/20 py-3.5 px-4">
+                <h6 class="mb-0 fw-bold text-sky-600 dark:text-cyan-400 d-flex align-items-center gap-2">
+                    <i class="bi bi-hdd-network"></i> Konfigurasi Simba Master & API Client (SAKU-v2)
                 </h6>
             </div>
             <div class="card-body p-4">
-                <div class="alert alert-info d-flex align-items-start gap-3">
+                <div class="alert alert-info d-flex align-items-start gap-3 rounded-2xl border-0 shadow-xs">
                     <i class="bi bi-info-circle-fill fs-4 mt-1"></i>
                     <div>
                         <h6 class="fw-bold mb-1">SIMBA sebagai Sistem Master</h6>
@@ -843,10 +842,10 @@ new class extends Component {
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Endpoint Sync Lembaga</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light text-primary fw-bold">GET</span>
+                            <span class="input-group-text bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-cyan-400 fw-bold border-slate-200 dark:border-slate-700">GET</span>
                             <input type="text"
                                    readonly
-                                   class="form-control bg-light font-monospace"
+                                   class="form-control font-monospace bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700"
                                    value="{{ url('/api/lembaga/sync') }}">
                         </div>
                         <small class="text-muted">Gunakan header <code>Authorization: Bearer &lt;Token&gt;</code> saat memanggil API ini.</small>
@@ -855,10 +854,10 @@ new class extends Component {
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Endpoint Sync Siswa & Rombel</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light text-primary fw-bold">GET</span>
+                            <span class="input-group-text bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-cyan-400 fw-bold border-slate-200 dark:border-slate-700">GET</span>
                             <input type="text"
                                    readonly
-                                   class="form-control bg-light font-monospace"
+                                   class="form-control font-monospace bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700"
                                    value="{{ url('/api/siswa/sync') }}">
                         </div>
                         <small class="text-muted">API sinkronisasi siswa aktif ke SAKU-v2.</small>
@@ -867,10 +866,10 @@ new class extends Component {
                     <div class="col-md-12">
                         <label class="form-label fw-semibold">Secret Key / Bearer Token SAKU</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-key-fill text-warning"></i></span>
+                            <span class="input-group-text bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"><i class="bi bi-key-fill text-warning"></i></span>
                             <input type="text"
                                    readonly
-                                   class="form-control bg-light font-monospace"
+                                   class="form-control font-monospace bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700"
                                    value="{{ config('local.saku.key', env('SAKU_KEY', 'secret-token-123')) }}">
                         </div>
                         <small class="text-muted">Dikonfigurasi di file <code>.env</code> dengan variabel <code>SAKU_KEY</code> atau <code>config/local.php</code>.</small>
