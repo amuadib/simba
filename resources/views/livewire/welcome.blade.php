@@ -74,6 +74,10 @@ new #[Layout('layouts.welcome')] class extends Component {
                 $item['nomor_statistik'] = $item['nomor_statistik'] ?? $item['nsm'] ?? $item['nss'] ?? '';
 
                 $item['id'] = (int)$id;
+                $item['total_siswa'] = Siswa::where('status', 1)->where(function ($q) use ($id) {
+                    $q->where('lembaga_id', $id)
+                      ->orWhereHas('rombel', fn($rq) => $rq->where('lembaga_id', $id));
+                })->count();
                 $item['total_pegawai'] = Pegawai::where('status', 1)->where(function ($q) use ($id) {
                     $q->where('lembaga_id', $id)
                       ->orWhereHas('penugasanAktif', fn($sq) => $sq->where('lembaga_id', $id));
