@@ -3,35 +3,42 @@
 use App\Models\Jadwal;
 use App\Models\Presensi;
 use App\Models\Siswa;
+use App\Models\Pegawai;
+use App\Models\SkPenugasan;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Livewire\Volt\Component;
 
 new class extends Component {
     public $totalSiswa = 0;
+    public $totalPegawai = 0;
     public $total = ['a' => 0, 'h' => 0, 's' => 0, 'i' => 0];
     public $chartData = ['labels' => [], 'series' => ['H' => [], 'S' => [], 'I' => [], 'A' => []]];
     public $filterKehadiran = '30_hari';
     public $jadwalHariIni = [];
     public $lembaga = [];
+    public $siswaSummary = [];
+    public $pegawaiSummary = [];
 
     public function mount()
     {
         $this->totalSiswa = Siswa::count();
+        $this->totalPegawai = Pegawai::count();
+
         $lembagaList = \App\Models\Setting::getValue('lembaga') ?? config('local.lembaga') ?? [];
         if (isset($lembagaList[99])) {
-                $this->lembaga = $lembagaList[99];
-            } elseif (!empty($lembagaList)) {
-                ksort($lembagaList, SORT_NUMERIC);
-                $this->lembaga = reset($lembagaList);
-            } else {
-                $this->lembaga = [];
-            }
+            $this->lembaga = $lembagaList[99];
+        } elseif (!empty($lembagaList)) {
+            ksort($lembagaList, SORT_NUMERIC);
+            $this->lembaga = reset($lembagaList);
+        } else {
+            $this->lembaga = [];
+        }
 
         // Jadwal hari ini untuk user yang login
         $hariIni = (int) Carbon::today()->isoWeekday(); // 1=Senin ... 7=Ahad
-        // Model memakai hari 7 = Ahad, tapi Carbon: 7 = Sunday — samakan
-        $hariCarbon = $hariIni; // Carbon isoWeekday: 1=Mon ... 7=Sun → sesuai model
+        $hariCarbon = $hariIni;
 
         $this->jadwalHariIni = Jadwal::with(['pembelajaran.pelajaran', 'pembelajaran.tahunAjaran', 'pembelajaran.anggota', 'pembelajaran.latestJurnal'])
             ->whereHas('pembelajaran.tahunAjaran', fn($q) => $q->where('id', session('tahun_ajaran_id')))
@@ -62,6 +69,7 @@ new class extends Component {
         });
 
         $this->loadChartData();
+        $this->loadSummaryData();
     }
 
     public function updatedFilterKehadiran()
@@ -96,13 +104,206 @@ new class extends Component {
                     "
                     )
                     ->first();
-                $chart['series']['H'][] = (int) $row->H;
-                $chart['series']['I'][] = (int) $row->I;
-                $chart['series']['S'][] = (int) $row->S;
-                $chart['series']['A'][] = (int) $row->A;
+                $chart['series']['H'][] = (int) ($row->H ?? 0);
+                $chart['series']['I'][] = (int) ($row->I ?? 0);
+                $chart['series']['S'][] = (int) ($row->S ?? 0);
+                $chart['series']['A'][] = (int) ($row->A ?? 0);
             }
 
             return $chart;
+        });
+    }
+
+    public function loadSummaryData()
+    {
+        // 1. Ringkasan Siswa
+        $this->siswaSummary = Cache::remember('dashboard_siswa_summary', now()->addMinutes(10), function () {
+            $total = Siswa::count();
+            $aktif = Siswa::where('status', 1)->count();
+            $genderL = Siswa::whereRaw("LOWER(jenis_kelamin) = 'l'")->count();
+            $genderP = Siswa::whereRaw("LOWER(jenis_kelamin) = 'p'")->count();
+            $genderOther = max(0, $total - ($genderL + $genderP));
+
+            $rawLembaga = Siswa::selectRaw("
+                COALESCE(lembaga_id, 99) as lembaga_id,
+                SUM(CASE WHEN LOWER(jenis_kelamin) = 'l' THEN 1 ELSE 0 END) as l,
+                SUM(CASE WHEN LOWER(jenis_kelamin) = 'p' THEN 1 ELSE 0 END) as p,
+                COUNT(*) as total
+            ")
+            ->groupBy(DB::raw("COALESCE(lembaga_id, 99)"))
+            ->orderByDesc('total')
+            ->get();
+
+            $shortLabels = [];
+            $fullLabels = [];
+            $seriesL = [];
+            $seriesP = [];
+            $seriesTotal = [];
+
+            foreach ($rawLembaga as $row) {
+                $lid = $row->lembaga_id;
+                $shortLabels[] = nama_lembaga($lid, true);
+                $fullLabels[] = nama_lembaga($lid);
+                $seriesL[] = (int) $row->l;
+                $seriesP[] = (int) $row->p;
+                $seriesTotal[] = (int) $row->total;
+            }
+
+            $statusConfig = config('local.status_siswa', [
+                1 => 'Aktif',
+                2 => 'Lulus',
+                3 => 'Mutasi',
+                4 => 'Non-Aktif',
+                5 => 'Almarhum',
+                6 => 'Keluar',
+            ]);
+
+            $rawStatus = Siswa::selectRaw("status, count(*) as total")
+                ->groupBy('status')
+                ->orderByDesc('total')
+                ->get();
+
+            $statusLabels = [];
+            $statusData = [];
+            foreach ($rawStatus as $st) {
+                $name = $statusConfig[$st->status] ?? ('Status ' . $st->status);
+                $statusLabels[] = $name;
+                $statusData[] = (int) $st->total;
+            }
+
+            return [
+                'total' => $total,
+                'aktif' => $aktif,
+                'gender' => [
+                    'L' => $genderL,
+                    'P' => $genderP,
+                    'other' => $genderOther,
+                    'pct_L' => $total > 0 ? round(($genderL / $total) * 100, 1) : 0,
+                    'pct_P' => $total > 0 ? round(($genderP / $total) * 100, 1) : 0,
+                ],
+                'by_lembaga' => [
+                    'short_labels' => $shortLabels,
+                    'labels' => $fullLabels,
+                    'series_l' => $seriesL,
+                    'series_p' => $seriesP,
+                    'total' => $seriesTotal,
+                ],
+                'by_status' => [
+                    'labels' => $statusLabels,
+                    'data' => $statusData,
+                ],
+            ];
+        });
+
+        // 2. Ringkasan Pegawai
+        $this->pegawaiSummary = Cache::remember('dashboard_pegawai_summary', now()->addMinutes(10), function () {
+            $total = Pegawai::count();
+            $aktif = Pegawai::where('status', '1')->count();
+            $genderL = Pegawai::whereRaw("LOWER(jenis_kelamin) = 'l'")->count();
+            $genderP = Pegawai::whereRaw("LOWER(jenis_kelamin) = 'p'")->count();
+            $genderOther = max(0, $total - ($genderL + $genderP));
+
+            $rawLembaga = Pegawai::selectRaw("
+                COALESCE(lembaga_id, 99) as lembaga_id,
+                SUM(CASE WHEN LOWER(jenis_kelamin) = 'l' THEN 1 ELSE 0 END) as l,
+                SUM(CASE WHEN LOWER(jenis_kelamin) = 'p' THEN 1 ELSE 0 END) as p,
+                COUNT(*) as total
+            ")
+            ->groupBy(DB::raw("COALESCE(lembaga_id, 99)"))
+            ->orderByDesc('total')
+            ->get();
+
+            $shortLabels = [];
+            $fullLabels = [];
+            $seriesL = [];
+            $seriesP = [];
+            $seriesTotal = [];
+
+            foreach ($rawLembaga as $row) {
+                $lid = $row->lembaga_id;
+                $shortLabels[] = nama_lembaga($lid, true);
+                $fullLabels[] = nama_lembaga($lid);
+                $seriesL[] = (int) $row->l;
+                $seriesP[] = (int) $row->p;
+                $seriesTotal[] = (int) $row->total;
+            }
+
+            $jabatanConfig = daftar_jabatan();
+            $rawJabatan = SkPenugasan::where('status', '1')
+                ->whereNotNull('jabatan')
+                ->selectRaw("jabatan, count(*) as total")
+                ->groupBy('jabatan')
+                ->orderByDesc('total')
+                ->get();
+
+            $jabatanLabels = [];
+            $jabatanData = [];
+            $guruCount = 0;
+            $stafCount = 0;
+
+            foreach ($rawJabatan as $jb) {
+                $name = $jabatanConfig[$jb->jabatan] ?? ('Jabatan ' . $jb->jabatan);
+                $jabatanLabels[] = $name;
+                $jabatanData[] = (int) $jb->total;
+
+                if (in_array((int) $jb->jabatan, [3, 4, 6])) {
+                    $guruCount += (int) $jb->total;
+                } else {
+                    $stafCount += (int) $jb->total;
+                }
+            }
+
+            $statusPegawaiConfig = config('local.status_pegawai', [
+                1 => 'Aktif',
+                2 => 'Cuti',
+                3 => 'Non-Aktif',
+                4 => 'Mutasi',
+                5 => 'Pensiun',
+                6 => 'Keluar',
+                7 => 'Almarhum',
+            ]);
+
+            $rawStatus = Pegawai::selectRaw("status, count(*) as total")
+                ->groupBy('status')
+                ->orderByDesc('total')
+                ->get();
+
+            $statusLabels = [];
+            $statusData = [];
+            foreach ($rawStatus as $st) {
+                $name = $statusPegawaiConfig[(int) $st->status] ?? ('Status ' . $st->status);
+                $statusLabels[] = $name;
+                $statusData[] = (int) $st->total;
+            }
+
+            return [
+                'total' => $total,
+                'aktif' => $aktif,
+                'guru_count' => $guruCount,
+                'staf_count' => $stafCount,
+                'gender' => [
+                    'l' => $genderL,
+                    'p' => $genderP,
+                    'other' => $genderOther,
+                    'pct_l' => $total > 0 ? round(($genderL / $total) * 100, 1) : 0,
+                    'pct_p' => $total > 0 ? round(($genderP / $total) * 100, 1) : 0,
+                ],
+                'by_lembaga' => [
+                    'short_labels' => $shortLabels,
+                    'labels' => $fullLabels,
+                    'series_l' => $seriesL,
+                    'series_p' => $seriesP,
+                    'total' => $seriesTotal,
+                ],
+                'by_jabatan' => [
+                    'labels' => $jabatanLabels,
+                    'data' => $jabatanData,
+                ],
+                'by_status' => [
+                    'labels' => $statusLabels,
+                    'data' => $statusData,
+                ],
+            ];
         });
     }
 };
@@ -110,9 +311,13 @@ new class extends Component {
 ?>
 
 <div x-data="{
-    initChart() {
+    initPresensiChart() {
         const ctx = document.getElementById('presensiChart');
         if (!ctx) return;
+        if (typeof Chart === 'undefined') {
+            setTimeout(() => this.initPresensiChart(), 60);
+            return;
+        }
 
         if (window.presensiChart && typeof window.presensiChart.destroy === 'function') {
             window.presensiChart.destroy();
@@ -148,7 +353,7 @@ new class extends Component {
         const container = document.querySelector('.chart-container');
         if (container) container.scrollLeft = container.scrollWidth;
     }
-}" x-init="initChart()" @update-chart.window="
+}" x-init="initPresensiChart()" @update-chart.window="
     if(window.presensiChart) {
         const newData = JSON.parse(JSON.stringify($wire.chartData));
         window.presensiChart.data.labels = newData.labels;
@@ -207,7 +412,7 @@ new class extends Component {
     </div>
 
     {{-- STATS CARDS --}}
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-6">
         {{-- Total Siswa --}}
         <div class="glass-panel p-4 rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 hover:scale-[1.02] transition-transform shadow-sm">
             <div class="flex items-center gap-3">
@@ -217,6 +422,19 @@ new class extends Component {
                 <div class="min-w-0">
                     <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-display">Total Siswa</div>
                     <div class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 font-display">{{ $totalSiswa }}</div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Total Pegawai --}}
+        <div class="glass-panel p-4 rounded-2xl border border-slate-200/90 dark:border-indigo-500/20 hover:scale-[1.02] transition-transform shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center text-xl shadow-md shadow-indigo-500/30 flex-shrink-0">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-display">Total Pegawai</div>
+                    <div class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 font-display">{{ $totalPegawai }}</div>
                 </div>
             </div>
         </div>
@@ -271,6 +489,510 @@ new class extends Component {
                     <div class="text-2xl font-extrabold text-rose-500 font-display">{{ $total['a'] }}</div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    {{-- ========================================================
+         GRAFIK RINGKASAN DATA SISWA & PEGAWAI
+         ======================================================== --}}
+    <div class="mb-6" x-data="{
+        siswaTab: 'lembaga',
+        pegawaiTab: 'lembaga',
+        siswaData: {{ json_encode($siswaSummary) }},
+        pegawaiData: {{ json_encode($pegawaiSummary) }},
+        siswaChart: null,
+        pegawaiChart: null,
+
+        init() {
+            this.$nextTick(() => {
+                this.renderSiswaChart();
+                this.renderPegawaiChart();
+            });
+
+            // Re-render when theme changes (light/dark)
+            const observer = new MutationObserver(() => {
+                this.renderSiswaChart();
+                this.renderPegawaiChart();
+            });
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+        },
+
+        setSiswaTab(tab) {
+            this.siswaTab = tab;
+            this.$nextTick(() => this.renderSiswaChart());
+        },
+
+        setPegawaiTab(tab) {
+            this.pegawaiTab = tab;
+            this.$nextTick(() => this.renderPegawaiChart());
+        },
+
+        isDarkMode() {
+            return document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+        },
+
+        renderSiswaChart() {
+            const canvas = document.getElementById('siswaSummaryChart');
+            if (!canvas) return;
+            if (typeof Chart === 'undefined') {
+                setTimeout(() => this.renderSiswaChart(), 60);
+                return;
+            }
+
+            if (this.siswaChart && typeof this.siswaChart.destroy === 'function') {
+                this.siswaChart.destroy();
+                this.siswaChart = null;
+            }
+
+            const dark = this.isDarkMode();
+            const textColor = dark ? '#94a3b8' : '#64748b';
+            const gridColor = dark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
+
+            let config = {};
+
+            if (this.siswaTab === 'lembaga') {
+                config = {
+                    type: 'bar',
+                    data: {
+                        labels: this.siswaData.by_lembaga.short_labels,
+                        datasets: [
+                            {
+                                label: 'Laki-Laki',
+                                data: this.siswaData.by_lembaga.series_l,
+                                backgroundColor: 'rgba(2, 132, 199, 0.85)',
+                                borderColor: '#0284c7',
+                                borderWidth: 1,
+                                borderRadius: 6,
+                            },
+                            {
+                                label: 'Perempuan',
+                                data: this.siswaData.by_lembaga.series_p,
+                                backgroundColor: 'rgba(244, 63, 94, 0.85)',
+                                borderColor: '#f43f5e',
+                                borderWidth: 1,
+                                borderRadius: 6,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: { color: textColor, boxWidth: 12, usePointStyle: true, pointStyle: 'circle' }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    afterBody: (items) => {
+                                        const idx = items[0].dataIndex;
+                                        const total = this.siswaData.by_lembaga.total[idx];
+                                        const fullName = this.siswaData.by_lembaga.labels[idx];
+                                        return `\nTotal: ${total} Siswa\nUnit: ${fullName}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: textColor, font: { weight: '600' } }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: gridColor },
+                                ticks: { color: textColor, precision: 0 }
+                            }
+                        }
+                    }
+                };
+            } else if (this.siswaTab === 'gender') {
+                config = {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Laki-Laki', 'Perempuan'],
+                        datasets: [{
+                            data: [this.siswaData.gender.L, this.siswaData.gender.P],
+                            backgroundColor: ['#0284c7', '#f43f5e'],
+                            hoverOffset: 6,
+                            borderWidth: 2,
+                            borderColor: dark ? '#0a1b32' : '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: textColor, padding: 16, boxWidth: 12, usePointStyle: true, pointStyle: 'circle' }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                        const val = ctx.raw;
+                                        const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                        return ` ${ctx.label}: ${val} Siswa (${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+            } else if (this.siswaTab === 'status') {
+                config = {
+                    type: 'doughnut',
+                    data: {
+                        labels: this.siswaData.by_status.labels,
+                        datasets: [{
+                            data: this.siswaData.by_status.data,
+                            backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#64748b', '#ef4444', '#ec4899'],
+                            hoverOffset: 6,
+                            borderWidth: 2,
+                            borderColor: dark ? '#0a1b32' : '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: textColor, padding: 12, boxWidth: 12, usePointStyle: true, pointStyle: 'circle' }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                        const val = ctx.raw;
+                                        const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                        return ` ${ctx.label}: ${val} Siswa (${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+
+            this.siswaChart = new Chart(canvas, config);
+        },
+
+        renderPegawaiChart() {
+            const canvas = document.getElementById('pegawaiSummaryChart');
+            if (!canvas) return;
+            if (typeof Chart === 'undefined') {
+                setTimeout(() => this.renderPegawaiChart(), 60);
+                return;
+            }
+
+            if (this.pegawaiChart && typeof this.pegawaiChart.destroy === 'function') {
+                this.pegawaiChart.destroy();
+                this.pegawaiChart = null;
+            }
+
+            const dark = this.isDarkMode();
+            const textColor = dark ? '#94a3b8' : '#64748b';
+            const gridColor = dark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
+
+            let config = {};
+
+            if (this.pegawaiTab === 'lembaga') {
+                config = {
+                    type: 'bar',
+                    data: {
+                        labels: this.pegawaiData.by_lembaga.short_labels,
+                        datasets: [
+                            {
+                                label: 'Laki-Laki',
+                                data: this.pegawaiData.by_lembaga.series_l,
+                                backgroundColor: 'rgba(99, 102, 241, 0.85)',
+                                borderColor: '#6366f1',
+                                borderWidth: 1,
+                                borderRadius: 6,
+                            },
+                            {
+                                label: 'Perempuan',
+                                data: this.pegawaiData.by_lembaga.series_p,
+                                backgroundColor: 'rgba(236, 72, 153, 0.85)',
+                                borderColor: '#ec4899',
+                                borderWidth: 1,
+                                borderRadius: 6,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: { color: textColor, boxWidth: 12, usePointStyle: true, pointStyle: 'circle' }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    afterBody: (items) => {
+                                        const idx = items[0].dataIndex;
+                                        const total = this.pegawaiData.by_lembaga.total[idx];
+                                        const fullName = this.pegawaiData.by_lembaga.labels[idx];
+                                        return `\nTotal: ${total} Pegawai\nUnit: ${fullName}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: textColor, font: { weight: '600' } }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: gridColor },
+                                ticks: { color: textColor, precision: 0 }
+                            }
+                        }
+                    }
+                };
+            } else if (this.pegawaiTab === 'jabatan') {
+                config = {
+                    type: 'bar',
+                    data: {
+                        labels: this.pegawaiData.by_jabatan.labels,
+                        datasets: [{
+                            label: 'Jumlah Pegawai',
+                            data: this.pegawaiData.by_jabatan.data,
+                            backgroundColor: 'rgba(139, 92, 246, 0.85)',
+                            borderColor: '#8b5cf6',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => ` ${ctx.raw} Pegawai`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: { color: gridColor },
+                                ticks: { color: textColor, precision: 0 }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: { color: textColor, font: { size: 11, weight: '500' } }
+                            }
+                        }
+                    }
+                };
+            } else if (this.pegawaiTab === 'status') {
+                config = {
+                    type: 'doughnut',
+                    data: {
+                        labels: this.pegawaiData.by_status.labels,
+                        datasets: [{
+                            data: this.pegawaiData.by_status.data,
+                            backgroundColor: ['#10b981', '#f59e0b', '#64748b', '#ef4444', '#6366f1'],
+                            hoverOffset: 6,
+                            borderWidth: 2,
+                            borderColor: dark ? '#0a1b32' : '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: textColor, padding: 12, boxWidth: 12, usePointStyle: true, pointStyle: 'circle' }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                        const val = ctx.raw;
+                                        const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                        return ` ${ctx.label}: ${val} Pegawai (${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+
+            this.pegawaiChart = new Chart(canvas, config);
+        }
+    }">
+        {{-- Section Header --}}
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
+            <div>
+                <h5 class="text-lg font-extrabold text-slate-800 dark:text-slate-100 font-display m-0 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-white flex items-center justify-center text-sm shadow-md shadow-cyan-500/20">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </span>
+                    Ringkasan Data Siswa & Pegawai
+                </h5>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 mb-0">
+                    Statistik persebaran data siswa dan pendidik/tenaga kependidikan
+                </p>
+            </div>
+            
+            {{-- Quick Indicator pills --}}
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20">
+                    <i class="bi bi-people-fill text-sky-500"></i> {{ $siswaSummary['total'] ?? 0 }} Siswa ({{ $siswaSummary['aktif'] ?? 0 }} Aktif)
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
+                    <i class="bi bi-person-badge-fill text-indigo-500"></i> {{ $pegawaiSummary['total'] ?? 0 }} Pegawai ({{ $pegawaiSummary['aktif'] ?? 0 }} Aktif)
+                </span>
+            </div>
+        </div>
+
+        {{-- Cards Grid --}}
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            
+            {{-- KARTU 1: GRAFIK SISWA --}}
+            <div class="glass-panel p-4 md:p-5 rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 shadow-sm flex flex-col justify-between">
+                <div>
+                    {{-- Card Header --}}
+                    <div class="flex items-start justify-between flex-wrap gap-2 mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-cyan-500 text-white flex items-center justify-center text-lg shadow-md shadow-sky-500/25 flex-shrink-0">
+                                <i class="bi bi-mortarboard-fill"></i>
+                            </div>
+                            <div>
+                                <h6 class="font-extrabold text-slate-800 dark:text-slate-100 font-display m-0">Ringkasan Data Siswa</h6>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Total {{ $siswaSummary['total'] ?? 0 }} siswa terdaftar</span>
+                            </div>
+                        </div>
+
+                        {{-- Switcher Tab Buttons --}}
+                        <div class="inline-flex p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-xs font-semibold">
+                            <button type="button" @click="setSiswaTab('lembaga')"
+                                :class="siswaTab === 'lembaga' ? 'bg-white dark:bg-slate-700 text-cyan-600 dark:text-cyan-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                                class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1">
+                                <i class="bi bi-buildings"></i> Unit Lembaga
+                            </button>
+                            <button type="button" @click="setSiswaTab('gender')"
+                                :class="siswaTab === 'gender' ? 'bg-white dark:bg-slate-700 text-cyan-600 dark:text-cyan-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                                class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1">
+                                <i class="bi bi-gender-ambiguous"></i> Gender
+                            </button>
+                            <button type="button" @click="setSiswaTab('status')"
+                                :class="siswaTab === 'status' ? 'bg-white dark:bg-slate-700 text-cyan-600 dark:text-cyan-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                                class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1">
+                                <i class="bi bi-pie-chart"></i> Status
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Chart Canvas Container --}}
+                    <div class="relative w-full h-[270px] my-2" wire:ignore>
+                        <canvas id="siswaSummaryChart"></canvas>
+                    </div>
+                </div>
+
+                {{-- Bottom Stats Pill Strip --}}
+                <div class="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800/80 grid grid-cols-3 gap-2 text-center">
+                    <div class="p-2 rounded-xl bg-sky-500/5 dark:bg-sky-500/10 border border-sky-500/15">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">Laki-Laki</div>
+                        <div class="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 font-display">
+                            {{ $siswaSummary['gender']['L'] ?? 0 }} <span class="text-[11px] font-normal text-slate-500">({{ $siswaSummary['gender']['pct_L'] ?? 0 }}%)</span>
+                        </div>
+                    </div>
+                    <div class="p-2 rounded-xl bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/15">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Perempuan</div>
+                        <div class="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 font-display">
+                            {{ $siswaSummary['gender']['P'] ?? 0 }} <span class="text-[11px] font-normal text-slate-500">({{ $siswaSummary['gender']['pct_P'] ?? 0 }}%)</span>
+                        </div>
+                    </div>
+                    <div class="p-2 rounded-xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/15">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Status Aktif</div>
+                        <div class="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 font-display">
+                            {{ $siswaSummary['aktif'] ?? 0 }} <span class="text-[11px] font-normal text-slate-500">({{ !empty($siswaSummary['total']) ? round(($siswaSummary['aktif'] / $siswaSummary['total']) * 100, 1) : 0 }}%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- KARTU 2: GRAFIK PEGAWAI --}}
+            <div class="glass-panel p-4 md:p-5 rounded-2xl border border-slate-200/90 dark:border-indigo-500/20 shadow-sm flex flex-col justify-between">
+                <div>
+                    {{-- Card Header --}}
+                    <div class="flex items-start justify-between flex-wrap gap-2 mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center text-lg shadow-md shadow-indigo-500/25 flex-shrink-0">
+                                <i class="bi bi-person-badge-fill"></i>
+                            </div>
+                            <div>
+                                <h6 class="font-extrabold text-slate-800 dark:text-slate-100 font-display m-0">Ringkasan Data Pegawai</h6>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Total {{ $pegawaiSummary['total'] ?? 0 }} pegawai & pendidik</span>
+                            </div>
+                        </div>
+
+                        {{-- Switcher Tab Buttons --}}
+                        <div class="inline-flex p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-xs font-semibold">
+                            <button type="button" @click="setPegawaiTab('lembaga')"
+                                :class="pegawaiTab === 'lembaga' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                                class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1">
+                                <i class="bi bi-buildings"></i> Unit Lembaga
+                            </button>
+                            <button type="button" @click="setPegawaiTab('jabatan')"
+                                :class="pegawaiTab === 'jabatan' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                                class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1">
+                                <i class="bi bi-briefcase"></i> Jabatan
+                            </button>
+                            <button type="button" @click="setPegawaiTab('status')"
+                                :class="pegawaiTab === 'status' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                                class="px-2.5 py-1 rounded-lg transition-all flex items-center gap-1">
+                                <i class="bi bi-shield-check"></i> Status
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Chart Canvas Container --}}
+                    <div class="relative w-full h-[270px] my-2" wire:ignore>
+                        <canvas id="pegawaiSummaryChart"></canvas>
+                    </div>
+                </div>
+
+                {{-- Bottom Stats Pill Strip --}}
+                <div class="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800/80 grid grid-cols-3 gap-2 text-center">
+                    <div class="p-2 rounded-xl bg-purple-500/5 dark:bg-purple-500/10 border border-purple-500/15">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Guru / Pendidik</div>
+                        <div class="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 font-display">
+                            {{ $pegawaiSummary['guru_count'] ?? 0 }} <span class="text-[11px] font-normal text-slate-500">Orang</span>
+                        </div>
+                    </div>
+                    <div class="p-2 rounded-xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Tenaga Kependidikan</div>
+                        <div class="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 font-display">
+                            {{ $pegawaiSummary['staf_count'] ?? 0 }} <span class="text-[11px] font-normal text-slate-500">Orang</span>
+                        </div>
+                    </div>
+                    <div class="p-2 rounded-xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/15">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Pegawai Aktif</div>
+                        <div class="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 font-display">
+                            {{ $pegawaiSummary['aktif'] ?? 0 }} <span class="text-[11px] font-normal text-slate-500">({{ !empty($pegawaiSummary['total']) ? round(($pegawaiSummary['aktif'] / $pegawaiSummary['total']) * 100, 1) : 0 }}%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -362,7 +1084,7 @@ new class extends Component {
         @endif
     </div>
 
-    {{-- CHART --}}
+    {{-- CHART KEHADIRAN --}}
     <div class="card p-md-4 p-3 shadow-sm">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
