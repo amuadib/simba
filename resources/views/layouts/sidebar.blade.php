@@ -84,7 +84,7 @@
     ];
 @endphp
 
-<aside class="offcanvas-lg offcanvas-start w-64 lg:w-68 flex-shrink-0 bg-white/95 dark:bg-[#07162b]/95 backdrop-blur-xl border-r border-slate-200 dark:border-cyan-500/15 flex flex-col h-full shadow-lg lg:shadow-none z-50" 
+<aside class="offcanvas-lg offcanvas-start w-64 lg:w-68 flex-shrink-0 bg-white/95 dark:bg-[#07162b]/95 backdrop-blur-xl border-r border-slate-200 dark:border-cyan-500/15 flex flex-col lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] shadow-lg lg:shadow-none z-40 lg:z-30" 
        tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
 
     {{-- Offcanvas Header for Mobile --}}

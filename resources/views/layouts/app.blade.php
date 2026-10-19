@@ -556,6 +556,17 @@
             background: linear-gradient(135deg, #e11d48 0%, #f43f5e 100%);
             box-shadow: 0 15px 35px -5px rgba(225, 29, 72, 0.4);
         }
+
+        /* SIDEBAR DESKTOP STICKY DOCKING UNDER HEADER */
+        @media (min-width: 992px) {
+            #sidebar {
+                position: sticky !important;
+                top: 4rem !important;
+                height: calc(100vh - 4rem) !important;
+                height: calc(100dvh - 4rem) !important;
+                z-index: 30 !important;
+            }
+        }
     </style>
 
     @livewireStyles
@@ -578,8 +589,8 @@
 }" :data-theme="theme" :data-bs-theme="theme" class="bg-circuit-ambient min-h-screen flex flex-col antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
 
     <!-- TOP MODERN NAVBAR -->
-    <header class="sticky top-0 z-40 glass-panel border-b border-sky-500/15 backdrop-blur-xl transition-all">
-        <div class="px-4 py-2.5 flex items-center justify-between gap-4">
+    <header class="sticky top-0 z-50 h-16 glass-panel border-b border-sky-500/15 backdrop-blur-xl transition-all flex items-center">
+        <div class="px-4 w-full flex items-center justify-between gap-4">
             
             {{-- Brand & Mobile Toggle --}}
             <div class="flex items-center gap-3">
@@ -647,13 +658,13 @@
     </header>
 
     {{-- BODY WRAPPER --}}
-    <div class="flex flex-1 w-full overflow-hidden">
+    <div class="flex flex-1 w-full">
         
         {{-- SIDEBAR COMPONENT --}}
         @include('layouts.sidebar')
 
         {{-- MAIN CONTENT AREA --}}
-        <main class="flex-1 p-3 sm:p-5 md:p-6 overflow-y-auto" style="min-width: 0;">
+        <main class="flex-1 p-3 sm:p-5 md:p-6" style="min-width: 0;">
             @if ($errors->any())
                 <div class="mb-4 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400">
                     <div class="font-bold flex items-center gap-2 mb-1">
