@@ -73,6 +73,9 @@
                 display: none;
             }
         }
+        tbody tr:nth-child(even) {
+  background-color: #f0f0f0;
+}   
     </style>
 </head>
 
@@ -125,6 +128,9 @@
     <div class="header-title">
         JADWAL PELAJARAN
         <div class="header-subtitle">TAHUN AJARAN {{ $tahun_ajaran }}</div>
+        @if(!empty($guru))
+            <div style="font-size: 16px; font-weight: normal; margin-top: 4px;">Guru: <strong>{{ $guru->name }}</strong></div>
+        @endif
         <button class="no-print" onclick="window.print()"
             style="float: right; padding: 5px 15px; font-size: 14px; cursor: pointer; background: #000; color: #fff; border: none; border-radius: 4px;">Print
             PDF</button>
@@ -154,8 +160,15 @@
                     <td>
                         @if (isset($matrix[$timeKey][$hari]))
                             @foreach ($matrix[$timeKey][$hari] as $item)
-                                <div>
-                                    {{ $item->pembelajaran->keterangan }}
+                                <div style="margin-bottom: 4px;">
+                                    <div style="font-weight: bold;">
+                                        {{ $item->pembelajaran->keterangan ?? '-' }}
+                                    </div>
+                                    @if(empty($guru) && $item->user)
+                                        <div style="font-size: 11px; color: #555;">
+                                            {{ $item->user->name }}
+                                        </div>
+                                    @endif
                                 </div>
                             @endforeach
                         @endif

@@ -335,6 +335,43 @@
             background-color: var(--table-row-hover) !important;
         }
 
+        /* PRESERVE EXPLICIT TEXT CONTRAST IN TABLES */
+        .table th.text-white,
+        .table td.text-white,
+        .table thead th.text-white,
+        .table th.text-light,
+        .table td.text-light,
+        .table thead th.text-light,
+        .table th [class*="text-white"],
+        .table td [class*="text-white"],
+        .table .badge.bg-dark,
+        .table .badge.bg-secondary,
+        .table .badge.bg-primary,
+        .table .badge.bg-success,
+        .table .badge.bg-danger,
+        [data-theme="dark"] .table th.text-white,
+        [data-bs-theme="dark"] .table th.text-white,
+        .dark .table th.text-white,
+        [data-theme="dark"] .table thead th.text-white,
+        [data-bs-theme="dark"] .table thead th.text-white,
+        .dark .table thead th.text-white {
+            color: #ffffff !important;
+        }
+
+        .table th.text-dark,
+        .table td.text-dark,
+        .table thead th.text-dark,
+        .table th [class*="text-dark"],
+        .table td [class*="text-dark"],
+        [data-theme="dark"] .table th.text-dark,
+        [data-bs-theme="dark"] .table th.text-dark,
+        .dark .table th.text-dark,
+        [data-theme="dark"] .table thead th.text-dark,
+        [data-bs-theme="dark"] .table thead th.text-dark,
+        .dark .table thead th.text-dark {
+            color: #0f172a !important;
+        }
+
         /* FORCED TABLE DARK MODE CELLS SPECIFICITY */
         [data-theme="dark"] .table,
         [data-bs-theme="dark"] .table,

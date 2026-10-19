@@ -60,13 +60,13 @@ new class extends Component {
         </div>
 
         <div class="d-flex gap-2">
-            <select wire:model.live="filter_user_id" class="form-select form-select-sm shadow-sm">
+            <select wire:model.live="filter_user_id" class="form-select form-select-sm shadow-sm" style="min-width: 180px;">
                 <option value="">Semua Guru</option>
                 @foreach ($users as $u)
                     <option value="{{ $u->id }}">{{ $u->name }}</option>
                 @endforeach
             </select>
-            <a href="{{ route('jadwal.print') }}" target="_blank" class="btn btn-sm btn-success text-nowrap shadow-sm">
+            <a href="{{ route('jadwal.print', $filter_user_id ? ['user_id' => $filter_user_id] : []) }}" target="_blank" class="btn btn-sm btn-success text-nowrap shadow-sm">
                 <i class="bi bi-printer me-1"></i> Cetak
             </a>
         </div>
@@ -78,17 +78,17 @@ new class extends Component {
                 <table class="table-bordered mb-0 table text-center align-middle">
                     <thead>
                         <tr>
-                            <th rowspan="2" class="align-middle" style="width: 15%;">WAKTU</th>
-                            <th colspan="6" class="border-bottom-0">HARI</th>
+                            <th rowspan="2" class="align-middle" style="width: 14%;">WAKTU</th>
+                            <th colspan="7" class="border-bottom-0 py-2">HARI</th>
                         </tr>
                         <tr>
-                            <th class="bg-primary text-white">SENIN</th>
-                            <th class="bg-dark text-white">SELASA</th>
-                            <th class="bg-info text-white">RABU</th>
-                            <th class="bg-warning text-dark">KAMIS</th>
-                            <th class="bg-success text-white">JUMAT</th>
-                            <th class="bg-secondary text-white">SABTU</th>
-                            <th class="bg-danger text-white">AHAD</th>
+                            <th style="background-color: #2563eb !important; color: #ffffff !important;" class="text-white text-uppercase">SENIN</th>
+                            <th style="background-color: #334155 !important; color: #ffffff !important;" class="text-white text-uppercase">SELASA</th>
+                            <th style="background-color: #0284c7 !important; color: #ffffff !important;" class="text-white text-uppercase">RABU</th>
+                            <th style="background-color: #f59e0b !important; color: #0f172a !important;" class="text-dark text-uppercase">KAMIS</th>
+                            <th style="background-color: #10b981 !important; color: #ffffff !important;" class="text-white text-uppercase">JUMAT</th>
+                            <th style="background-color: #64748b !important; color: #ffffff !important;" class="text-white text-uppercase">SABTU</th>
+                            <th style="background-color: #ef4444 !important; color: #ffffff !important;" class="text-white text-uppercase">AHAD</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -126,7 +126,7 @@ new class extends Component {
 
                         @if (empty($timeSlots))
                             <tr>
-                                <td colspan="7" class="text-muted fw-normal p-5 text-center">
+                                <td colspan="8" class="text-muted fw-normal p-5 text-center">
                                     <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
                                     Belum ada jadwal pelajaran yang tersedia.
                                 </td>
