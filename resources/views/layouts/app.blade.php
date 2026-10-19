@@ -739,8 +739,6 @@
                     <span class="inline-flex items-center gap-1 text-cyan-600 dark:text-cyan-400">
                         <i class="bi bi-shield-check"></i> SIMBA v2.0
                     </span>
-                    <span>•</span>
-                    <span class="text-slate-400">Bekerja dengan Baik & Cerdas</span>
                 </div>
             </footer>
         </main>
