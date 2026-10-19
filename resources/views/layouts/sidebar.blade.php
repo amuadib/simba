@@ -9,12 +9,12 @@
             ],
         ],
         'Akademik & SDM' => [
-            [
-                'route' => 'pembelajaran.presensi.*',
-                'url' => 'pembelajaran.presensi.index',
-                'icon' => 'bi-clock-history',
-                'label' => 'Rekap Presensi',
-            ],
+            // [
+            //     'route' => 'pembelajaran.presensi.*',
+            //     'url' => 'pembelajaran.presensi.index',
+            //     'icon' => 'bi-clock-history',
+            //     'label' => 'Rekap Presensi',
+            // ],
             [
                 'route' => 'pembelajaran.*',
                 'url' => 'pembelajaran.index',
