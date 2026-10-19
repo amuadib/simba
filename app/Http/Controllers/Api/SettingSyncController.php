@@ -50,6 +50,7 @@ class SettingSyncController extends Controller
 
                 $item['email'] = $item['email'] ?? null;
                 $item['npsn'] = $item['npsn'] ?? null;
+                $item['nomor_statistik'] = $item['nomor_statistik'] ?? $item['nsm'] ?? $item['nss'] ?? null;
                 $item['akreditasi'] = $item['akreditasi'] ?? null;
                 $item['website'] = $item['website'] ?? null;
                 $item['lat'] = $item['lat'] ?? null;

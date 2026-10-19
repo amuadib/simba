@@ -415,6 +415,20 @@
             color: #38bdf8 !important;
         }
 
+        /* BADGE OVERRIDES FOR ACCURATE TEXT COLORS IN LIGHT & DARK MODE */
+        .badge[class*="text-"] {
+            --bs-badge-color: currentColor !important;
+            color: inherit !important;
+        }
+        .badge.bg-light {
+            color: #1e293b !important;
+            --bs-badge-color: #1e293b !important;
+        }
+        .badge.bg-light.text-muted {
+            color: #64748b !important;
+            --bs-badge-color: #64748b !important;
+        }
+
         /* BADGES IN DARK MODE */
         [data-theme="dark"] .badge.bg-light,
         [data-bs-theme="dark"] .badge.bg-light,

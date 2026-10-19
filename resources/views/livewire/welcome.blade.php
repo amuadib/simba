@@ -34,6 +34,7 @@ new #[Layout('layouts.welcome')] class extends Component {
             'nama' => $cfg99['nama'] ?? 'Yayasan',
             'singkatan' => $cfg99['singkatan'] ?? '',
             'npsn' => $cfg99['npsn'] ?? '',
+            'nomor_statistik' => $cfg99['nomor_statistik'] ?? $cfg99['nsm'] ?? $cfg99['nss'] ?? '',
             'akreditasi' => $cfg99['akreditasi'] ?? '',
             'website' => $cfg99['website'] ?? '',
             'alamat' => $cfg99['alamat'] ?? '',
@@ -47,6 +48,7 @@ new #[Layout('layouts.welcome')] class extends Component {
             'lon' => $cfg99['lon'] ?? '',
             'id' => 99,
         ], $this->lembagaUtama);
+        $this->lembagaUtama['nomor_statistik'] = $this->lembagaUtama['nomor_statistik'] ?? $this->lembagaUtama['nsm'] ?? $this->lembagaUtama['nss'] ?? '';
         
         // 2. Ambil Satuan Pendidikan Lainnya (ID != 99)
         $this->lembagaLain = [];
@@ -56,6 +58,7 @@ new #[Layout('layouts.welcome')] class extends Component {
                     'nama' => '',
                     'singkatan' => '',
                     'npsn' => '',
+                    'nomor_statistik' => '',
                     'akreditasi' => '',
                     'website' => '',
                     'alamat' => '',
@@ -68,6 +71,7 @@ new #[Layout('layouts.welcome')] class extends Component {
                     'lat' => '',
                     'lon' => '',
                 ], $item);
+                $item['nomor_statistik'] = $item['nomor_statistik'] ?? $item['nsm'] ?? $item['nss'] ?? '';
 
                 $item['id'] = (int)$id;
                 $item['total_pegawai'] = Pegawai::where('status', 1)->where(function ($q) use ($id) {
@@ -164,6 +168,20 @@ new #[Layout('layouts.welcome')] class extends Component {
                                 <p class="text-muted mb-0 fw-medium">
                                     {{ config('local.app.keterangan') ?? (setting('nama_aplikasi') ?? 'Penyelenggara Lembaga Pendidikan Miftahul Ulum') }}
                                 </p>
+                                @if (!empty($lembagaUtama['nomor_statistik']) || !empty($lembagaUtama['npsn']))
+                                    <div class="d-flex align-items-center gap-2 flex-wrap mt-2">
+                                        @if (!empty($lembagaUtama['npsn']))
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-0.5 font-monospace" style="font-size: 0.75rem;">
+                                                NPSN: {{ $lembagaUtama['npsn'] }}
+                                            </span>
+                                        @endif
+                                        @if (!empty($lembagaUtama['nomor_statistik']))
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-0.5 font-monospace" style="font-size: 0.75rem;">
+                                                NS: {{ $lembagaUtama['nomor_statistik'] }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
@@ -405,6 +423,11 @@ new #[Layout('layouts.welcome')] class extends Component {
                                                     NPSN: {{ $item['npsn'] }}
                                                 </span>
                                             @endif
+                                            @if (!empty($item['nomor_statistik']))
+                                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5 font-monospace" style="font-size: 0.725rem;">
+                                                    NS: {{ $item['nomor_statistik'] }}
+                                                </span>
+                                            @endif
                                         </div>
                                         <h5 class="fw-bold mb-0 text-heading line-clamp-1" title="{{ $item['nama'] }}">
                                             {{ $item['nama'] }}
@@ -550,6 +573,11 @@ new #[Layout('layouts.welcome')] class extends Component {
                                                         NPSN: {{ $item['npsn'] }}
                                                     </span>
                                                 @endif
+                                                @if (!empty($item['nomor_statistik']))
+                                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill small font-monospace">
+                                                        NS: {{ $item['nomor_statistik'] }}
+                                                    </span>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -564,6 +592,12 @@ new #[Layout('layouts.welcome')] class extends Component {
                                                     <div class="mb-2.5">
                                                         <span class="text-muted small d-block">NPSN (Nomor Pokok Sekolah Nasional):</span>
                                                         <span class="fw-bold text-heading font-monospace">{{ $item['npsn'] }}</span>
+                                                    </div>
+                                                @endif
+                                                @if (!empty($item['nomor_statistik']))
+                                                    <div class="mb-2.5">
+                                                        <span class="text-muted small d-block">Nomor Statistik (NSS / NSM):</span>
+                                                        <span class="fw-bold text-heading font-monospace">{{ $item['nomor_statistik'] }}</span>
                                                     </div>
                                                 @endif
                                                 @if (!empty($item['akreditasi']))

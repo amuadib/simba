@@ -49,6 +49,7 @@ new class extends Component {
 
             $lembaga['email'] = $lembaga['email'] ?? '';
             $lembaga['npsn'] = $lembaga['npsn'] ?? '';
+            $lembaga['nomor_statistik'] = $lembaga['nomor_statistik'] ?? $lembaga['nsm'] ?? $lembaga['nss'] ?? '';
             $lembaga['akreditasi'] = $lembaga['akreditasi'] ?? '';
             $lembaga['website'] = $lembaga['website'] ?? '';
             $lembaga['lat'] = $lembaga['lat'] ?? '';
@@ -71,6 +72,7 @@ new class extends Component {
             'nama' => 'Nama Lembaga Baru',
             'singkatan' => '',
             'npsn' => '',
+            'nomor_statistik' => '',
             'akreditasi' => '',
             'website' => '',
             'alamat' => '',
@@ -450,25 +452,30 @@ new class extends Component {
                              style="cursor: pointer;">
                             
                             <div class="d-flex align-items-center gap-2.5 flex-wrap">
-                                <span class="badge bg-primary px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-2xs">#{{ $id }}</span>
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-600 text-white shadow-2xs">#{{ $id }}</span>
                                 <span class="fw-bold fs-6 text-slate-900 dark:text-slate-100 text-truncate" style="max-width: 360px;">
                                     {{ $lembaga['nama'] ?? 'Lembaga Tanpa Nama' }}
                                 </span>
                                 @if (!empty($lembaga['singkatan']))
-                                    <span class="badge bg-sky-100 text-sky-700 dark:bg-cyan-500/20 dark:text-cyan-300 border border-sky-200 dark:border-cyan-500/30 rounded-md">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-sky-100 text-sky-800 dark:bg-cyan-500/20 dark:text-cyan-300 border border-sky-300 dark:border-cyan-500/30">
                                         ({{ $lembaga['singkatan'] }})
                                     </span>
                                 @endif
 
                                 {{-- Ringkasan singkat saat tertutup --}}
                                 @if (!empty($lembaga['npsn']))
-                                    <span class="badge bg-slate-200/80 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300 text-[11px] font-normal border border-slate-300/60 dark:border-slate-600/50 d-none d-sm-inline-flex align-items-center gap-1">
-                                        <i class="bi bi-card-heading text-sky-500"></i> NPSN: {{ $lembaga['npsn'] }}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-700/60 dark:text-slate-200 border border-slate-300 dark:border-slate-600/50 d-none d-sm-inline-flex">
+                                        <i class="bi bi-card-heading text-sky-600 dark:text-cyan-400"></i> NPSN: {{ $lembaga['npsn'] }}
+                                    </span>
+                                @endif
+                                @if (!empty($lembaga['nomor_statistik']))
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-700/60 dark:text-slate-200 border border-slate-300 dark:border-slate-600/50 d-none d-lg-inline-flex">
+                                        <i class="bi bi-hash text-sky-600 dark:text-cyan-400"></i> NS: {{ $lembaga['nomor_statistik'] }}
                                     </span>
                                 @endif
                                 @if (!empty($lembaga['kepala']))
-                                    <span class="badge bg-slate-200/80 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300 text-[11px] font-normal border border-slate-300/60 dark:border-slate-600/50 d-none d-md-inline-flex align-items-center gap-1 text-truncate" style="max-width: 220px;">
-                                        <i class="bi bi-person text-sky-500"></i> {{ $lembaga['kepala'] }}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-700/60 dark:text-slate-200 border border-slate-300 dark:border-slate-600/50 d-none d-md-inline-flex text-truncate" style="max-width: 220px;">
+                                        <i class="bi bi-person text-sky-600 dark:text-cyan-400"></i> {{ $lembaga['kepala'] }}
                                     </span>
                                 @endif
                             </div>
@@ -517,7 +524,7 @@ new class extends Component {
                                        placeholder="Contoh: SDI / SMPI / SMAI">
                             </div>
 
-                            <div class="col-12 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-3">
                                 <label class="form-label fw-semibold">NPSN</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-card-heading"></i></span>
@@ -528,7 +535,18 @@ new class extends Component {
                                 </div>
                             </div>
 
-                            <div class="col-12 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <label class="form-label fw-semibold">Nomor Statistik</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                                    <input type="text"
+                                           wire:model="lembaga_items.{{ $id }}.nomor_statistik"
+                                           class="form-control"
+                                           placeholder="Contoh: NSM / NSS">
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3">
                                 <label class="form-label fw-semibold">Status Akreditasi</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-patch-check"></i></span>
@@ -539,7 +557,7 @@ new class extends Component {
                                 </div>
                             </div>
 
-                            <div class="col-12 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-3">
                                 <label class="form-label fw-semibold">Website Lembaga</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-globe"></i></span>
@@ -685,7 +703,7 @@ new class extends Component {
                                     <div class="col-12 col-lg-6">
                                         <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
                                             <span><i class="bi bi-code-slash me-1"></i>Google Maps Embed (Iframe / URL)</span>
-                                            <span class="badge bg-light text-muted border">Opsional</span>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">Opsional</span>
                                         </label>
                                         <input type="text"
                                                wire:model.live.debounce.500ms="lembaga_items.{{ $id }}.maps_embed"
@@ -704,12 +722,12 @@ new class extends Component {
                                                     <i class="bi bi-map me-1 text-sky-500 dark:text-cyan-400"></i>Pratinjau Map Embed di Website
                                                 </span>
                                                 @if ($mapEmbedUrl)
-                                                    <span class="badge bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-md">
-                                                        <i class="bi bi-check-circle me-1"></i>Peta Terhubung
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+                                                        <i class="bi bi-check-circle"></i> Peta Terhubung
                                                     </span>
                                                 @else
-                                                    <span class="badge bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-md">
-                                                        <i class="bi bi-dash-circle me-1"></i>Belum Ada Peta
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                                        <i class="bi bi-dash-circle"></i> Belum Ada Peta
                                                     </span>
                                                 @endif
                                             </div>
