@@ -8,7 +8,7 @@
                 'label' => 'Dashboard',
             ],
         ],
-        'Akademik & SDM' => [
+        'Akademik' => [
             [
                 'route' => 'pembelajaran.presensi.*',
                 'url' => 'pembelajaran.presensi.index',
@@ -22,6 +22,12 @@
                 'label' => 'Pembelajaran',
             ],
             [
+                'route' => 'jadwal.*',
+                'url' => 'jadwal.index',
+                'icon' => 'bi-calendar-week',
+                'label' => 'Jadwal Pelajaran',
+            ],
+            [
                 'route' => 'siswa.*',
                 'url' => 'siswa.index',
                 'icon' => 'bi-people',
@@ -33,6 +39,14 @@
                 'icon' => 'bi-person-badge',
                 'label' => 'Data Pegawai',
             ],
+        ],
+        'Master' => [
+            [
+                'route' => 'tahun_ajaran.*',
+                'url' => 'tahun_ajaran.index',
+                'icon' => 'bi-calendar2-range',
+                'label' => 'Tahun Ajaran',
+            ],
             [
                 'route' => 'rombel.*',
                 'url' => 'rombel.index',
@@ -40,24 +54,10 @@
                 'label' => 'Rombel',
             ],
             [
-                'route' => 'jadwal.*',
-                'url' => 'jadwal.index',
-                'icon' => 'bi-calendar-week',
-                'label' => 'Jadwal Pelajaran',
-            ],
-            [
                 'route' => 'pelajaran.*',
                 'url' => 'pelajaran.index',
                 'icon' => 'bi-book',
                 'label' => 'Mata Pelajaran',
-            ],
-        ],
-        'Sistem & Master' => [
-            [
-                'route' => 'tahun_ajaran.*',
-                'url' => 'tahun_ajaran.index',
-                'icon' => 'bi-calendar2-range',
-                'label' => 'Tahun Ajaran',
             ],
             [
                 'route' => 'pengguna.*',
