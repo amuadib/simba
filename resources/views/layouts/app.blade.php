@@ -144,25 +144,33 @@
             color: #cbd5e1 !important;
         }
 
-        /* NICKNAME HIGHLIGHTING (PANGGILAN SISWA) */
+        /* NICKNAME HIGHLIGHTING (PANGGILAN SISWA: L = BIRU, P = PINK) */
         .nickname {
-            font-weight: 700;
+            font-weight: 600;
         }
+        .nickname-L,
         .nickname-l {
-            color: #0284c7;
+            color: #007bff !important;
         }
+        .nickname-P,
         .nickname-p {
-            color: #e11d48;
+            color: rgba(243, 6, 223, 0.856) !important;
         }
+        [data-theme="dark"] .nickname-L,
+        [data-bs-theme="dark"] .nickname-L,
+        .dark .nickname-L,
         [data-theme="dark"] .nickname-l,
         [data-bs-theme="dark"] .nickname-l,
         .dark .nickname-l {
-            color: #38bdf8 !important;
+            color: #0284c7 !important;
         }
+        [data-theme="dark"] .nickname-P,
+        [data-bs-theme="dark"] .nickname-P,
+        .dark .nickname-P,
         [data-theme="dark"] .nickname-p,
         [data-bs-theme="dark"] .nickname-p,
         .dark .nickname-p {
-            color: #fb7185 !important;
+            color: rgba(243, 6, 223, 0.9) !important;
         }
 
         /* CARD STYLING */
