@@ -183,14 +183,20 @@ new class extends \Livewire\Volt\Component {
 ?>
 
 <div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
             <h4 class="mb-0">Data Pembelajaran</h4>
             <small class="text-muted">Kelola mata pelajaran dan pengampu</small>
         </div>
 
-        <div wire:key="breadcrumb-wrapper" wire:ignore>
-            <x-breadcrumb />
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('pembelajaran.presensi.index') }}" wire:navigate class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1.5 shadow-xs">
+                <i class="bi bi-clock-history"></i>
+                <span>Rekap Presensi</span>
+            </a>
+            <div wire:key="breadcrumb-wrapper" wire:ignore>
+                <x-breadcrumb />
+            </div>
         </div>
     </div>
 
@@ -325,8 +331,11 @@ new class extends \Livewire\Volt\Component {
                                             class="btn btn-sm btn-outline-warning" title="Jurnal"><i
                                                 class="bi bi-book"></i></a>
                                         <a href="{{ route('pembelajaran.presensi.create', $pb->id) }}?tanggal={{ date('Y-m-d') }}"
-                                            wire:navigate class="btn btn-sm btn-outline-primary" title="Presensi"><i
+                                            wire:navigate class="btn btn-sm btn-outline-primary" title="Input Presensi Hari Ini"><i
                                                 class="bi bi-calendar-check"></i></a>
+                                        <a href="{{ route('pembelajaran.presensi.index', ['pembelajaran_id' => $pb->id]) }}"
+                                            wire:navigate class="btn btn-sm btn-outline-info" title="Rekap Presensi"><i
+                                                class="bi bi-clock-history"></i></a>
                                         <a href="{{ route('pembelajaran.anggota.index', $pb->id) }}" wire:navigate
                                             class="btn btn-sm btn-outline-success" title="Anggota"><i
                                                 class="bi bi-people"></i></a>

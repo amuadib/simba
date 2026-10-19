@@ -9,12 +9,12 @@
             ],
         ],
         'Akademik & SDM' => [
-            // [
-            //     'route' => 'pembelajaran.presensi.*',
-            //     'url' => 'pembelajaran.presensi.index',
-            //     'icon' => 'bi-clock-history',
-            //     'label' => 'Rekap Presensi',
-            // ],
+            [
+                'route' => 'pembelajaran.presensi.*',
+                'url' => 'pembelajaran.presensi.index',
+                'icon' => 'bi-clock-history',
+                'label' => 'Rekap Presensi',
+            ],
             [
                 'route' => 'pembelajaran.*',
                 'url' => 'pembelajaran.index',
@@ -116,6 +116,9 @@
                         @foreach ($visibleItems as $menu)
                             @php
                                 $isActive = request()->routeIs($menu['route']);
+                                if ($menu['route'] === 'pembelajaran.*' && request()->routeIs('pembelajaran.presensi.*')) {
+                                    $isActive = false;
+                                }
                             @endphp
 
                             <a href="{{ route($menu['url'] ?? $menu['route']) }}" 
