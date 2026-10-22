@@ -30,6 +30,278 @@ class Siswa extends Model
         'ibu',
         'foto',
     ];
+
+    /**
+     * Optional flag to suppress history recording if needed.
+     */
+    public bool $suppressHistory = false;
+
+    /**
+     * Optional custom action and description for the next history entry.
+     */
+    public ?string $historyAction = null;
+    public ?string $historyDescription = null;
+
+    /**
+     * Reference to the last created history entry in the current lifecycle.
+     */
+    public ?SiswaHistory $lastHistory = null;
+
+    protected static function booted()
+    {
+        static::created(function (Siswa $siswa) {
+            if ($siswa->suppressHistory) {
+                return;
+            }
+
+            $attributes = $siswa->getAttributes();
+            unset($attributes['created_at'], $attributes['updated_at']);
+
+            $history = SiswaHistory::create([
+                'siswa_id' => $siswa->id,
+                'user_id' => auth()->id(),
+                'action' => $siswa->historyAction ?? 'create',
+                'old_values' => null,
+                'new_values' => $attributes,
+                'changed_fields' => array_keys($attributes),
+                'description' => $siswa->historyDescription ?? 'Data siswa baru ditambahkan',
+            ]);
+            $siswa->lastHistory = $history;
+            $siswa->historyAction = null;
+            $siswa->historyDescription = null;
+        });
+
+        static::updating(function (Siswa $siswa) {
+            if ($siswa->suppressHistory) {
+                return;
+            }
+
+            $dirty = $siswa->getDirty();
+            unset($dirty['updated_at']);
+
+            if (empty($dirty)) {
+                return;
+            }
+
+            $oldValues = [];
+            $newValues = [];
+            $changedFields = [];
+
+            foreach ($dirty as $key => $newValue) {
+                $oldValue = $siswa->getOriginal($key);
+                if ((string)$oldValue !== (string)$newValue) {
+                    $oldValues[$key] = $oldValue;
+                    $newValues[$key] = $newValue;
+                    $changedFields[] = $key;
+                }
+            }
+
+            if (empty($changedFields)) {
+                return;
+            }
+
+            $action = $siswa->historyAction ?? 'update';
+            $description = $siswa->historyDescription;
+            if (!$description) {
+                $fieldNames = array_map(fn($f) => SiswaHistory::formatFieldName($f), $changedFields);
+                $description = 'Pembaruan data siswa (' . implode(', ', $fieldNames) . ')';
+            }
+
+            $history = SiswaHistory::create([
+                'siswa_id' => $siswa->id,
+                'user_id' => auth()->id(),
+                'action' => $action,
+                'old_values' => $oldValues,
+                'new_values' => $newValues,
+                'changed_fields' => $changedFields,
+                'description' => $description,
+            ]);
+            $siswa->lastHistory = $history;
+            $siswa->historyAction = null;
+            $siswa->historyDescription = null;
+        });
+    }
+
+    public function histories()
+    {
+        return $this->hasMany(SiswaHistory::class)->orderBy('id', 'desc');
+    }
+
+    /**
+     * Sync tags and record or merge into history.
+     */
+    public function syncTagsWithHistory(array $newTagIds, ?string $action = 'update', ?string $description = null): bool
+    {
+        if ($this->suppressHistory) {
+            $this->tags()->sync($newTagIds);
+            return false;
+        }
+
+        // Get current tag names before sync
+        $oldTagNames = $this->tags()->pluck('nama')->sort()->values()->toArray();
+
+        // Perform the sync
+        $this->tags()->sync($newTagIds);
+
+        // Get new tag names after sync
+        $this->unsetRelation('tags');
+        $newTagNames = $this->tags()->pluck('nama')->sort()->values()->toArray();
+
+        // If no change in tags, do nothing
+        if ($oldTagNames === $newTagNames) {
+            return false;
+        }
+
+        // If a history entry was created during this request
+        if ($this->lastHistory && in_array($this->lastHistory->action, [$action, 'update', 'create', 'bulk_update'])) {
+            $oldVals = $this->lastHistory->old_values ?? [];
+            $newVals = $this->lastHistory->new_values ?? [];
+            $fields = $this->lastHistory->changed_fields ?? [];
+
+            $oldVals['tags'] = $oldTagNames;
+            $newVals['tags'] = $newTagNames;
+            if (!in_array('tags', $fields)) {
+                $fields[] = 'tags';
+            }
+
+            $desc = $this->lastHistory->description;
+            if ($desc && !str_contains($desc, 'Tag Siswa')) {
+                $desc .= ', Tag Siswa';
+            }
+
+            $this->lastHistory->update([
+                'old_values' => $oldVals,
+                'new_values' => $newVals,
+                'changed_fields' => $fields,
+                'description' => $desc,
+            ]);
+
+            return true;
+        }
+
+        // Otherwise create a new history entry specifically for tag changes
+        $desc = $description ?? 'Pembaruan tag siswa';
+        $history = SiswaHistory::create([
+            'siswa_id' => $this->id,
+            'user_id' => auth()->id(),
+            'action' => $this->historyAction ?? $action,
+            'old_values' => ['tags' => $oldTagNames],
+            'new_values' => ['tags' => $newTagNames],
+            'changed_fields' => ['tags'],
+            'description' => $this->historyDescription ?? $desc,
+        ]);
+        $this->lastHistory = $history;
+        $this->historyAction = null;
+        $this->historyDescription = null;
+
+        return true;
+    }
+
+    /**
+     * Rollback a specific history entry.
+     */
+    public function rollbackHistory(SiswaHistory|int $history): bool
+    {
+        if (is_numeric($history)) {
+            $history = SiswaHistory::where('siswa_id', $this->id)->findOrFail($history);
+        }
+
+        if ($history->is_reverted || empty($history->old_values)) {
+            return false;
+        }
+
+        $oldValues = $history->old_values;
+        $tagNamesToRestore = null;
+
+        // Check if tags are part of this history
+        if (array_key_exists('tags', $oldValues)) {
+            $tagNamesToRestore = $oldValues['tags'] ?? [];
+            unset($oldValues['tags']);
+        }
+
+        $currentTags = $this->tags()->pluck('nama')->sort()->values()->toArray();
+
+        // Restore tags if present
+        if ($tagNamesToRestore !== null) {
+            $tagIds = [];
+            foreach ($tagNamesToRestore as $tagName) {
+                $tagName = trim($tagName);
+                if (!empty($tagName)) {
+                    $tag = Tag::firstOrCreate(['nama' => $tagName]);
+                    $tagIds[] = $tag->id;
+                }
+            }
+            $this->tags()->sync($tagIds);
+
+            // If only tags were in this history entry (no attribute updates needed)
+            if (empty($oldValues)) {
+                $this->historyAction = 'rollback';
+                $this->historyDescription = 'Undo perubahan tag siswa';
+
+                SiswaHistory::create([
+                    'siswa_id' => $this->id,
+                    'user_id' => auth()->id(),
+                    'action' => 'rollback',
+                    'old_values' => ['tags' => $currentTags],
+                    'new_values' => ['tags' => $tagNamesToRestore],
+                    'changed_fields' => ['tags'],
+                    'description' => 'Undo perubahan tag siswa',
+                ]);
+
+                $this->historyAction = null;
+                $this->historyDescription = null;
+
+                $history->update([
+                    'is_reverted' => true,
+                    'reverted_at' => now(),
+                    'reverted_by' => auth()->id(),
+                ]);
+
+                return true;
+            }
+        }
+
+        // Restore attributes
+        $this->historyAction = 'rollback';
+        $fieldNames = array_map(fn($f) => SiswaHistory::formatFieldName($f), array_keys($oldValues));
+        if ($tagNamesToRestore !== null) {
+            $fieldNames[] = 'Tag Siswa';
+        }
+        $this->historyDescription = 'Undo perubahan #' . $history->id . ' (' . implode(', ', $fieldNames) . ')';
+
+        $this->update($oldValues);
+
+        $this->historyAction = null;
+        $this->historyDescription = null;
+
+        // If tags were also restored along with attributes, merge tags into the newly created rollback history
+        if ($tagNamesToRestore !== null && $this->lastHistory) {
+            $oldVals = $this->lastHistory->old_values ?? [];
+            $newVals = $this->lastHistory->new_values ?? [];
+            $fields = $this->lastHistory->changed_fields ?? [];
+
+            $oldVals['tags'] = $currentTags;
+            $newVals['tags'] = $tagNamesToRestore;
+            if (!in_array('tags', $fields)) {
+                $fields[] = 'tags';
+            }
+
+            $this->lastHistory->update([
+                'old_values' => $oldVals,
+                'new_values' => $newVals,
+                'changed_fields' => $fields,
+            ]);
+        }
+
+        $history->update([
+            'is_reverted' => true,
+            'reverted_at' => now(),
+            'reverted_by' => auth()->id(),
+        ]);
+
+        return true;
+    }
+
     public function tags()
     {
         return $this->belongsToMany(Tag::class);

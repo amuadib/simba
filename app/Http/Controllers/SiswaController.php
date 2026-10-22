@@ -78,16 +78,16 @@ class SiswaController extends Controller
             'status' => 'required|in:1,2,3,4,5,6',
             'rombel_id' => 'required'
         ]));
-        $siswa->tags()->sync($request->tags ?? []);
-
+        $tagIds = $request->tags ?? [];
         if ($request->tags_new) {
             foreach ($request->tags_new as $name) {
                 $tag = Tag::firstOrCreate(
                     ['nama' => $name]
                 );
-                $siswa->tags()->attach($tag->id);
+                $tagIds[] = $tag->id;
             }
         }
+        $siswa->syncTagsWithHistory($tagIds, 'create');
 
         return back()->with('success', 'Siswa berhasil ditambahkan');
     }
@@ -112,16 +112,16 @@ class SiswaController extends Controller
             'rombel_id' => 'required'
         ]));
 
-        $siswa->tags()->sync($request->tags ?? []);
+        $tagIds = $request->tags ?? [];
         if ($request->tags_new) {
             foreach ($request->tags_new as $name) {
                 $tag = Tag::firstOrCreate([
                     'nama' => $name,
                 ]);
-
-                $siswa->tags()->attach($tag->id);
+                $tagIds[] = $tag->id;
             }
         }
+        $siswa->syncTagsWithHistory($tagIds, 'update');
 
         return redirect(route('siswa.index', ['page' => request('page'), 'rombel_id' => request('rombel_id'), 'tag_id' => request('tag_id'), 'status' => request('status'), 'q' => request('q')]) . '#tr-' . $siswa->id)
             ->with('success', 'Siswa berhasil diperbarui');

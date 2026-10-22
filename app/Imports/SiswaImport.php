@@ -141,7 +141,7 @@ class SiswaImport implements ToCollection, WithHeadingRow
                             $tagIds[] = $tag->id;
                         }
                     }
-                    $siswa->tags()->sync($tagIds);
+                    $siswa->syncTagsWithHistory($tagIds, $action === 'created' ? 'create' : 'update');
                 }
 
                 $this->rowsSuccess++;

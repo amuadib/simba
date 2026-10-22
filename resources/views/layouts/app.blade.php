@@ -601,6 +601,27 @@
             background: linear-gradient(135deg, #e11d48 0%, #f43f5e 100%);
             box-shadow: 0 15px 35px -5px rgba(225, 29, 72, 0.4);
         }
+        .toast-msg.warning {
+            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+            box-shadow: 0 15px 35px -5px rgba(217, 119, 6, 0.4);
+        }
+
+        /* TOAST RESPONSIVE MOBILE (TENGAH ATAS) */
+        @media (max-width: 768px) {
+            .toast-msg {
+                top: max(16px, env(safe-area-inset-top, 16px));
+                left: 16px;
+                right: 16px;
+                min-width: 0;
+                max-width: calc(100vw - 32px);
+                width: fit-content;
+                margin-left: auto;
+                margin-right: auto;
+                padding: 12px 16px;
+                font-size: 13.5px;
+                box-shadow: 0 14px 35px -5px rgba(0, 0, 0, 0.4), 0 0 20px rgba(2, 132, 199, 0.25);
+            }
+        }
 
         /* SIDEBAR DESKTOP STICKY DOCKING UNDER HEADER */
         @media (min-width: 992px) {
@@ -790,10 +811,16 @@
 
             const iconEl = toast.querySelector('i');
             if (iconEl) {
-                iconEl.className = type === 'error' ? 'bi bi-x-circle-fill text-lg' : 'bi bi-check-circle-fill text-lg';
+                if (type === 'error') {
+                    iconEl.className = 'bi bi-x-circle-fill text-lg';
+                } else if (type === 'warning') {
+                    iconEl.className = 'bi bi-exclamation-triangle-fill text-lg';
+                } else {
+                    iconEl.className = 'bi bi-check-circle-fill text-lg';
+                }
             }
 
-            toast.className = 'toast-msg show' + (type === 'error' ? ' error' : '');
+            toast.className = 'toast-msg show' + (type === 'error' ? ' error' : (type === 'warning' ? ' warning' : ''));
 
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => {

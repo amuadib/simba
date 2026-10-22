@@ -3,6 +3,7 @@
 <?php
 
 use App\Models\Siswa;
+use App\Models\SiswaHistory;
 use App\Models\Rombel;
 use App\Models\Tag;
 use Livewire\WithPagination;
@@ -42,6 +43,11 @@ new class extends \Livewire\Volt\Component {
     public $bulkTags = [];
 
     public $selected_siswa_id = '';
+
+    // History State
+    public $historySiswaId = null;
+    public $historyActionFilter = '';
+    public $historySearch = '';
 
     // Import
     public $importFile;
@@ -159,7 +165,7 @@ new class extends \Livewire\Volt\Component {
                 $tagIds[] = $tag->id;
             }
         }
-        $siswa->tags()->sync($tagIds);
+        $siswa->syncTagsWithHistory($tagIds, 'create');
 
         $this->resetForm();
         $this->dispatch('close-modal', id: 'modalSiswaForm');
@@ -255,7 +261,7 @@ new class extends \Livewire\Volt\Component {
                 $tagIds[] = $tag->id;
             }
         }
-        $siswa->tags()->sync($tagIds);
+        $siswa->syncTagsWithHistory($tagIds, 'update');
 
         $this->resetForm();
         $this->dispatch('close-modal', id: 'modalSiswaForm');
@@ -298,6 +304,8 @@ new class extends \Livewire\Volt\Component {
             }
 
             if (!empty($updateData)) {
+                $s->historyAction = 'bulk_update';
+                $s->historyDescription = 'Pembaruan data siswa secara massal';
                 $s->update($updateData);
             }
 
@@ -311,7 +319,9 @@ new class extends \Livewire\Volt\Component {
                     }
                 }
                 if (!empty($tagIds)) {
-                    $s->tags()->syncWithoutDetaching($tagIds);
+                    $currentTagIds = $s->tags()->pluck('tag_id')->toArray();
+                    $allTagIds = array_values(array_unique(array_merge($currentTagIds, $tagIds)));
+                    $s->syncTagsWithHistory($allTagIds, 'bulk_update', 'Pembaruan tag secara massal');
                 }
             }
         }
@@ -319,6 +329,60 @@ new class extends \Livewire\Volt\Component {
         $this->reset(['bulkRombelId', 'bulkStatus', 'bulkTags', 'checkedSiswa', 'selectAll']);
         $this->dispatch('close-modal', id: 'modalBulkUpdate');
         $this->dispatch('toast', message: 'Data siswa berhasil diperbarui secara massal', type: 'success');
+    }
+
+    // --- RIWAYAT PERUBAHAN & UNDO ---
+
+    public function openHistory($id)
+    {
+        $this->historySiswaId = $id;
+        $this->dispatch('show-modal-history');
+    }
+
+    public function closeHistory()
+    {
+        $this->historySiswaId = null;
+        $this->dispatch('close-modal', id: 'modalSiswaHistory');
+    }
+
+    public function undoHistory($historyId)
+    {
+        $history = SiswaHistory::findOrFail($historyId);
+        $siswa = Siswa::findOrFail($history->siswa_id);
+
+        if ($history->is_reverted) {
+            $this->dispatch('toast', message: 'Perubahan ini sudah pernah dibatalkan (undo) sebelumnya.', type: 'warning');
+            return;
+        }
+
+        if ($history->action === 'create' || empty($history->old_values)) {
+            $this->dispatch('toast', message: 'Data penambahan awal tidak dapat di-undo.', type: 'error');
+            return;
+        }
+
+        $success = $siswa->rollbackHistory($history);
+        if ($success) {
+            $this->dispatch('toast', message: 'Perubahan data siswa berhasil dibatalkan (undo).', type: 'success');
+        } else {
+            $this->dispatch('toast', message: 'Gagal meng-undo perubahan data.', type: 'error');
+        }
+    }
+
+    public function undoLatestHistory($siswaId)
+    {
+        $latest = SiswaHistory::where('siswa_id', $siswaId)
+            ->where('is_reverted', false)
+            ->whereIn('action', ['update', 'bulk_update', 'rollback'])
+            ->whereNotNull('old_values')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if (!$latest) {
+            $this->dispatch('toast', message: 'Tidak ada perubahan yang dapat di-undo untuk siswa ini.', type: 'warning');
+            return;
+        }
+
+        $this->undoHistory($latest->id);
     }
 
     public function import()
@@ -366,6 +430,12 @@ new class extends \Livewire\Volt\Component {
             'tags' => Tag::orderBy('nama')->get(),
             'statusOptions' => config('local.status_siswa'),
             'allTags' => Tag::orderBy('nama')->pluck('nama')->toArray(),
+            'historySiswa' => $this->historySiswaId ? Siswa::with(['histories.user', 'histories.reverter', 'rombel'])->find($this->historySiswaId) : null,
+            'globalHistories' => SiswaHistory::with(['siswa.rombel', 'user', 'reverter'])
+                ->when($this->historyActionFilter, fn($q, $a) => $q->where('action', $a))
+                ->when($this->historySearch, fn($q, $s) => $q->whereHas('siswa', fn($sq) => $sq->where('nama', 'like', "%{$s}%")->orWhere('nisn', 'like', "%{$s}%")))
+                ->orderBy('id', 'desc')
+                ->paginate(15, ['*'], 'history_page'),
             'siswaAktif' => Siswa::with('rombel', 'tags')->where('status', 1)->orderBy('nama')->get()->map(function($s) {
                 return [
                     'id' => $s->id,
@@ -426,6 +496,14 @@ new class extends \Livewire\Volt\Component {
                                 @click="activeTab = 'cashout-template'" type="button">
                             <i class="bi bi-file-earmark-excel-fill text-emerald-500"></i>
                             <span>Template Cashout</span>
+                        </button>
+                        <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 font-display" 
+                                :class="activeTab === 'history' 
+                                    ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-cyan-400 shadow-xs border border-slate-200/80 dark:border-cyan-500/30' 
+                                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60'"
+                                @click="activeTab = 'history'" type="button">
+                            <i class="bi bi-clock-history text-cyan-500"></i>
+                            <span>Riwayat Perubahan</span>
                         </button>
                     </div>
 
@@ -705,6 +783,165 @@ new class extends \Livewire\Volt\Component {
                             </form>
                         </div>
                     </div>
+
+                    {{-- LOG RIWAYAT SISWA GLOBAL AREA --}}
+                    <div x-show="activeTab === 'history'" style="display: none;">
+                        <div class="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/90 dark:border-cyan-500/20 shadow-xs mb-3">
+                            <div class="row g-2.5 items-center">
+                                <div class="col-md-5">
+                                    <div class="input-group input-group-sm shadow-xs rounded-xl overflow-hidden">
+                                        <span class="input-group-text border-end-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-cyan-500 ps-3">
+                                            <i class="bi bi-search"></i>
+                                        </span>
+                                        <input type="text" wire:model.live.debounce.300ms="historySearch"
+                                            class="form-control form-control-sm border-start-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 text-xs py-2" placeholder="Cari nama siswa atau NISN...">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <select wire:model.live="historyActionFilter" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-2 shadow-xs font-medium">
+                                        <option value="">-- Semua Jenis Aksi --</option>
+                                        <option value="update">Pembaruan (Update)</option>
+                                        <option value="bulk_update">Pembaruan Massal</option>
+                                        <option value="rollback">Undo / Rollback</option>
+                                        <option value="create">Penambahan Data</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" wire:click="$set('historySearch', ''); $set('historyActionFilter', '')" class="w-100 py-2 px-2.5 rounded-xl bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs" title="Reset Filter Log">
+                                        <i class="bi bi-arrow-counterclockwise text-sm"></i>
+                                        <span>Reset Filter Log</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 overflow-hidden shadow-sm mb-3">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                                <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
+                                    <tr>
+                                        <th style="width: 140px;">Waktu & User</th>
+                                        <th>Nama Siswa & Rombel</th>
+                                        <th style="width: 110px;">Aksi</th>
+                                        <th>Rincian Perubahan</th>
+                                        <th class="text-center" style="width: 130px;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($globalHistories as $gh)
+                                        <tr class="{{ $gh->is_reverted ? 'opacity-60' : '' }}">
+                                            <td>
+                                                <div class="fw-bold text-slate-800 dark:text-slate-200">
+                                                    {{ $gh->created_at->format('d/m/Y H:i') }}
+                                                </div>
+                                                <div class="text-xs text-muted" title="{{ $gh->created_at }}">
+                                                    {{ $gh->created_at->diffForHumans() }}
+                                                </div>
+                                                <div class="text-xs text-cyan-600 dark:text-cyan-400 mt-1 d-flex align-items-center gap-1">
+                                                    <i class="bi bi-person-fill"></i>
+                                                    <span>{{ $gh->user->name ?? 'Sistem' }}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if ($gh->siswa)
+                                                    <div class="fw-bold text-slate-800 dark:text-slate-200">
+                                                        <a href="javascript:void(0)" wire:click="openHistory('{{ $gh->siswa_id }}')" class="text-decoration-none text-sky-600 hover:underline">
+                                                            {{ $gh->siswa->nama }}
+                                                        </a>
+                                                    </div>
+                                                    <div class="text-xs text-muted">
+                                                        Rombel: {{ $gh->siswa->rombel->nama ?? '-' }}
+                                                        @if ($gh->siswa->nisn) • NISN: {{ $gh->siswa->nisn }} @endif
+                                                    </div>
+                                                @else
+                                                    <span class="text-muted fst-italic">Siswa telah dihapus</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if ($gh->action === 'create')
+                                                    <span class="badge bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">Tambah</span>
+                                                @elseif ($gh->action === 'update')
+                                                    <span class="badge bg-sky-500/15 text-sky-600 border border-sky-500/30">Pembaruan</span>
+                                                @elseif ($gh->action === 'bulk_update')
+                                                    <span class="badge bg-purple-500/15 text-purple-600 border border-purple-500/30">Massal</span>
+                                                @elseif ($gh->action === 'rollback')
+                                                    <span class="badge bg-amber-500/15 text-amber-600 border border-amber-500/30">Undo</span>
+                                                @else
+                                                    <span class="badge bg-secondary">{{ $gh->action }}</span>
+                                                @endif
+
+                                                @if ($gh->is_reverted)
+                                                    <div class="mt-1">
+                                                        <span class="badge bg-rose-500/10 text-rose-600 border border-rose-500/20 text-[10px]">
+                                                            Di-undo
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <div class="small fw-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                                    {{ $gh->description ?? 'Perubahan data' }}
+                                                </div>
+                                                @if ($gh->old_values && $gh->new_values)
+                                                    <div class="d-flex flex-column gap-1">
+                                                        @foreach ($gh->new_values as $field => $newVal)
+                                                            @php
+                                                                $oldVal = $gh->old_values[$field] ?? null;
+                                                                $fieldLabel = App\Models\SiswaHistory::formatFieldName($field);
+                                                                $oldFormatted = App\Models\SiswaHistory::formatFieldValue($field, $oldVal);
+                                                                $newFormatted = App\Models\SiswaHistory::formatFieldValue($field, $newVal);
+                                                            @endphp
+                                                            <div class="p-1 px-2 rounded bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 text-xs d-flex flex-wrap items-center gap-1.5">
+                                                                <strong class="text-slate-600 dark:text-slate-400">{{ $fieldLabel }}:</strong>
+                                                                <span class="badge bg-rose-500/10 text-rose-600 border border-rose-500/20 font-normal">{!! $oldFormatted !!}</span>
+                                                                <i class="bi bi-arrow-right text-muted small"></i>
+                                                                <span class="badge bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-normal">{!! $newFormatted !!}</span>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @elseif ($gh->action === 'create')
+                                                    <span class="text-xs text-muted">Pembuatan data awal siswa</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group">
+                                                    @if (!$gh->is_reverted && $gh->action !== 'create' && !empty($gh->old_values) && $gh->siswa)
+                                                        <button type="button" 
+                                                                wire:click="undoHistory({{ $gh->id }})"
+                                                                wire:confirm="Yakin ingin membatalkan (undo) perubahan ini?"
+                                                                class="btn btn-outline-warning btn-sm py-1 px-2 text-xs font-semibold"
+                                                                title="Undo Perubahan Ini">
+                                                            <i class="bi bi-arrow-counterclockwise"></i> Undo
+                                                        </button>
+                                                    @elseif ($gh->is_reverted)
+                                                        <span class="badge bg-secondary text-muted text-[10px]">Sudah di-undo</span>
+                                                    @endif
+
+                                                    @if ($gh->siswa)
+                                                        <button type="button" 
+                                                                wire:click="openHistory('{{ $gh->siswa_id }}')" 
+                                                                class="btn btn-outline-info btn-sm py-1 px-2 text-xs font-semibold"
+                                                                title="Lihat Riwayat Lengkap Siswa Ini">
+                                                            <i class="bi bi-clock-history"></i>
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="py-5 text-center text-muted">
+                                                <i class="bi bi-clock-history fs-2 text-muted d-block mb-2"></i>
+                                                Belum ada riwayat perubahan data siswa
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-2 mb-3">
+                            {{ $globalHistories->links() }}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -765,10 +1002,13 @@ new class extends \Livewire\Volt\Component {
                                 <td class="text-center">
                                     <div class="btn-group">
                                         <button wire:click="show('{{ $s->id }}')"
-                                            class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i></button>
+                                            class="btn btn-sm btn-outline-info" title="Lihat Detail"><i class="bi bi-eye"></i></button>
                                         <button wire:click="edit('{{ $s->id }}')"
-                                            class="btn btn-sm btn-outline-warning"><i
+                                            class="btn btn-sm btn-outline-warning" title="Edit Data"><i
                                                 class="bi bi-pencil"></i></button>
+                                        <button wire:click="openHistory('{{ $s->id }}')"
+                                            class="btn btn-sm btn-outline-secondary" title="Riwayat Perubahan"><i
+                                                class="bi bi-clock-history"></i></button>
                                     </div>
                                 </td>
                             </tr>
@@ -1006,8 +1246,12 @@ new class extends \Livewire\Volt\Component {
                                                 -
                                             @endif
                                         </div>
-                                        <div class="col-12 mt-3"><button type="button" data-bs-dismiss="modal" wire:click="resetForm"
-                                                class="btn btn-sm btn-secondary">Tutup</button></div>
+                                        <div class="col-12 mt-3 d-flex gap-2">
+                                            <button type="button" data-bs-dismiss="modal" wire:click="resetForm" class="btn btn-sm btn-secondary">Tutup</button>
+                                            <button type="button" wire:click="openHistory('{{ $sData->id }}')" class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-clock-history me-1"></i> Riwayat Perubahan ({{ $sData->histories()->count() }})
+                                            </button>
+                                        </div>
                                     </div>
                                 @endif
                             </div>
@@ -1130,6 +1374,170 @@ new class extends \Livewire\Volt\Component {
         </div>
     </div>
 
+    {{-- MODAL RIWAYAT PERUBAHAN SISWA --}}
+    <div wire:ignore.self class="modal fade" id="modalSiswaHistory" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header border-bottom">
+                    <div>
+                        <h5 class="modal-title font-bold flex items-center gap-2 mb-0">
+                            <i class="bi bi-clock-history text-cyan-500"></i>
+                            Riwayat Perubahan Data Siswa
+                        </h5>
+                        @if ($historySiswa)
+                            <div class="text-xs text-muted mt-1">
+                                <strong class="text-slate-800 dark:text-slate-200">{{ $historySiswa->nama }}</strong>
+                                <span class="mx-1">•</span> Rombel: <span class="fw-semibold">{{ $historySiswa->rombel->nama ?? '-' }}</span>
+                                <span class="mx-1">•</span> NISN: <span class="fw-semibold">{{ $historySiswa->nisn ?? '-' }}</span>
+                            </div>
+                        @endif
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="closeHistory"></button>
+                </div>
+                <div class="modal-body p-4">
+                    @if ($historySiswa)
+                        @php
+                            $histories = $historySiswa->histories;
+                            $latestUndoable = $histories->where('is_reverted', false)->whereIn('action', ['update', 'bulk_update', 'rollback'])->whereNotNull('old_values')->first();
+                        @endphp
+
+                        {{-- TOP ACTION / SUMMARY BAR --}}
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-3 mb-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-500 d-flex align-items-center justify-center font-bold">
+                                    <i class="bi bi-journal-text fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-muted">Total Riwayat Perubahan</div>
+                                    <div class="fw-bold text-sm text-slate-800 dark:text-slate-200">
+                                        {{ $histories->count() }} aktivitas tercatat
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if ($latestUndoable)
+                                <button type="button" 
+                                        wire:click="undoLatestHistory('{{ $historySiswa->id }}')"
+                                        wire:confirm="Yakin ingin membatalkan (undo) perubahan terakhir pada siswa ini?"
+                                        class="btn btn-warning btn-sm d-inline-flex align-items-center gap-1.5 fw-bold shadow-xs">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                    <span>Undo Perubahan Terakhir</span>
+                                </button>
+                            @endif
+                        </div>
+
+                        {{-- TIMELINE / TABLE OF HISTORIES --}}
+                        @if ($histories->isEmpty())
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-clock fs-1 d-block mb-2 text-slate-300 dark:text-slate-600"></i>
+                                <p class="mb-1 fw-bold">Belum ada riwayat perubahan yang tercatat</p>
+                                <p class="small text-muted m-0">Setiap perubahan data siswa ke depan akan otomatis terekam secara kronologis di sini.</p>
+                            </div>
+                        @else
+                            <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-slate-700/80">
+                                <table class="table table-hover table-striped align-middle mb-0" style="font-size: 0.85rem;">
+                                    <thead class="table-light text-slate-600 dark:text-slate-300">
+                                        <tr>
+                                            <th style="width: 140px;">Waktu & User</th>
+                                            <th style="width: 120px;">Aksi</th>
+                                            <th>Rincian Perubahan (Sebelum <i class="bi bi-arrow-right"></i> Sesudah)</th>
+                                            <th class="text-center" style="width: 110px;">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($histories as $h)
+                                            <tr class="{{ $h->is_reverted ? 'opacity-60' : '' }}">
+                                                <td>
+                                                    <div class="fw-bold text-slate-800 dark:text-slate-200">
+                                                        {{ $h->created_at->format('d/m/Y H:i') }}
+                                                    </div>
+                                                    <div class="text-xs text-muted" title="{{ $h->created_at }}">
+                                                        {{ $h->created_at->diffForHumans() }}
+                                                    </div>
+                                                    <div class="text-xs text-cyan-600 dark:text-cyan-400 mt-1 d-flex align-items-center gap-1">
+                                                        <i class="bi bi-person-fill"></i>
+                                                        <span>{{ $h->user->name ?? 'Sistem' }}</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    @if ($h->action === 'create')
+                                                        <span class="badge bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">Tambah Data</span>
+                                                    @elseif ($h->action === 'update')
+                                                        <span class="badge bg-sky-500/15 text-sky-600 border border-sky-500/30">Pembaruan</span>
+                                                    @elseif ($h->action === 'bulk_update')
+                                                        <span class="badge bg-purple-500/15 text-purple-600 border border-purple-500/30">Massal</span>
+                                                    @elseif ($h->action === 'rollback')
+                                                        <span class="badge bg-amber-500/15 text-amber-600 border border-amber-500/30">Undo/Rollback</span>
+                                                    @else
+                                                        <span class="badge bg-secondary">{{ $h->action }}</span>
+                                                    @endif
+
+                                                    @if ($h->is_reverted)
+                                                        <div class="mt-1">
+                                                            <span class="badge bg-rose-500/10 text-rose-600 border border-rose-500/20 text-[10px]">
+                                                                <i class="bi bi-arrow-counterclockwise"></i> Sudah Di-undo
+                                                            </span>
+                                                        </div>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <div class="small fw-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                                        {{ $h->description ?? 'Perubahan data' }}
+                                                    </div>
+
+                                                    @if ($h->old_values && $h->new_values)
+                                                        <div class="d-flex flex-column gap-1 mt-1.5">
+                                                            @foreach ($h->new_values as $field => $newVal)
+                                                                @php
+                                                                    $oldVal = $h->old_values[$field] ?? null;
+                                                                    $fieldLabel = App\Models\SiswaHistory::formatFieldName($field);
+                                                                    $oldFormatted = App\Models\SiswaHistory::formatFieldValue($field, $oldVal);
+                                                                    $newFormatted = App\Models\SiswaHistory::formatFieldValue($field, $newVal);
+                                                                @endphp
+                                                                <div class="p-1.5 px-2 rounded-lg bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 text-xs d-flex flex-wrap items-center gap-1.5">
+                                                                    <strong class="text-slate-600 dark:text-slate-400">{{ $fieldLabel }}:</strong>
+                                                                    <span class="badge bg-rose-500/10 text-rose-600 border border-rose-500/20 font-normal">{!! $oldFormatted !!}</span>
+                                                                    <i class="bi bi-arrow-right text-muted small"></i>
+                                                                    <span class="badge bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-normal">{!! $newFormatted !!}</span>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @elseif ($h->action === 'create')
+                                                        <span class="text-xs text-muted">Pembuatan entri awal data siswa</span>
+                                                    @endif
+                                                </td>
+                                                <td class="text-center">
+                                                    @if (!$h->is_reverted && $h->action !== 'create' && !empty($h->old_values))
+                                                        <button type="button" 
+                                                                wire:click="undoHistory({{ $h->id }})"
+                                                                wire:confirm="Yakin ingin membatalkan perubahan ini dan mengembalikan nilai ke sebelum perubahan?"
+                                                                class="btn btn-outline-warning btn-sm py-1 px-2 text-xs font-semibold rounded-lg"
+                                                                title="Batalkan perubahan ini">
+                                                            <i class="bi bi-arrow-counterclockwise"></i> Undo
+                                                        </button>
+                                                    @elseif ($h->is_reverted)
+                                                        <span class="text-muted text-xs italic">
+                                                            Di-undo {{ $h->reverted_at ? $h->reverted_at->diffForHumans() : '' }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted text-xs">-</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    @endif
+                </div>
+                <div class="modal-footer border-top py-2.5">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" wire:click="closeHistory">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @script
         <script>
             $wire.on('close-modal', ({
@@ -1144,6 +1552,10 @@ new class extends \Livewire\Volt\Component {
 
             $wire.on('show-modal-siswa', () => {
                 new bootstrap.Modal(document.getElementById('modalSiswaForm')).show();
+            });
+
+            $wire.on('show-modal-history', () => {
+                new bootstrap.Modal(document.getElementById('modalSiswaHistory')).show();
             });
         </script>
     @endscript
