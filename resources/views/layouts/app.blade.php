@@ -757,7 +757,7 @@
             <footer class="mt-8 pt-4 pb-2 border-t border-slate-200/80 dark:border-slate-800/80 text-center text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                    <span>© {{ date('Y') }} <strong>{{ config('local.app.nama') ?? env('APP_NAME') }}</strong> — {{ config('local.lembaga.99.nama') ?? 'Miftahul Ulum' }}</span>
+                    <span>© {{ date('Y') }} <strong>{{ config('local.app.nama') ?? env('APP_NAME') }}</strong> — {{ config('local.app.keterangan') ?? 'Miftahul Ulum' }}</span>
                 </div>
                 <div class="flex items-center gap-3 text-xs">
                     <span class="inline-flex items-center gap-1 text-cyan-600 dark:text-cyan-400">
