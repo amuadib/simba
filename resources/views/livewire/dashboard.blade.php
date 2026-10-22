@@ -142,8 +142,10 @@ new class extends Component {
 
             foreach ($rawLembaga as $row) {
                 $lid = $row->lembaga_id;
-                $shortLabels[] = nama_lembaga($lid, true);
-                $fullLabels[] = nama_lembaga($lid);
+                $sLabel = nama_lembaga($lid, true);
+                $fLabel = nama_lembaga($lid);
+                $shortLabels[] = (!empty($sLabel) && $sLabel !== '-') ? $sLabel : $fLabel;
+                $fullLabels[] = $fLabel;
                 $seriesL[] = (int) $row->l;
                 $seriesP[] = (int) $row->p;
                 $seriesTotal[] = (int) $row->total;
@@ -221,8 +223,10 @@ new class extends Component {
 
             foreach ($rawLembaga as $row) {
                 $lid = $row->lembaga_id;
-                $shortLabels[] = nama_lembaga($lid, true);
-                $fullLabels[] = nama_lembaga($lid);
+                $sLabel = nama_lembaga($lid, true);
+                $fLabel = nama_lembaga($lid);
+                $shortLabels[] = (!empty($sLabel) && $sLabel !== '-') ? $sLabel : $fLabel;
+                $fullLabels[] = $fLabel;
                 $seriesL[] = (int) $row->l;
                 $seriesP[] = (int) $row->p;
                 $seriesTotal[] = (int) $row->total;
@@ -311,57 +315,80 @@ new class extends Component {
 ?>
 
 <div x-data="{
+    _presensiTimeout: null,
+    triggerPresensiChart() {
+        clearTimeout(this._presensiTimeout);
+        this._presensiTimeout = setTimeout(() => {
+            this.initPresensiChart();
+        }, 60);
+    },
     initPresensiChart() {
         const ctx = document.getElementById('presensiChart');
         if (!ctx) return;
         if (typeof Chart === 'undefined') {
-            setTimeout(() => this.initPresensiChart(), 60);
+            setTimeout(() => this.triggerPresensiChart(), 60);
             return;
         }
 
+        const existing = (typeof Chart !== 'undefined' && Chart.getChart(ctx)) || (typeof Chart !== 'undefined' && Chart.getChart('presensiChart'));
+        if (existing) {
+            existing.destroy();
+        }
         if (window.presensiChart && typeof window.presensiChart.destroy === 'function') {
             window.presensiChart.destroy();
+            window.presensiChart = null;
         }
 
         // Deep clone data to strip Livewire proxies and avoid Chart.js infinite loop
-        const dataSet = JSON.parse(JSON.stringify($wire.chartData));
+        const chartData = this.$wire ? this.$wire.chartData : (typeof $wire !== 'undefined' ? $wire.chartData : null);
+        if (!chartData || !chartData.labels) return;
+        const dataSet = JSON.parse(JSON.stringify(chartData));
 
-        window.presensiChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: dataSet.labels,
-                datasets: [
-                    { label: 'Hadir', data: dataSet.series.H, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.12)', fill: true, tension: .3, pointRadius: 4 },
-                    { label: 'Izin', data: dataSet.series.I, borderColor: '#00b4d8', backgroundColor: 'rgba(0,180,216,.12)', fill: true, tension: .3, pointRadius: 4 },
-                    { label: 'Sakit', data: dataSet.series.S, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.12)', fill: true, tension: .3, pointRadius: 4 },
-                    { label: 'Alpa', data: dataSet.series.A, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.12)', fill: true, tension: .3, pointRadius: 4 }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                plugins: {
-                    legend: { position: 'bottom' }
+        try {
+            window.presensiChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dataSet.labels,
+                    datasets: [
+                        { label: 'Hadir', data: dataSet.series.H, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.12)', fill: true, tension: .3, pointRadius: 4 },
+                        { label: 'Izin', data: dataSet.series.I, borderColor: '#00b4d8', backgroundColor: 'rgba(0,180,216,.12)', fill: true, tension: .3, pointRadius: 4 },
+                        { label: 'Sakit', data: dataSet.series.S, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.12)', fill: true, tension: .3, pointRadius: 4 },
+                        { label: 'Alpa', data: dataSet.series.A, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.12)', fill: true, tension: .3, pointRadius: 4 }
+                    ]
                 },
-                scales: {
-                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } }
+                    }
                 }
-            }
-        });
+            });
 
-        const container = document.querySelector('.chart-container');
-        if (container) container.scrollLeft = container.scrollWidth;
+            const container = document.querySelector('.chart-container');
+            if (container) container.scrollLeft = container.scrollWidth;
+        } catch (e) {
+            console.error('Error creating Presensi chart:', e);
+        }
     }
-}" x-init="initPresensiChart()" @update-chart.window="
+}" x-init="triggerPresensiChart()" 
+   x-on:livewire:navigated.window="triggerPresensiChart()"
+   @update-chart.window="
     if(window.presensiChart) {
-        const newData = JSON.parse(JSON.stringify($wire.chartData));
-        window.presensiChart.data.labels = newData.labels;
-        window.presensiChart.data.datasets[0].data = newData.series.H;
-        window.presensiChart.data.datasets[1].data = newData.series.I;
-        window.presensiChart.data.datasets[2].data = newData.series.S;
-        window.presensiChart.data.datasets[3].data = newData.series.A;
-        window.presensiChart.update();
+        const chartData = this.$wire ? this.$wire.chartData : (typeof $wire !== 'undefined' ? $wire.chartData : null);
+        if (chartData && chartData.labels) {
+            const newData = JSON.parse(JSON.stringify(chartData));
+            window.presensiChart.data.labels = newData.labels;
+            window.presensiChart.data.datasets[0].data = newData.series.H;
+            window.presensiChart.data.datasets[1].data = newData.series.I;
+            window.presensiChart.data.datasets[2].data = newData.series.S;
+            window.presensiChart.data.datasets[3].data = newData.series.A;
+            window.presensiChart.update();
+        }
     }
 ">
     {{-- IDENTITY BANNER --}}
@@ -502,19 +529,50 @@ new class extends Component {
         pegawaiData: {{ json_encode($pegawaiSummary) }},
         siswaChart: null,
         pegawaiChart: null,
+        _renderTimeout: null,
 
         init() {
-            this.$nextTick(() => {
-                this.renderSiswaChart();
-                this.renderPegawaiChart();
-            });
+            this.triggerRenderAll();
 
             // Re-render when theme changes (light/dark)
             const observer = new MutationObserver(() => {
-                this.renderSiswaChart();
-                this.renderPegawaiChart();
+                this.triggerRenderAll();
             });
             observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+
+            if (this.$cleanup) {
+                this.$cleanup(() => {
+                    observer.disconnect();
+                    clearTimeout(this._renderTimeout);
+                    this.destroyCharts();
+                });
+            }
+        },
+
+        triggerRenderAll() {
+            clearTimeout(this._renderTimeout);
+            this._renderTimeout = setTimeout(() => {
+                this.renderSiswaChart();
+                this.renderPegawaiChart();
+            }, 60);
+        },
+
+        destroyCharts() {
+            const sCanvas = document.getElementById('siswaSummaryChart');
+            const sChart = (sCanvas && typeof Chart !== 'undefined' && Chart.getChart(sCanvas)) || (typeof Chart !== 'undefined' && Chart.getChart('siswaSummaryChart'));
+            if (sChart) sChart.destroy();
+            if (this.siswaChart && typeof this.siswaChart.destroy === 'function') {
+                this.siswaChart.destroy();
+                this.siswaChart = null;
+            }
+
+            const pCanvas = document.getElementById('pegawaiSummaryChart');
+            const pChart = (pCanvas && typeof Chart !== 'undefined' && Chart.getChart(pCanvas)) || (typeof Chart !== 'undefined' && Chart.getChart('pegawaiSummaryChart'));
+            if (pChart) pChart.destroy();
+            if (this.pegawaiChart && typeof this.pegawaiChart.destroy === 'function') {
+                this.pegawaiChart.destroy();
+                this.pegawaiChart = null;
+            }
         },
 
         setSiswaTab(tab) {
@@ -535,10 +593,14 @@ new class extends Component {
             const canvas = document.getElementById('siswaSummaryChart');
             if (!canvas) return;
             if (typeof Chart === 'undefined') {
-                setTimeout(() => this.renderSiswaChart(), 60);
+                setTimeout(() => this.triggerRenderAll(), 60);
                 return;
             }
 
+            const existing = (typeof Chart !== 'undefined' && Chart.getChart(canvas)) || (typeof Chart !== 'undefined' && Chart.getChart('siswaSummaryChart'));
+            if (existing) {
+                existing.destroy();
+            }
             if (this.siswaChart && typeof this.siswaChart.destroy === 'function') {
                 this.siswaChart.destroy();
                 this.siswaChart = null;
@@ -679,17 +741,25 @@ new class extends Component {
                 };
             }
 
-            this.siswaChart = new Chart(canvas, config);
+            try {
+                this.siswaChart = new Chart(canvas, config);
+            } catch (e) {
+                console.error('Error creating Siswa chart:', e);
+            }
         },
 
         renderPegawaiChart() {
             const canvas = document.getElementById('pegawaiSummaryChart');
             if (!canvas) return;
             if (typeof Chart === 'undefined') {
-                setTimeout(() => this.renderPegawaiChart(), 60);
+                setTimeout(() => this.triggerRenderAll(), 60);
                 return;
             }
 
+            const existing = (typeof Chart !== 'undefined' && Chart.getChart(canvas)) || (typeof Chart !== 'undefined' && Chart.getChart('pegawaiSummaryChart'));
+            if (existing) {
+                existing.destroy();
+            }
             if (this.pegawaiChart && typeof this.pegawaiChart.destroy === 'function') {
                 this.pegawaiChart.destroy();
                 this.pegawaiChart = null;
@@ -834,9 +904,13 @@ new class extends Component {
                 };
             }
 
-            this.pegawaiChart = new Chart(canvas, config);
+            try {
+                this.pegawaiChart = new Chart(canvas, config);
+            } catch (e) {
+                console.error('Error creating Pegawai chart:', e);
+            }
         }
-    }">
+    }" x-on:livewire:navigated.window="triggerRenderAll()">
         {{-- Section Header --}}
         <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
             <div>
@@ -1102,10 +1176,6 @@ new class extends Component {
             <canvas id="presensiChart" style="min-width: 1000px; height: 260px;"></canvas>
         </div>
     </div>
-
-    @push('scripts')
-        <script src="{{ asset('chart.js') }}"></script>
-    @endpush
 
     <style>
         /* ---- IDENTITY BANNER ---- */

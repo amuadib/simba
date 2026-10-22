@@ -25,6 +25,9 @@
     <link href="{{ asset('bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('bootstrap-icons.css') }}" rel="stylesheet">
 
+    {{-- Chart.js (Loaded once and persistent across Livewire SPA transitions) --}}
+    <script src="{{ asset('chart.js') }}" data-navigate-once></script>
+
     {{-- Tailwind CSS v4 via Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
