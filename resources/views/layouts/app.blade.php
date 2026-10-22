@@ -675,13 +675,13 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="font-extrabold text-base md:text-lg tracking-tight font-display text-gradient-logo">
-                                {{ setting('nama_aplikasi', 'SIMBA') }}
+                                {{ config('local.app.nama', 'SIMBA') }}
                             </span>
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                                 {{ session('tahun_ajaran_nama') ?? 'Aktif' }}
                             </span>
                         </div>
-                        <p class="text-[11px] text-muted-foreground m-0 leading-none hidden sm:block">Sistem Informasi Manajemen Lembaga</p>
+                        <p class="text-[11px] text-muted-foreground m-0 leading-none hidden sm:block">{{ config('local.app.keterangan', 'Sistem Informasi Manajemen Lembaga') }}</p>
                     </div>
                 </a>
             </div>
