@@ -34,6 +34,22 @@ class Pegawai extends Model
         'tanggal_lahir' => 'date',
     ];
 
+    /**
+     * Optional flag to suppress history recording if needed.
+     */
+    public bool $suppressHistory = false;
+
+    /**
+     * Optional custom action and description for the next history entry.
+     */
+    public ?string $historyAction = null;
+    public ?string $historyDescription = null;
+
+    /**
+     * Reference to the last created history entry in the current lifecycle.
+     */
+    public ?PegawaiHistory $lastHistory = null;
+
     protected static function booted(): void
     {
         static::creating(function (Pegawai $pegawai) {
@@ -41,6 +57,211 @@ class Pegawai extends Model
                 $pegawai->niy = static::generateNiy($pegawai->tmt, $pegawai->jenis_kelamin);
             }
         });
+
+        static::created(function (Pegawai $pegawai) {
+            if ($pegawai->suppressHistory) {
+                return;
+            }
+
+            $attributes = $pegawai->getAttributes();
+            unset($attributes['created_at'], $attributes['updated_at']);
+
+            $history = PegawaiHistory::create([
+                'pegawai_id' => $pegawai->id,
+                'user_id' => auth()->id(),
+                'action' => $pegawai->historyAction ?? 'create',
+                'old_values' => null,
+                'new_values' => $attributes,
+                'changed_fields' => array_keys($attributes),
+                'description' => $pegawai->historyDescription ?? 'Data pegawai baru ditambahkan',
+            ]);
+            $pegawai->lastHistory = $history;
+            $pegawai->historyAction = null;
+            $pegawai->historyDescription = null;
+        });
+
+        static::updating(function (Pegawai $pegawai) {
+            if ($pegawai->suppressHistory) {
+                return;
+            }
+
+            $dirty = $pegawai->getDirty();
+            unset($dirty['updated_at']);
+
+            if (empty($dirty)) {
+                return;
+            }
+
+            $oldValues = [];
+            $newValues = [];
+            $changedFields = [];
+
+            foreach ($dirty as $key => $newValue) {
+                $oldValue = $pegawai->getOriginal($key);
+                if ((string)$oldValue !== (string)$newValue) {
+                    $oldValues[$key] = $oldValue;
+                    $newValues[$key] = $newValue;
+                    $changedFields[] = $key;
+                }
+            }
+
+            if (empty($changedFields)) {
+                return;
+            }
+
+            $action = $pegawai->historyAction ?? 'update';
+            $description = $pegawai->historyDescription;
+            if (!$description) {
+                $fieldNames = array_map(fn($f) => PegawaiHistory::formatFieldName($f), $changedFields);
+                $description = 'Pembaruan data pegawai (' . implode(', ', $fieldNames) . ')';
+            }
+
+            $history = PegawaiHistory::create([
+                'pegawai_id' => $pegawai->id,
+                'user_id' => auth()->id(),
+                'action' => $action,
+                'old_values' => $oldValues,
+                'new_values' => $newValues,
+                'changed_fields' => $changedFields,
+                'description' => $description,
+            ]);
+            $pegawai->lastHistory = $history;
+            $pegawai->historyAction = null;
+            $pegawai->historyDescription = null;
+        });
+    }
+
+    public function histories()
+    {
+        return $this->hasMany(PegawaiHistory::class)->orderBy('id', 'desc');
+    }
+
+    /**
+     * Rollback a specific history entry.
+     */
+    public function rollbackHistory(PegawaiHistory|int $history): bool
+    {
+        if (is_numeric($history)) {
+            $history = PegawaiHistory::where('pegawai_id', $this->id)->findOrFail($history);
+        }
+
+        if ($history->is_reverted) {
+            return false;
+        }
+
+        // Handle SK Penugasan actions
+        if (in_array($history->action, ['sk_create', 'sk_update', 'sk_delete'])) {
+            if ($history->action === 'sk_update' && !empty($history->old_values)) {
+                $oldValues = $history->old_values;
+                $skId = $oldValues['sk_id'] ?? null;
+                unset($oldValues['sk_id']);
+
+                $sk = SkPenugasan::where('pegawai_id', $this->id)->find($skId);
+                if ($sk) {
+                    SkPenugasan::$suppressHistory = true;
+                    $sk->update($oldValues);
+                    SkPenugasan::$suppressHistory = false;
+
+                    PegawaiHistory::create([
+                        'pegawai_id' => $this->id,
+                        'user_id' => auth()->id(),
+                        'action' => 'rollback',
+                        'old_values' => $history->new_values,
+                        'new_values' => $history->old_values,
+                        'changed_fields' => $history->changed_fields,
+                        'description' => 'Undo perubahan SK Penugasan #' . $history->id,
+                    ]);
+
+                    $history->update([
+                        'is_reverted' => true,
+                        'reverted_at' => now(),
+                        'reverted_by' => auth()->id(),
+                    ]);
+
+                    return true;
+                }
+                return false;
+            } elseif ($history->action === 'sk_delete' && !empty($history->old_values)) {
+                $oldValues = $history->old_values;
+                unset($oldValues['sk_id'], $oldValues['created_at'], $oldValues['updated_at']);
+
+                SkPenugasan::$suppressHistory = true;
+                $this->skPenugasan()->create($oldValues);
+                SkPenugasan::$suppressHistory = false;
+
+                PegawaiHistory::create([
+                    'pegawai_id' => $this->id,
+                    'user_id' => auth()->id(),
+                    'action' => 'rollback',
+                    'old_values' => null,
+                    'new_values' => $oldValues,
+                    'changed_fields' => array_keys($oldValues),
+                    'description' => 'Undo penghapusan SK Penugasan #' . $history->id,
+                ]);
+
+                $history->update([
+                    'is_reverted' => true,
+                    'reverted_at' => now(),
+                    'reverted_by' => auth()->id(),
+                ]);
+
+                return true;
+            } elseif ($history->action === 'sk_create' && !empty($history->new_values)) {
+                $newValues = $history->new_values;
+                $skId = $newValues['id'] ?? $newValues['sk_id'] ?? null;
+                if ($skId) {
+                    $sk = SkPenugasan::where('pegawai_id', $this->id)->find($skId);
+                    if ($sk) {
+                        SkPenugasan::$suppressHistory = true;
+                        $sk->delete();
+                        SkPenugasan::$suppressHistory = false;
+
+                        PegawaiHistory::create([
+                            'pegawai_id' => $this->id,
+                            'user_id' => auth()->id(),
+                            'action' => 'rollback',
+                            'old_values' => $newValues,
+                            'new_values' => null,
+                            'changed_fields' => array_keys($newValues),
+                            'description' => 'Undo penambahan SK Penugasan #' . $history->id,
+                        ]);
+
+                        $history->update([
+                            'is_reverted' => true,
+                            'reverted_at' => now(),
+                            'reverted_by' => auth()->id(),
+                        ]);
+
+                        return true;
+                    }
+                }
+                return false;
+            }
+            return false;
+        }
+
+        if (empty($history->old_values)) {
+            return false;
+        }
+
+        $oldValues = $history->old_values;
+
+        $this->historyAction = 'rollback';
+        $fieldNames = array_map(fn($f) => PegawaiHistory::formatFieldName($f), array_keys($oldValues));
+        $this->historyDescription = 'Undo perubahan #' . $history->id . ' (' . implode(', ', $fieldNames) . ')';
+
+        $this->update($oldValues);
+
+        $this->historyAction = null;
+        $this->historyDescription = null;
+
+        $history->update([
+            'is_reverted' => true,
+            'reverted_at' => now(),
+            'reverted_by' => auth()->id(),
+        ]);
+
+        return true;
     }
 
     /**
