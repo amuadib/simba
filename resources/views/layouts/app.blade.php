@@ -51,6 +51,7 @@
            Deep Ocean Blue | Electric Cyan | Vibrant Emerald | Lime
         ======================================================== */
         :root {
+            color-scheme: light;
             --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
             --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 
@@ -83,6 +84,7 @@
         }
 
         [data-theme="dark"], [data-bs-theme="dark"], .dark {
+            color-scheme: dark;
             /* Dark Mode: Cosmic Deep Gear Navy */
             --bg-main: #060e1a;
             --bg-card: #0a1b32;
@@ -225,17 +227,23 @@
             border-top: 1px solid rgba(56, 189, 248, 0.16) !important;
         }
 
-        /* OVERRIDE IN-CARD BG-LIGHT & BG-WHITE FOR DARK THEME */
+        /* OVERRIDE IN-CARD & IN-GLASS-PANEL BG-LIGHT & BG-WHITE FOR DARK THEME */
         [data-theme="dark"] .card .bg-light,
         [data-bs-theme="dark"] .card .bg-light,
-        .dark .card .bg-light {
+        .dark .card .bg-light,
+        [data-theme="dark"] .glass-panel .bg-light,
+        [data-bs-theme="dark"] .glass-panel .bg-light,
+        .dark .glass-panel .bg-light {
             background-color: rgba(15, 23, 42, 0.6) !important;
             color: #e2e8f0 !important;
             border-color: rgba(56, 189, 248, 0.15) !important;
         }
         [data-theme="dark"] .card .bg-white,
         [data-bs-theme="dark"] .card .bg-white,
-        .dark .card .bg-white {
+        .dark .card .bg-white,
+        [data-theme="dark"] .glass-panel .bg-white,
+        [data-bs-theme="dark"] .glass-panel .bg-white,
+        .dark .glass-panel .bg-white {
             background-color: #0d2242 !important;
             color: #f8fafc !important;
         }
@@ -420,10 +428,14 @@
         }
         [data-theme="dark"] .form-control, 
         [data-theme="dark"] .form-select,
+        [data-theme="dark"] .form-control.bg-white, 
+        [data-theme="dark"] .form-select.bg-white,
         [data-bs-theme="dark"] .form-control,
         [data-bs-theme="dark"] .form-select,
         .dark .form-control,
-        .dark .form-select {
+        .dark .form-select,
+        .dark .form-control.bg-white,
+        .dark .form-select.bg-white {
             background-color: #0b1f3b !important;
             border-color: rgba(56, 189, 248, 0.25) !important;
             color: #f8fafc !important;

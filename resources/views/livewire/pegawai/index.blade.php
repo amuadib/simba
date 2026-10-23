@@ -1393,24 +1393,24 @@ new class extends \Livewire\Volt\Component {
 
             <form wire:submit="{{ $action === 'edit' ? 'update' : 'store' }}" class="space-y-6">
                 {{-- Section 1: Data Pokok Pegawai --}}
-                <div class="p-4 md:p-5 rounded-2xl bg-slate-50/60 dark:bg-slate-850/40 border border-slate-200/70 dark:border-slate-800">
+                <div class="p-4 md:p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-cyan-400 font-display mb-4 flex items-center gap-2">
                         <i class="bi bi-person-vcard text-base"></i> 1. Data Pokok & Identitas Pegawai
                     </h4>
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                         <div class="md:col-span-3">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Gelar Depan</label>
-                            <input wire:model="gelar_depan" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Contoh: Dr., Drs., H.">
+                            <input wire:model="gelar_depan" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Contoh: Dr., Drs., H.">
                             @error('gelar_depan') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
                         <div class="md:col-span-6">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Nama Lengkap <span class="text-rose-500">*</span></label>
-                            <input wire:model="nama" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl font-semibold" placeholder="Nama lengkap tanpa gelar" required>
+                            <input wire:model="nama" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl font-semibold" placeholder="Nama lengkap tanpa gelar" required>
                             @error('nama') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
                         <div class="md:col-span-3">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Gelar Belakang</label>
-                            <input wire:model="gelar_belakang" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Contoh: M.Pd., S.Pd.">
+                            <input wire:model="gelar_belakang" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Contoh: M.Pd., S.Pd.">
                             @error('gelar_belakang') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
@@ -1431,46 +1431,46 @@ new class extends \Livewire\Volt\Component {
 
                         <div class="md:col-span-4">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">NIY (Nomor Induk Yayasan)</label>
-                            <input wire:model="niy" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Otomatis jika kosong">
+                            <input wire:model="niy" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Otomatis jika kosong">
                             <span class="text-[11px] text-slate-400 mt-0.5 block">Dikosongkan jika ingin dibuat otomatis</span>
                             @error('niy') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="md:col-span-4">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">NUPTK</label>
-                            <input wire:model="nuptk" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Nomor Unik Pendidik & Tenaga Kependidikan">
+                            <input wire:model="nuptk" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Nomor Unik Pendidik & Tenaga Kependidikan">
                             @error('nuptk') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="md:col-span-4">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">NIK (KTP)</label>
-                            <input wire:model="nik" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Nomor Induk Kependudukan">
+                            <input wire:model="nik" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Nomor Induk Kependudukan">
                             @error('nik') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="md:col-span-4">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Tempat Lahir</label>
-                            <input wire:model="tempat_lahir" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Tempat Lahir">
+                            <input wire:model="tempat_lahir" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Tempat Lahir">
                             @error('tempat_lahir') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="md:col-span-4">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Tanggal Lahir</label>
-                            <input type="date" wire:model="tanggal_lahir" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
+                            <input type="date" wire:model="tanggal_lahir" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
                             @error('tanggal_lahir') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
                     </div>
                 </div>
 
                 {{-- Section 2: Penugasan & Kepegawaian --}}
-                <div class="p-4 md:p-5 rounded-2xl bg-slate-50/60 dark:bg-slate-850/40 border border-slate-200/70 dark:border-slate-800">
+                <div class="p-4 md:p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-display mb-4 flex items-center gap-2">
                         <i class="bi bi-briefcase text-base"></i> 2. Penugasan & Kepegawaian
                     </h4>
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                         <div class="md:col-span-6">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Lembaga Induk / Satmikal Utama <span class="text-rose-500">*</span></label>
-                            <select wire:model="form_lembaga_id" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
+                            <select wire:model="form_lembaga_id" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                 <option value="">-- Pilih Lembaga --</option>
                                 @foreach ($daftarLembaga as $lid => $lname)
                                     <option value="{{ $lid }}">{{ $lname }}</option>
@@ -1482,7 +1482,7 @@ new class extends \Livewire\Volt\Component {
 
                         <div class="md:col-span-6">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Jabatan / Tugas</label>
-                            <select wire:model="form_jabatan" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
+                            <select wire:model="form_jabatan" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
                                 <option value="">-- Pilih Jabatan --</option>
                                 @foreach ($daftarJabatan as $jid => $jname)
                                     <option value="{{ $jid }}">{{ $jname }}</option>
@@ -1493,19 +1493,19 @@ new class extends \Livewire\Volt\Component {
 
                         <div class="md:col-span-4">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">TMT (Mulai Bertugas)</label>
-                            <input type="date" wire:model="tmt" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
+                            <input type="date" wire:model="tmt" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
                             @error('tmt') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="md:col-span-4">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Nomor SK Penugasan (Awal)</label>
-                            <input wire:model="form_nomor_sk" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Nomor Surat Keputusan">
+                            <input wire:model="form_nomor_sk" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Nomor Surat Keputusan">
                             @error('form_nomor_sk') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="md:col-span-4">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Status Pegawai <span class="text-rose-500">*</span></label>
-                            <select wire:model="form_status" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
+                            <select wire:model="form_status" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                 <option value="">-- Pilih Status --</option>
                                 @foreach ($statusOptions as $k => $v)
                                     <option value="{{ $k }}">{{ $v }}</option>
@@ -1517,7 +1517,7 @@ new class extends \Livewire\Volt\Component {
                 </div>
 
                 {{-- Section 3: Kontak, Foto & Domisili --}}
-                <div class="p-4 md:p-5 rounded-2xl bg-slate-50/60 dark:bg-slate-850/40 border border-slate-200/70 dark:border-slate-800">
+                <div class="p-4 md:p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 font-display mb-4 flex items-center gap-2">
                         <i class="bi bi-geo-alt text-base"></i> 3. Kontak, Foto & Domisili
                     </h4>
@@ -1525,17 +1525,17 @@ new class extends \Livewire\Volt\Component {
                         <div class="md:col-span-6">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Nomor HP / WhatsApp</label>
                             <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-emerald-600">
+                                <span class="input-group-text bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-emerald-600 dark:text-emerald-400">
                                     <i class="bi bi-whatsapp"></i>
                                 </span>
-                                <input wire:model="no_hp" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-e-xl" placeholder="08xxxxxxxxxx">
+                                <input wire:model="no_hp" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-e-xl" placeholder="08xxxxxxxxxx">
                             </div>
                             @error('no_hp') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="md:col-span-6">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Foto Profil Pegawai</label>
-                            <input type="file" wire:model="foto" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" accept="image/*">
+                            <input type="file" wire:model="foto" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" accept="image/*">
                             <div wire:loading wire:target="foto" class="mt-1 text-xs text-sky-500 flex items-center gap-1.5">
                                 <span class="spinner-border spinner-border-sm"></span> Mengunggah foto...
                             </div>
@@ -1564,14 +1564,14 @@ new class extends \Livewire\Volt\Component {
 
                         <div class="md:col-span-12">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Alamat Domisili Lengkap</label>
-                            <textarea wire:model="alamat" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" rows="3" placeholder="Alamat domisili lengkap jalan, RT/RW, kelurahan, kecamatan, dsb."></textarea>
+                            <textarea wire:model="alamat" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" rows="3" placeholder="Alamat domisili lengkap jalan, RT/RW, kelurahan, kecamatan, dsb."></textarea>
                             @error('alamat') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
                     </div>
                 </div>
 
                 {{-- Bottom Action Bar --}}
-                <div class="flex items-center justify-between pt-4 border-t border-slate-200/80 dark:border-slate-800">
+                <div class="flex items-center justify-between pt-4 border-t border-slate-200/80 dark:border-slate-700/60">
                     <button type="button" wire:click="resetForm" class="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-2">
                         <i class="bi bi-x-circle"></i> Batal
                     </button>
@@ -1589,7 +1589,7 @@ new class extends \Livewire\Volt\Component {
         @if ($pData)
             <div class="glass-panel rounded-3xl p-5 md:p-8 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl transition-all">
                 {{-- Detail Top Bar --}}
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-200/80 dark:border-slate-800">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-200/80 dark:border-slate-700/60">
                     <div class="flex items-center gap-4">
                         @if ($pData->foto && \Illuminate\Support\Facades\Storage::disk('public')->exists($pData->foto))
                             <img src="{{ asset('storage/' . $pData->foto) }}" alt="Foto" class="w-16 h-16 rounded-2xl object-cover shadow-md border-2 border-sky-500/30">
@@ -1641,8 +1641,8 @@ new class extends \Livewire\Volt\Component {
 
                 {{-- Detail Grid --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                    <div class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-850/40 border border-slate-200/80 dark:border-slate-800">
-                        <div class="text-xs text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
+                    <div class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
                             <i class="bi bi-building text-sky-500"></i> Lembaga Satmikal Induk
                         </div>
                         <div class="font-bold text-slate-800 dark:text-slate-200 text-sm">
@@ -1650,8 +1650,8 @@ new class extends \Livewire\Volt\Component {
                         </div>
                     </div>
 
-                    <div class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-850/40 border border-slate-200/80 dark:border-slate-800">
-                        <div class="text-xs text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
+                    <div class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
                             <i class="bi bi-award text-amber-500"></i> NUPTK
                         </div>
                         <div class="font-bold text-slate-800 dark:text-slate-200 text-sm">
@@ -1659,8 +1659,8 @@ new class extends \Livewire\Volt\Component {
                         </div>
                     </div>
 
-                    <div class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-850/40 border border-slate-200/80 dark:border-slate-800">
-                        <div class="text-xs text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
+                    <div class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
                             <i class="bi bi-card-text text-purple-500"></i> NIK (KTP)
                         </div>
                         <div class="font-bold text-slate-800 dark:text-slate-200 text-sm">
@@ -1668,8 +1668,8 @@ new class extends \Livewire\Volt\Component {
                         </div>
                     </div>
 
-                    <div class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-850/40 border border-slate-200/80 dark:border-slate-800">
-                        <div class="text-xs text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
+                    <div class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
                             <i class="bi bi-calendar-event text-pink-500"></i> Tempat, Tanggal Lahir
                         </div>
                         <div class="font-bold text-slate-800 dark:text-slate-200 text-sm">
@@ -1680,8 +1680,8 @@ new class extends \Livewire\Volt\Component {
                         </div>
                     </div>
 
-                    <div class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-850/40 border border-slate-200/80 dark:border-slate-800">
-                        <div class="text-xs text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
+                    <div class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
                             <i class="bi bi-clock-history text-emerald-500"></i> TMT (Mulai Bertugas)
                         </div>
                         <div class="font-bold text-slate-800 dark:text-slate-200 text-sm">
@@ -1692,8 +1692,8 @@ new class extends \Livewire\Volt\Component {
                         </div>
                     </div>
 
-                    <div class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-850/40 border border-slate-200/80 dark:border-slate-800">
-                        <div class="text-xs text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
+                    <div class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
                             <i class="bi bi-whatsapp text-emerald-500"></i> Kontak / WhatsApp
                         </div>
                         <div class="font-bold text-slate-800 dark:text-slate-200 text-sm">
@@ -1702,7 +1702,7 @@ new class extends \Livewire\Volt\Component {
                                     $cleanHp = preg_replace('/[^0-9]/', '', $pData->no_hp);
                                     $waNum = str_starts_with($cleanHp, '0') ? '62' . substr($cleanHp, 1) : $cleanHp;
                                 @endphp
-                                <a href="https://wa.me/{{ $waNum }}" target="_blank" class="text-emerald-600 hover:underline flex items-center gap-1">
+                                <a href="https://wa.me/{{ $waNum }}" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
                                     <i class="bi bi-whatsapp"></i> {{ $pData->no_hp }}
                                 </a>
                             @else
@@ -1711,8 +1711,8 @@ new class extends \Livewire\Volt\Component {
                         </div>
                     </div>
 
-                    <div class="md:col-span-2 lg:col-span-3 p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-850/40 border border-slate-200/80 dark:border-slate-800">
-                        <div class="text-xs text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
+                    <div class="md:col-span-2 lg:col-span-3 p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
                             <i class="bi bi-geo-alt text-rose-500"></i> Alamat Domisili
                         </div>
                         <div class="font-semibold text-slate-800 dark:text-slate-200 text-sm">
@@ -1722,7 +1722,7 @@ new class extends \Livewire\Volt\Component {
                 </div>
 
                 {{-- Riwayat SK Penugasan di Halaman --}}
-                <div class="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-850/40 border border-slate-200/80 dark:border-slate-800 mb-6">
+                <div class="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs mb-6">
                     <div class="flex items-center justify-between mb-4">
                         <h4 class="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-cyan-400 font-display flex items-center gap-2">
                             <i class="bi bi-file-earmark-medical text-base"></i> Riwayat Lembaga Bertugas & SK Penugasan
@@ -1736,12 +1736,12 @@ new class extends \Livewire\Volt\Component {
                         <table class="table table-hover align-middle mb-0 text-xs">
                             <thead class="bg-slate-100 dark:bg-slate-800 font-display">
                                 <tr>
-                                    <th class="py-2.5">Lembaga</th>
-                                    <th class="py-2.5">Jabatan / Tugas</th>
-                                    <th class="py-2.5">No. SK & Tanggal</th>
-                                    <th class="py-2.5">Masa Tugas</th>
-                                    <th class="text-center py-2.5">Status</th>
-                                    <th class="text-center py-2.5">Berkas</th>
+                                    <th class="py-2.5 text-slate-700 dark:text-slate-300">Lembaga</th>
+                                    <th class="py-2.5 text-slate-700 dark:text-slate-300">Jabatan / Tugas</th>
+                                    <th class="py-2.5 text-slate-700 dark:text-slate-300">No. SK & Tanggal</th>
+                                    <th class="py-2.5 text-slate-700 dark:text-slate-300">Masa Tugas</th>
+                                    <th class="text-center py-2.5 text-slate-700 dark:text-slate-300">Status</th>
+                                    <th class="text-center py-2.5 text-slate-700 dark:text-slate-300">Berkas</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1759,15 +1759,15 @@ new class extends \Livewire\Volt\Component {
                                                 </span>
                                             @endif
                                         </td>
-                                        <td class="font-medium">{{ $sk->nama_jabatan ?: '-' }}</td>
+                                        <td class="font-medium text-slate-700 dark:text-slate-300">{{ $sk->nama_jabatan ?: '-' }}</td>
                                         <td>
-                                            <div class="font-semibold">{{ $sk->nomor_sk ?: '-' }}</div>
+                                            <div class="font-semibold text-slate-800 dark:text-slate-200">{{ $sk->nomor_sk ?: '-' }}</div>
                                             @if ($sk->tanggal_sk)
                                                 <div class="text-[11px] text-slate-400">Tgl: {{ $sk->tanggal_sk->format('d/m/Y') }}</div>
                                             @endif
                                         </td>
                                         <td>
-                                            <div>TMT: {{ $sk->tmt_tugas ? $sk->tmt_tugas->format('d/m/Y') : '-' }}</div>
+                                            <div class="text-slate-700 dark:text-slate-300">TMT: {{ $sk->tmt_tugas ? $sk->tmt_tugas->format('d/m/Y') : '-' }}</div>
                                             @if ($sk->tmt_selesai)
                                                 <div class="text-[11px] text-slate-400">s/d {{ $sk->tmt_selesai->format('d/m/Y') }}</div>
                                             @else
@@ -1800,7 +1800,7 @@ new class extends \Livewire\Volt\Component {
                 </div>
 
                 {{-- Metadata & Bottom Back --}}
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-200/80 dark:border-slate-800 text-xs text-slate-400">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-200/80 dark:border-slate-700/60 text-xs text-slate-400">
                     <div>
                         ID Pegawai: <span class="font-mono text-slate-500">{{ $pData->id }}</span>
                         • Terdaftar: {{ $pData->created_at ? $pData->created_at->format('d/m/Y H:i') : '-' }}
@@ -1820,7 +1820,7 @@ new class extends \Livewire\Volt\Component {
         @if ($selectedPegawai)
             <div class="glass-panel rounded-3xl p-5 md:p-8 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl transition-all">
                 {{-- SK View Header --}}
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-200/80 dark:border-slate-800">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-200/80 dark:border-slate-700/60">
                     <div class="flex items-center gap-3">
                         <div class="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-500 dark:text-cyan-400 flex items-center justify-center text-2xl shadow-inner">
                             <i class="bi bi-file-earmark-medical"></i>
@@ -1845,7 +1845,7 @@ new class extends \Livewire\Volt\Component {
                 </div>
 
                 {{-- Selected Pegawai Profile Summary Banner --}}
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl mb-6 bg-slate-50/80 dark:bg-slate-850/50 border border-slate-200/80 dark:border-slate-800 shadow-inner">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl mb-6 bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
                     <div class="flex items-center gap-3">
                         @if ($selectedPegawai->foto && Storage::disk('public')->exists($selectedPegawai->foto))
                             <img src="{{ asset('storage/' . $selectedPegawai->foto) }}" class="w-12 h-12 rounded-xl object-cover shadow-sm border border-slate-200 dark:border-slate-700">
@@ -1883,14 +1883,14 @@ new class extends \Livewire\Volt\Component {
                         <table class="table table-hover align-middle mb-0 text-xs">
                             <thead class="bg-slate-100 dark:bg-slate-800 font-display">
                                 <tr>
-                                    <th class="py-2.5">Lembaga Penugasan</th>
-                                    <th class="py-2.5">Jabatan / Tugas</th>
-                                    <th class="py-2.5">Nomor SK & Tgl</th>
-                                    <th class="py-2.5">Masa Penugasan</th>
-                                    <th class="text-center py-2.5">Induk</th>
-                                    <th class="text-center py-2.5">Status</th>
-                                    <th class="text-center py-2.5">Dokumen</th>
-                                    <th class="text-center py-2.5" style="width: 140px;">Aksi</th>
+                                    <th class="py-2.5 text-slate-700 dark:text-slate-300">Lembaga Penugasan</th>
+                                    <th class="py-2.5 text-slate-700 dark:text-slate-300">Jabatan / Tugas</th>
+                                    <th class="py-2.5 text-slate-700 dark:text-slate-300">Nomor SK & Tgl</th>
+                                    <th class="py-2.5 text-slate-700 dark:text-slate-300">Masa Penugasan</th>
+                                    <th class="text-center py-2.5 text-slate-700 dark:text-slate-300">Induk</th>
+                                    <th class="text-center py-2.5 text-slate-700 dark:text-slate-300">Status</th>
+                                    <th class="text-center py-2.5 text-slate-700 dark:text-slate-300">Dokumen</th>
+                                    <th class="text-center py-2.5 text-slate-700 dark:text-slate-300" style="width: 140px;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1901,19 +1901,19 @@ new class extends \Livewire\Volt\Component {
                                             <span class="block text-[11px] text-slate-400">{{ nama_lembaga($skItem->lembaga_id, true) }}</span>
                                         </td>
                                         <td>
-                                            <span class="font-semibold">{{ $skItem->nama_jabatan ?: '-' }}</span>
+                                            <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $skItem->nama_jabatan ?: '-' }}</span>
                                             @if ($skItem->keterangan)
                                                 <div class="text-slate-400 text-[11px]">{{ $skItem->keterangan }}</div>
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="font-mono font-semibold">{{ $skItem->nomor_sk ?: '-' }}</div>
+                                            <div class="font-mono font-semibold text-slate-800 dark:text-slate-200">{{ $skItem->nomor_sk ?: '-' }}</div>
                                             @if ($skItem->tanggal_sk)
                                                 <div class="text-[11px] text-slate-400">SK: {{ $skItem->tanggal_sk->format('d/m/Y') }}</div>
                                             @endif
                                         </td>
                                         <td>
-                                            <div>TMT: {{ $skItem->tmt_tugas ? $skItem->tmt_tugas->format('d/m/Y') : '-' }}</div>
+                                            <div class="text-slate-700 dark:text-slate-300">TMT: {{ $skItem->tmt_tugas ? $skItem->tmt_tugas->format('d/m/Y') : '-' }}</div>
                                             @if ($skItem->tmt_selesai)
                                                 <div class="text-[11px] text-slate-400">s/d {{ $skItem->tmt_selesai->format('d/m/Y') }}</div>
                                             @else
@@ -1969,7 +1969,7 @@ new class extends \Livewire\Volt\Component {
                 </div>
 
                 {{-- Form Input / Edit SK Penugasan --}}
-                <div class="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-850/40 border {{ $isEditingSk ? 'border-amber-400 dark:border-amber-500/40' : 'border-slate-200/80 dark:border-slate-800' }}">
+                <div class="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border {{ $isEditingSk ? 'border-amber-400 dark:border-amber-500/40' : 'border-slate-200/80 dark:border-slate-700/60' }} shadow-xs">
                     <div class="flex items-center justify-between mb-4">
                         <h4 class="text-xs font-bold uppercase tracking-wider {{ $isEditingSk ? 'text-amber-600 dark:text-amber-400' : 'text-sky-600 dark:text-cyan-400' }} font-display flex items-center gap-2">
                             <i class="bi {{ $isEditingSk ? 'bi-pencil-square' : 'bi-plus-circle-fill' }}"></i>
@@ -1986,7 +1986,7 @@ new class extends \Livewire\Volt\Component {
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                             <div class="md:col-span-4">
                                 <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Lembaga Penugasan <span class="text-rose-500">*</span></label>
-                                <select wire:model="sk_lembaga_id" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
+                                <select wire:model="sk_lembaga_id" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                     <option value="">-- Pilih Lembaga --</option>
                                     @foreach ($daftarLembaga as $lid => $lname)
                                         <option value="{{ $lid }}">{{ $lname }}</option>
@@ -1997,7 +1997,7 @@ new class extends \Livewire\Volt\Component {
 
                             <div class="md:col-span-4">
                                 <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Jabatan / Tugas</label>
-                                <select wire:model="sk_jabatan" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
+                                <select wire:model="sk_jabatan" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
                                     <option value="">-- Pilih Jabatan --</option>
                                     @foreach ($daftarJabatan as $jid => $jname)
                                         <option value="{{ $jid }}">{{ $jname }}</option>
@@ -2008,32 +2008,32 @@ new class extends \Livewire\Volt\Component {
 
                             <div class="md:col-span-4">
                                 <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Nomor SK Penugasan</label>
-                                <input wire:model="sk_nomor" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Nomor Surat Keputusan">
+                                <input wire:model="sk_nomor" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Nomor Surat Keputusan">
                                 @error('sk_nomor') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="md:col-span-3">
                                 <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Tanggal SK Ditetapkan</label>
-                                <input type="date" wire:model="sk_tanggal" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
+                                <input type="date" wire:model="sk_tanggal" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
                                 @error('sk_tanggal') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="md:col-span-3">
                                 <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">TMT Tugas (Mulai)</label>
-                                <input type="date" wire:model="sk_tmt_tugas" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
+                                <input type="date" wire:model="sk_tmt_tugas" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
                                 @error('sk_tmt_tugas') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="md:col-span-3">
                                 <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">TMT Selesai (Opsional)</label>
-                                <input type="date" wire:model="sk_tmt_selesai" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
+                                <input type="date" wire:model="sk_tmt_selesai" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
                                 <span class="text-[11px] text-slate-400 mt-0.5 block">Kosongkan jika masih aktif / tetap</span>
                                 @error('sk_tmt_selesai') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="md:col-span-3">
                                 <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Status Penugasan <span class="text-rose-500">*</span></label>
-                                <select wire:model="sk_status" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
+                                <select wire:model="sk_status" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                     <option value="1">Aktif</option>
                                     <option value="0">Non-Aktif / Selesai</option>
                                 </select>
@@ -2042,7 +2042,7 @@ new class extends \Livewire\Volt\Component {
 
                             <div class="md:col-span-6">
                                 <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Unggah Dokumen SK (PDF / Gambar, Max 5MB)</label>
-                                <input type="file" wire:model="sk_file" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" accept=".pdf,image/*">
+                                <input type="file" wire:model="sk_file" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" accept=".pdf,image/*">
                                 <div wire:loading wire:target="sk_file" class="text-xs text-sky-500 mt-1 flex items-center gap-1.5">
                                     <span class="spinner-border spinner-border-sm"></span> Mengunggah berkas SK...
                                 </div>
@@ -2057,12 +2057,12 @@ new class extends \Livewire\Volt\Component {
 
                             <div class="md:col-span-6">
                                 <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Keterangan Tambahan</label>
-                                <input wire:model="sk_keterangan" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Catatan atau keterangan penugasan">
+                                <input wire:model="sk_keterangan" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Catatan atau keterangan penugasan">
                                 @error('sk_keterangan') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="md:col-span-12">
-                                <label class="flex items-center gap-2 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
+                                <label class="flex items-center gap-2 p-3 rounded-xl bg-slate-50/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer">
                                     <input wire:model="sk_is_induk" type="checkbox" class="form-check-input text-sky-600">
                                     <div>
                                         <span class="text-xs font-bold text-sky-700 dark:text-cyan-400 flex items-center gap-1">
@@ -2074,7 +2074,7 @@ new class extends \Livewire\Volt\Component {
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200/80 dark:border-slate-800">
+                        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200/80 dark:border-slate-700/60">
                             @if ($isEditingSk)
                                 <button type="button" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold" wire:click="cancelEditSk">
                                     Batal Edit
@@ -2112,7 +2112,7 @@ new class extends \Livewire\Volt\Component {
                     </p>
                     <div class="mb-3">
                         <label class="form-label text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">Pilih Lembaga Baru</label>
-                        <select wire:model="bulkLembagaId" class="form-select form-select-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
+                        <select wire:model="bulkLembagaId" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
                             <option value="">-- Tetap (Tidak Berubah) --</option>
                             @foreach ($daftarLembaga as $lid => $lname)
                                 <option value="{{ $lid }}">{{ $lname }}</option>
@@ -2121,7 +2121,7 @@ new class extends \Livewire\Volt\Component {
                     </div>
                     <div class="mb-5">
                         <label class="form-label text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">Pilih Status Baru</label>
-                        <select wire:model="bulkStatus" class="form-select form-select-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
+                        <select wire:model="bulkStatus" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
                             <option value="">-- Tetap (Tidak Berubah) --</option>
                             @foreach ($statusOptions as $k => $v)
                                 <option value="{{ $k }}">{{ $v }}</option>
@@ -2164,7 +2164,7 @@ new class extends \Livewire\Volt\Component {
                             Ketik karakter berikut untuk konfirmasi: 
                             <strong class="font-mono text-base ms-1 text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-900 user-select-none">{{ $randomConfirmString }}</strong>
                         </label>
-                        <input type="text" wire:model="confirmText" class="form-control form-control-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Ketik karakter konfirmasi..." autocomplete="off">
+                        <input type="text" wire:model="confirmText" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Ketik karakter konfirmasi..." autocomplete="off">
                     </div>
 
                     <div class="flex items-center justify-end gap-2 pt-2">
@@ -2184,7 +2184,7 @@ new class extends \Livewire\Volt\Component {
     @if ($historyPegawai)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
             <div class="w-full max-w-4xl max-h-[90vh] rounded-3xl border border-slate-200 dark:border-cyan-500/20 shadow-2xl bg-white dark:bg-slate-900 flex flex-col overflow-hidden">
-                <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-850">
+                <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
                     <div>
                         <h5 class="font-bold flex items-center gap-2 mb-0 text-slate-800 dark:text-slate-100 text-sm font-display">
                             <i class="bi bi-clock-history text-cyan-500"></i>
@@ -2236,10 +2236,10 @@ new class extends \Livewire\Volt\Component {
                         <table class="table table-hover align-middle mb-0 text-xs">
                             <thead class="bg-slate-100 dark:bg-slate-800 font-display">
                                 <tr>
-                                    <th style="width: 140px;" class="py-2.5">Waktu & User</th>
-                                    <th style="width: 100px;" class="py-2.5">Aksi</th>
-                                    <th class="py-2.5">Rincian Perubahan (Sebelum <i class="bi bi-arrow-right"></i> Sesudah)</th>
-                                    <th class="text-center py-2.5" style="width: 100px;">Aksi</th>
+                                    <th style="width: 140px;" class="py-2.5 text-slate-700 dark:text-slate-300">Waktu & User</th>
+                                    <th style="width: 100px;" class="py-2.5 text-slate-700 dark:text-slate-300">Aksi</th>
+                                    <th class="py-2.5 text-slate-700 dark:text-slate-300">Rincian Perubahan (Sebelum <i class="bi bi-arrow-right"></i> Sesudah)</th>
+                                    <th class="text-center py-2.5 text-slate-700 dark:text-slate-300" style="width: 100px;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -2291,10 +2291,10 @@ new class extends \Livewire\Volt\Component {
                                                     @foreach ($h->new_values as $field => $newVal)
                                                         @if (in_array($field, ['sk_id', 'id', 'pegawai_id'])) @continue @endif
                                                         @php
-                                                            $oldVal = $h->old_values[$field] ?? null;
-                                                            $fieldLabel = App\Models\PegawaiHistory::formatFieldName($field);
-                                                            $oldFormatted = App\Models\PegawaiHistory::formatFieldValue($field, $oldVal);
-                                                            $newFormatted = App\Models\PegawaiHistory::formatFieldValue($field, $newVal);
+                                                             $oldVal = $h->old_values[$field] ?? null;
+                                                             $fieldLabel = App\Models\PegawaiHistory::formatFieldName($field);
+                                                             $oldFormatted = App\Models\PegawaiHistory::formatFieldValue($field, $oldVal);
+                                                             $newFormatted = App\Models\PegawaiHistory::formatFieldValue($field, $newVal);
                                                         @endphp
                                                         <div class="p-1 px-2 rounded-lg bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-[11px] flex flex-wrap items-center gap-1.5">
                                                             <strong class="text-slate-600 dark:text-slate-400">{{ $fieldLabel }}:</strong>
@@ -2310,8 +2310,8 @@ new class extends \Livewire\Volt\Component {
                                                     @foreach ($h->old_values as $field => $oldVal)
                                                         @if (in_array($field, ['sk_id', 'id', 'pegawai_id']) || $oldVal === null || $oldVal === '') @continue @endif
                                                         @php
-                                                            $fieldLabel = App\Models\PegawaiHistory::formatFieldName($field);
-                                                            $oldFormatted = App\Models\PegawaiHistory::formatFieldValue($field, $oldVal);
+                                                             $fieldLabel = App\Models\PegawaiHistory::formatFieldName($field);
+                                                             $oldFormatted = App\Models\PegawaiHistory::formatFieldValue($field, $oldVal);
                                                         @endphp
                                                         <div class="p-1 px-2 rounded-lg bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-[11px] flex items-center gap-1.5">
                                                             <strong class="text-slate-600 dark:text-slate-400">{{ $fieldLabel }}:</strong>
@@ -2325,8 +2325,8 @@ new class extends \Livewire\Volt\Component {
                                                     @foreach ($h->new_values as $field => $newVal)
                                                         @if (in_array($field, ['sk_id', 'id', 'pegawai_id']) || $newVal === null || $newVal === '') @continue @endif
                                                         @php
-                                                            $fieldLabel = App\Models\PegawaiHistory::formatFieldName($field);
-                                                            $newFormatted = App\Models\PegawaiHistory::formatFieldValue($field, $newVal);
+                                                             $fieldLabel = App\Models\PegawaiHistory::formatFieldName($field);
+                                                             $newFormatted = App\Models\PegawaiHistory::formatFieldValue($field, $newVal);
                                                         @endphp
                                                         <div class="p-1 px-2 rounded-lg bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-[11px] flex items-center gap-1.5">
                                                             <strong class="text-slate-600 dark:text-slate-400">{{ $fieldLabel }}:</strong>
@@ -2367,7 +2367,7 @@ new class extends \Livewire\Volt\Component {
                         </table>
                     </div>
                 </div>
-                <div class="p-3 border-t border-slate-200 dark:border-slate-800 flex justify-end bg-slate-50 dark:bg-slate-850">
+                <div class="p-3 border-t border-slate-200 dark:border-slate-800 flex justify-end bg-slate-50 dark:bg-slate-800/80">
                     <button type="button" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold" wire:click="closeHistory">
                         Tutup
                     </button>

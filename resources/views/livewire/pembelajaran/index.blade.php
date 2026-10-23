@@ -422,7 +422,7 @@ new class extends \Livewire\Volt\Component {
                             </table>
                         </div>
 
-                        <form wire:submit="storeJadwal" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850/50 border border-slate-200 dark:border-slate-800 space-y-3">
+                        <form wire:submit="storeJadwal" class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs space-y-3">
                             <h6 class="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-cyan-400 font-display flex items-center gap-1.5 mb-2">
                                 @if ($jadwal_hari == '')
                                     <i class="bi bi-plus-circle"></i> Tambah Jadwal Baru
@@ -433,7 +433,7 @@ new class extends \Livewire\Volt\Component {
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                                 <div class="md:col-span-3">
                                     <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Hari</label>
-                                    <select wire:model="jadwal_hari" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
+                                    <select wire:model="jadwal_hari" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                         <option value="">--Pilih Hari--</option>
                                         @foreach ($hariOptions as $k => $v)
                                             <option value="{{ $k }}">{{ $v }}</option>
@@ -442,15 +442,15 @@ new class extends \Livewire\Volt\Component {
                                 </div>
                                 <div class="md:col-span-2">
                                     <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Mulai</label>
-                                    <input type="time" wire:model="jadwal_jam_mulai" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
+                                    <input type="time" wire:model="jadwal_jam_mulai" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                 </div>
                                 <div class="md:col-span-2">
                                     <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Selesai</label>
-                                    <input type="time" wire:model="jadwal_jam_selesai" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
+                                    <input type="time" wire:model="jadwal_jam_selesai" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                 </div>
                                 <div class="md:col-span-3">
                                     <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Pengampu</label>
-                                    <select wire:model="jadwal_user_id" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
+                                    <select wire:model="jadwal_user_id" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                         <option value="">--Pilih Guru--</option>
                                         @foreach ($users as $u)
                                             <option value="{{ $u->id }}">{{ $u->name }}</option>
@@ -466,7 +466,7 @@ new class extends \Livewire\Volt\Component {
                         <div class="text-center py-4 text-slate-400 text-xs">Memuat data...</div>
                     @endif
                 </div>
-                <div class="p-3 border-t border-slate-200 dark:border-slate-800 flex justify-end bg-slate-50 dark:bg-slate-850">
+                <div class="p-3 border-t border-slate-200 dark:border-slate-800 flex justify-end bg-slate-50 dark:bg-slate-800/80">
                     <button type="button" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold" wire:click="$set('jadwal_pembelajaran_id', null)">
                         Tutup
                     </button>

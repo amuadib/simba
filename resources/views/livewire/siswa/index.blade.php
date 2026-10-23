@@ -1286,7 +1286,7 @@ new class extends \Livewire\Volt\Component {
                                 @error('foto') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
 
                                 @if ($foto && !is_string($foto))
-                                    <div class="mt-3 flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                    <div class="mt-3 flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
                                         <img src="{{ $foto->temporaryUrl() }}" class="w-20 h-20 rounded-xl object-cover shadow-sm">
                                         <div class="text-xs text-slate-500 dark:text-slate-400">
                                             <span class="font-bold text-emerald-600 dark:text-emerald-400 block mb-0.5">Foto Baru Dipilih</span>
@@ -1294,7 +1294,7 @@ new class extends \Livewire\Volt\Component {
                                         </div>
                                     </div>
                                 @elseif ($existing_foto)
-                                    <div class="mt-3 flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                    <div class="mt-3 flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
                                         <img src="{{ asset('storage/' . $existing_foto) }}" class="w-20 h-20 rounded-xl object-cover shadow-sm">
                                         <div class="text-xs text-slate-500 dark:text-slate-400">
                                             <span class="font-bold text-slate-700 dark:text-slate-300 block mb-0.5">Foto Saat Ini</span>
@@ -1343,7 +1343,7 @@ new class extends \Livewire\Volt\Component {
                                     </div>
 
                                     <div x-show="open && suggestions.length > 0" x-cloak
-                                         class="absolute z-20 mt-1.5 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl overflow-auto max-h-48 divide-y divide-slate-100 dark:divide-slate-800">
+                                         class="absolute z-20 mt-1.5 w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl overflow-auto max-h-48 divide-y divide-slate-100 dark:divide-slate-800">
                                         <template x-for="suggestion in suggestions" :key="suggestion">
                                             <div @click="addTag(suggestion)"
                                                  class="px-3.5 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-slate-800 cursor-pointer transition-colors flex items-center justify-between">
@@ -1423,9 +1423,9 @@ new class extends \Livewire\Volt\Component {
                 <div class="p-6 rounded-2xl bg-gradient-to-r from-sky-600/10 via-cyan-500/10 to-emerald-500/10 border border-sky-500/20 dark:border-cyan-500/30 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                     <div class="flex items-center gap-4">
                         @if ($sData->foto)
-                            <img src="{{ asset('storage/' . $sData->foto) }}" class="w-20 h-20 rounded-2xl object-cover shadow-md border-2 border-white dark:border-slate-800">
+                            <img src="{{ asset('storage/' . $sData->foto) }}" class="w-20 h-20 rounded-2xl object-cover shadow-md border-2 border-slate-200 dark:border-slate-700">
                         @else
-                            <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-400 text-white flex items-center justify-center font-bold text-2xl shadow-md border-2 border-white dark:border-slate-800">
+                            <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-400 text-white flex items-center justify-center font-bold text-2xl shadow-md border-2 border-slate-200 dark:border-slate-700">
                                 {{ strtoupper(substr($sData->nama, 0, 2)) }}
                             </div>
                         @endif
@@ -1438,8 +1438,8 @@ new class extends \Livewire\Volt\Component {
                                 @endif
                             </div>
                             <div class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-3 flex-wrap">
-                                <span>NISN: <strong class="text-slate-700 dark:text-slate-200">{{ $sData->nisn ?? '-' }}</strong></span>
-                                <span>NIS: <strong class="text-slate-700 dark:text-slate-200">{{ $sData->nis ?? '-' }}</strong></span>
+                                <span>NISN: <strong class="text-slate-700 dark:text-slate-200 font-mono">{{ $sData->nisn ?? '-' }}</strong></span>
+                                <span>NIS: <strong class="text-slate-700 dark:text-slate-200 font-mono">{{ $sData->nis ?? '-' }}</strong></span>
                                 <span>JK: <strong class="text-slate-700 dark:text-slate-200">{{ $sData->jenis_kelamin == 'L' ? 'Laki-laki' : ($sData->jenis_kelamin == 'P' ? 'Perempuan' : '-') }}</strong></span>
                             </div>
                             <div class="flex items-center gap-2 mt-2 flex-wrap">
@@ -1471,69 +1471,84 @@ new class extends \Livewire\Volt\Component {
                 {{-- Detail Sections Grid --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {{-- Card 1: Data Kelahiran & Identitas --}}
-                    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-2">
-                            <i class="bi bi-card-text text-sky-500"></i> Data Kependudukan & Kelahiran
+                    <div class="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-cyan-400 mb-3 flex items-center gap-2 font-display">
+                            <i class="bi bi-card-text text-sky-500 dark:text-cyan-400 text-sm"></i> Data Kependudukan & Kelahiran
                         </h4>
-                        <dl class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                        <dl class="divide-y divide-slate-200/70 dark:divide-slate-700/60 text-xs mb-0">
                             <div class="py-2.5 flex justify-between gap-4">
-                                <dt class="text-slate-500">NIK (KTP/KIA)</dt>
-                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->nik ?? '-' }}</dd>
+                                <dt class="text-slate-500 dark:text-slate-400 font-medium">NIK (KTP/KIA)</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right m-0 font-mono">{{ $sData->nik ?? '-' }}</dd>
                             </div>
                             <div class="py-2.5 flex justify-between gap-4">
-                                <dt class="text-slate-500">Tempat, Tanggal Lahir</dt>
-                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">
+                                <dt class="text-slate-500 dark:text-slate-400 font-medium">Tempat, Tanggal Lahir</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right m-0">
                                     {{ $sData->tempat_lahir ?? '-' }}, {{ $sData->tanggal_lahir ? date('d M Y', strtotime($sData->tanggal_lahir)) : '-' }}
+                                    @if ($sData->tanggal_lahir)
+                                        <span class="text-slate-400 dark:text-slate-500 font-normal">({{ \Carbon\Carbon::parse($sData->tanggal_lahir)->age }} th)</span>
+                                    @endif
                                 </dd>
                             </div>
                             <div class="py-2.5 flex justify-between gap-4">
-                                <dt class="text-slate-500">No. Kartu Keluarga (KK)</dt>
-                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->no_kk ?? '-' }}</dd>
+                                <dt class="text-slate-500 dark:text-slate-400 font-medium">No. Kartu Keluarga (KK)</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right m-0 font-mono">{{ $sData->no_kk ?? '-' }}</dd>
                             </div>
                             <div class="py-2.5 flex justify-between gap-4">
-                                <dt class="text-slate-500">No. Akte Kelahiran</dt>
-                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->no_akte ?? '-' }}</dd>
+                                <dt class="text-slate-500 dark:text-slate-400 font-medium">No. Akte Kelahiran</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right m-0 font-mono">{{ $sData->no_akte ?? '-' }}</dd>
                             </div>
                         </dl>
                     </div>
 
                     {{-- Card 2: Kontak & Orang Tua --}}
-                    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-2">
-                            <i class="bi bi-people text-emerald-500"></i> Orang Tua & Kontak
+                    <div class="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-emerald-400 mb-3 flex items-center gap-2 font-display">
+                            <i class="bi bi-people text-emerald-500 dark:text-emerald-400 text-sm"></i> Orang Tua & Kontak
                         </h4>
-                        <dl class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                        <dl class="divide-y divide-slate-200/70 dark:divide-slate-700/60 text-xs mb-0">
                             <div class="py-2.5 flex justify-between gap-4">
-                                <dt class="text-slate-500">Nama Ayah</dt>
-                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->ayah ?? '-' }}</dd>
+                                <dt class="text-slate-500 dark:text-slate-400 font-medium">Nama Ayah</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right m-0">{{ $sData->ayah ?? '-' }}</dd>
                             </div>
                             <div class="py-2.5 flex justify-between gap-4">
-                                <dt class="text-slate-500">Nama Ibu</dt>
-                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->ibu ?? '-' }}</dd>
+                                <dt class="text-slate-500 dark:text-slate-400 font-medium">Nama Ibu</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right m-0">{{ $sData->ibu ?? '-' }}</dd>
                             </div>
                             <div class="py-2.5 flex justify-between gap-4">
-                                <dt class="text-slate-500">Nomor Telepon/WA</dt>
-                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->telepon ?? '-' }}</dd>
+                                <dt class="text-slate-500 dark:text-slate-400 font-medium">Nomor Telepon/WA</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right m-0">
+                                    @if ($sData->telepon)
+                                        @php
+                                            $cleanHp = preg_replace('/[^0-9]/', '', $sData->telepon);
+                                            $waNum = str_starts_with($cleanHp, '0') ? '62' . substr($cleanHp, 1) : $cleanHp;
+                                        @endphp
+                                        <a href="https://wa.me/{{ $waNum }}" target="_blank" class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:underline">
+                                            <i class="bi bi-whatsapp"></i> {{ $sData->telepon }}
+                                        </a>
+                                    @else
+                                        -
+                                    @endif
+                                </dd>
                             </div>
                             <div class="py-2.5 flex justify-between gap-4">
-                                <dt class="text-slate-500">Alamat</dt>
-                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->alamat ?? '-' }}</dd>
+                                <dt class="text-slate-500 dark:text-slate-400 font-medium">Alamat</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right m-0">{{ $sData->alamat ?? '-' }}</dd>
                             </div>
                         </dl>
                     </div>
 
                     {{-- Card 3: Tag Label --}}
-                    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 shadow-xs md:col-span-2">
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-2">
-                            <i class="bi bi-tags text-purple-500"></i> Tag Label Terpasang
+                    <div class="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs md:col-span-2">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-purple-400 mb-3 flex items-center gap-2 font-display">
+                            <i class="bi bi-tags text-purple-500 dark:text-purple-400 text-sm"></i> Tag Label Terpasang
                         </h4>
                         <div class="flex flex-wrap gap-2">
                             @forelse ($sData->tags as $t)
-                                <span class="badge bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-lg text-xs">
+                                <span class="badge bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-lg text-xs font-medium">
                                     #{{ $t->nama }}
                                 </span>
                             @empty
-                                <span class="text-xs text-slate-400 italic">Belum ada tag untuk siswa ini.</span>
+                                <span class="text-xs text-slate-400 dark:text-slate-500 italic">Belum ada tag untuk siswa ini.</span>
                             @endforelse
                         </div>
                     </div>
@@ -1541,11 +1556,11 @@ new class extends \Livewire\Volt\Component {
 
                 {{-- Bottom Return Button --}}
                 <div class="mt-8 pt-5 border-t border-slate-200/80 dark:border-slate-800 flex justify-between items-center">
-                    <button type="button" wire:click="resetForm" class="btn btn-secondary rounded-xl px-5 py-2.5 text-xs font-semibold">
-                        <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar Siswa
+                    <button type="button" wire:click="resetForm" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 border border-slate-200 dark:border-slate-700">
+                        <i class="bi bi-arrow-left"></i> Kembali ke Daftar Siswa
                     </button>
-                    <button type="button" wire:click="edit('{{ $sData->id }}')" class="btn btn-warning rounded-xl px-5 py-2.5 text-xs font-semibold">
-                        <i class="bi bi-pencil-square me-1"></i> Edit Data Ini
+                    <button type="button" wire:click="edit('{{ $sData->id }}')" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                        <i class="bi bi-pencil-square"></i> Edit Data Siswa Ini
                     </button>
                 </div>
             </div>
@@ -1555,7 +1570,7 @@ new class extends \Livewire\Volt\Component {
     {{-- MODAL BULK UPDATE (TAILWIND / ALPINE) --}}
     @if ($showBulkUpdateModal)
         <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" x-transition>
-            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-cyan-500/30 shadow-2xl w-full max-w-lg overflow-hidden">
+            <div class="bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-cyan-500/30 shadow-2xl w-full max-w-lg overflow-hidden">
                 <div class="p-4 md:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                     <h5 class="font-bold flex items-center gap-2 mb-0 text-slate-900 dark:text-white">
                         <i class="bi bi-pencil-square text-sky-500"></i> Update Data secara Massal
@@ -1624,7 +1639,7 @@ new class extends \Livewire\Volt\Component {
                                         placeholder="Ketik tag...">
                             </div>
                             <div x-show="open && suggestions.length > 0" x-cloak
-                                 class="absolute z-20 mt-1.5 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl overflow-auto max-h-40 divide-y divide-slate-100 dark:divide-slate-800">
+                                 class="absolute z-20 mt-1.5 w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl overflow-auto max-h-40 divide-y divide-slate-100 dark:divide-slate-800">
                                 <template x-for="suggestion in suggestions" :key="suggestion">
                                     <div @click="addTag(suggestion)"
                                          class="px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-slate-800 cursor-pointer transition-colors flex items-center justify-between">
@@ -1651,7 +1666,7 @@ new class extends \Livewire\Volt\Component {
     {{-- MODAL BULK DELETE (TAILWIND / ALPINE) --}}
     @if ($showBulkDeleteModal)
         <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" x-transition>
-            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-rose-500/30 shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="bg-slate-50 dark:bg-slate-900 rounded-3xl border border-rose-500/30 shadow-2xl w-full max-w-md overflow-hidden">
                 <div class="p-4 md:p-5 bg-gradient-to-r from-rose-600 to-red-700 text-white flex items-center justify-between">
                     <h5 class="font-bold flex items-center gap-2 mb-0 text-white text-sm">
                         <i class="bi bi-exclamation-triangle"></i> Konfirmasi Hapus Massal
@@ -1691,7 +1706,7 @@ new class extends \Livewire\Volt\Component {
     {{-- MODAL RIWAYAT PERUBAHAN SISWA (TAILWIND / ALPINE) --}}
     @if ($historySiswaId && $historySiswa)
         <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" x-transition>
-            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-cyan-500/30 shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-cyan-500/30 shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[90vh]">
                 <div class="p-4 md:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                     <div>
                         <h5 class="font-bold flex items-center gap-2 mb-0 text-slate-900 dark:text-white">
