@@ -627,13 +627,14 @@
         }
 
         /* SIDEBAR DESKTOP STICKY DOCKING UNDER HEADER */
-        @media (min-width: 992px) {
+        @media (min-width: 1024px) {
             #sidebar {
                 position: sticky !important;
                 top: 4rem !important;
                 height: calc(100vh - 4rem) !important;
                 height: calc(100dvh - 4rem) !important;
                 z-index: 30 !important;
+                transform: none !important;
             }
         }
     </style>
@@ -644,6 +645,7 @@
 
 <body x-data="{ 
     theme: localStorage.getItem('theme') || 'light',
+    sidebarOpen: false,
     toggleTheme() {
         this.theme = this.theme === 'dark' ? 'light' : 'dark';
         localStorage.setItem('theme', this.theme);
@@ -655,16 +657,17 @@
             document.documentElement.classList.remove('dark');
         }
     }
-}" :data-theme="theme" :data-bs-theme="theme" class="bg-circuit-ambient min-h-screen flex flex-col antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+}" x-on:livewire:navigated.window="sidebarOpen = false" x-on:keydown.escape.window="sidebarOpen = false" :data-theme="theme" :data-bs-theme="theme" class="bg-circuit-ambient min-h-screen flex flex-col antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
 
     <!-- TOP MODERN NAVBAR -->
-    <header class="sticky top-0 z-50 h-16 glass-panel border-b border-sky-500/15 backdrop-blur-xl transition-all flex items-center">
+    <header class="sticky top-0 z-40 h-16 glass-panel border-b border-sky-500/15 backdrop-blur-xl transition-all flex items-center">
         <div class="px-4 w-full flex items-center justify-between gap-4">
             
             {{-- Brand & Mobile Toggle --}}
             <div class="flex items-center gap-3">
-                <button class="lg:hidden p-2 rounded-xl text-slate-500 hover:text-cyan-500 hover:bg-cyan-500/10 transition-colors" 
-                        data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Buka Menu">
+                <button type="button" @click="sidebarOpen = !sidebarOpen" 
+                        class="lg:hidden p-2 rounded-xl text-slate-500 hover:text-cyan-500 hover:bg-cyan-500/10 transition-colors" 
+                        aria-label="Buka Menu">
                     <i class="bi bi-list text-2xl"></i>
                 </button>
 
@@ -775,7 +778,6 @@
     </div>
 
     {{-- SCRIPTS --}}
-    <script src="{{ asset('bootstrap.bundle.min.js') }}"></script>
     <script>
         const now = new Date("{{ now() }}");
         const clockOptions = {

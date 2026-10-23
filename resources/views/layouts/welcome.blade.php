@@ -754,8 +754,6 @@
         </div>
     </footer>
 
-    {{-- Bootstrap JS --}}
-    <script src="{{ asset('bootstrap.bundle.min.js') }}"></script>
     @livewireScripts
 </body>
 

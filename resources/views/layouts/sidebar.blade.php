@@ -84,16 +84,32 @@
     ];
 @endphp
 
-<aside class="offcanvas-lg offcanvas-start w-64 lg:w-68 flex-shrink-0 bg-white/95 dark:bg-[#07162b]/95 backdrop-blur-xl border-r border-slate-200 dark:border-cyan-500/15 flex flex-col lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] shadow-lg lg:shadow-none z-40 lg:z-30" 
-       tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+{{-- Mobile Backdrop --}}
+<div x-show="sidebarOpen" 
+     x-transition:enter="transition-opacity ease-linear duration-300"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition-opacity ease-linear duration-300"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     @click="sidebarOpen = false"
+     class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 lg:hidden"
+     x-cloak>
+</div>
 
-    {{-- Offcanvas Header for Mobile --}}
+<aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+       class="fixed inset-y-0 left-0 z-50 w-64 lg:w-68 flex-shrink-0 bg-white/95 dark:bg-[#07162b]/95 backdrop-blur-xl border-r border-slate-200 dark:border-cyan-500/15 flex flex-col transition-transform duration-300 ease-in-out lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] shadow-2xl lg:shadow-none lg:z-30" 
+       id="sidebar">
+
+    {{-- Header for Mobile --}}
     <div class="p-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 lg:hidden">
         <div class="flex items-center gap-2">
             <img src="{{ logo_url() }}" alt="Logo" class="w-8 h-8 object-contain">
-            <span class="font-bold text-gradient-logo font-display">SIMBA</span>
+            <span class="font-bold text-gradient-logo font-display">{{ config('local.app.nama', 'SIMBA') }}</span>
         </div>
-        <button type="button" class="btn-close dark:btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#sidebar" aria-label="Tutup"></button>
+        <button type="button" @click="sidebarOpen = false" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" aria-label="Tutup Menu">
+            <i class="bi bi-x-lg text-lg"></i>
+        </button>
     </div>
 
     {{-- Menu List (Scrollable) --}}
@@ -123,6 +139,7 @@
 
                             <a href="{{ route($menu['url'] ?? $menu['route']) }}" 
                                wire:navigate
+                               @click="sidebarOpen = false"
                                class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-decoration-none relative
                                       {{ $isActive 
                                           ? 'bg-gradient-to-r from-sky-500/15 via-cyan-500/10 to-emerald-500/10 text-sky-600 dark:text-cyan-300 font-semibold border-l-4 border-cyan-500 shadow-sm' 

@@ -398,7 +398,7 @@ new #[Layout('layouts.welcome')] class extends Component {
             </div>
 
             {{-- Grid Cards Lembaga Lain --}}
-            <div class="row g-4">
+            <div class="row g-4" x-data="{ activeModal: null }">
                 @forelse ($lembagaLain as $item)
                     @if ($filterJenjang !== 'all' && ($item['kategori'] ?? '') !== $filterJenjang)
                         @continue
@@ -543,158 +543,172 @@ new #[Layout('layouts.welcome')] class extends Component {
                                     </a>
                                 @endif
 
-                                <button type="button" class="btn btn-action-card btn-action-card-detail flex-fill" data-bs-toggle="modal" data-bs-target="#modalDetail{{ $item['id'] }}">
+                                <button type="button" class="btn btn-action-card btn-action-card-detail flex-fill" @click="activeModal = {{ $item['id'] }}">
                                     <i class="bi bi-info-circle"></i> Detail
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Modal Detail Lembaga --}}
-                    <div class="modal fade" id="modalDetail{{ $item['id'] }}" tabindex="-1" aria-labelledby="modalLabel{{ $item['id'] }}" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered modal-lg">
-                            <div class="modal-content glass-card p-2" style="background: var(--card-bg-solid); border: 1px solid var(--card-border);">
-                                <div class="modal-header border-0 pb-0">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="unit-logo" style="width: 52px; height: 52px;">
-                                            <img src="{{ $this->getLogo($item) }}" alt="{{ $item['singkatan'] ?? 'Logo' }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                                        </div>
-                                        <div>
-                                            <h5 class="modal-title fw-bold text-heading" id="modalLabel{{ $item['id'] }}">
-                                                {{ $item['nama'] }}
-                                            </h5>
-                                            <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
-                                                <span class="badge bg-{{ $item['badge_color'] }}-subtle text-{{ $item['badge_color'] }} rounded-pill small">
-                                                    {{ $item['label_tingkat'] }}
+                    {{-- Modal Detail Lembaga via Alpine.js --}}
+                    <div x-show="activeModal === {{ $item['id'] }}" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-95"
+                         @keydown.escape.window="activeModal = null"
+                         style="position: fixed; inset: 0; z-index: 1055; overflow-y: auto; display: flex; align-items: center; justify-content: center; padding: 1rem;"
+                         x-cloak>
+                        
+                        {{-- Backdrop --}}
+                        <div style="position: fixed; inset: 0; background: rgba(5, 14, 26, 0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);" @click="activeModal = null"></div>
+
+                        {{-- Modal Box --}}
+                        <div class="glass-card p-3 shadow-lg rounded-4" 
+                             style="position: relative; width: 100%; max-width: 800px; background: var(--card-bg-solid); border: 1px solid var(--card-border); z-index: 1056; max-height: 90vh; overflow-y: auto;"
+                             @click.stop>
+                            <div class="modal-header border-0 pb-0">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="unit-logo" style="width: 52px; height: 52px;">
+                                        <img src="{{ $this->getLogo($item) }}" alt="{{ $item['singkatan'] ?? 'Logo' }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                    </div>
+                                    <div>
+                                        <h5 class="modal-title fw-bold text-heading" id="modalLabel{{ $item['id'] }}">
+                                            {{ $item['nama'] }}
+                                        </h5>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
+                                            <span class="badge bg-{{ $item['badge_color'] }}-subtle text-{{ $item['badge_color'] }} rounded-pill small">
+                                                {{ $item['label_tingkat'] }}
+                                            </span>
+                                            @if (!empty($item['akreditasi']))
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill small fw-bold">
+                                                    <i class="bi bi-patch-check-fill text-warning me-1"></i> Terakreditasi {{ $item['akreditasi'] }}
                                                 </span>
-                                                @if (!empty($item['akreditasi']))
-                                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill small fw-bold">
-                                                        <i class="bi bi-patch-check-fill text-warning me-1"></i> Terakreditasi {{ $item['akreditasi'] }}
+                                            @endif
+                                            @if (!empty($item['npsn']))
+                                                <span class="badge bg-secondary-subtle text-secondary rounded-pill small font-monospace">
+                                                    NPSN: {{ $item['npsn'] }}
+                                                </span>
+                                            @endif
+                                            @if (!empty($item['nomor_statistik']))
+                                                <span class="badge bg-secondary-subtle text-secondary rounded-pill small font-monospace">
+                                                    NS: {{ $item['nomor_statistik'] }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-close" @click="activeModal = null" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body py-4">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-3 h-100" style="background: var(--bg-page-subtle); border: 1px solid var(--card-border);">
+                                            <h6 class="fw-bold text-heading mb-3"><i class="bi bi-info-circle-fill text-primary me-2"></i>Informasi Umum</h6>
+                                            @if (!empty($item['npsn']))
+                                                <div class="mb-2.5">
+                                                    <span class="text-muted small d-block">NPSN (Nomor Pokok Sekolah Nasional):</span>
+                                                    <span class="fw-bold text-heading font-monospace">{{ $item['npsn'] }}</span>
+                                                </div>
+                                            @endif
+                                            @if (!empty($item['nomor_statistik']))
+                                                <div class="mb-2.5">
+                                                    <span class="text-muted small d-block">Nomor Statistik (NSS / NSM):</span>
+                                                    <span class="fw-bold text-heading font-monospace">{{ $item['nomor_statistik'] }}</span>
+                                                </div>
+                                            @endif
+                                            @if (!empty($item['akreditasi']))
+                                                <div class="mb-2.5">
+                                                    <span class="text-muted small d-block">Status Akreditasi:</span>
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-bold px-2 py-1">
+                                                        <i class="bi bi-patch-check-fill text-warning me-1"></i> Akreditasi {{ $item['akreditasi'] }}
                                                     </span>
-                                                @endif
-                                                @if (!empty($item['npsn']))
-                                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill small font-monospace">
-                                                        NPSN: {{ $item['npsn'] }}
-                                                    </span>
-                                                @endif
-                                                @if (!empty($item['nomor_statistik']))
-                                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill small font-monospace">
-                                                        NS: {{ $item['nomor_statistik'] }}
-                                                    </span>
-                                                @endif
+                                                </div>
+                                            @endif
+                                            <div class="mb-2.5">
+                                                <span class="text-muted small d-block">Kepala Lembaga:</span>
+                                                <strong class="text-heading">{{ $item['kepala'] ?: '-' }}</strong>
+                                            </div>
+                                            <div class="mb-2.5">
+                                                <span class="text-muted small d-block">Alamat Lengkap:</span>
+                                                <span class="text-heading small">{{ $item['alamat'] ?: '-' }}</span>
+                                            </div>
+                                            <div class="mb-2.5">
+                                                <span class="text-muted small d-block">Kontak / Telepon:</span>
+                                                <span class="text-heading small">{{ $item['telp'] ?: $item['kontak'] ?: '-' }}</span>
+                                            </div>
+                                            <div class="mb-2.5">
+                                                <span class="text-muted small d-block">Email Resmi:</span>
+                                                <span class="text-heading small">{{ $item['email'] ?: '-' }}</span>
+                                            </div>
+                                            @if (!empty($item['website']))
+                                                <div>
+                                                    <span class="text-muted small d-block">Website Resmi:</span>
+                                                    <a href="{{ str_starts_with($item['website'], 'http') ? $item['website'] : 'https://' . $item['website'] }}" target="_blank" rel="noopener" class="small text-primary text-decoration-none fw-semibold">
+                                                        <i class="bi bi-globe me-1"></i> {{ $item['website'] }} <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.7rem;"></i>
+                                                    </a>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-3 h-100" style="background: var(--bg-page-subtle); border: 1px solid var(--card-border);">
+                                            <h6 class="fw-bold text-heading mb-3"><i class="bi bi-clock-fill text-warning me-2"></i>Jadwal & Jam Operasional</h6>
+                                            @if (is_array($item['jam_kerja'] ?? null))
+                                                <ul class="list-unstyled mb-0 small">
+                                                    @foreach ($item['jam_kerja'] as $jam)
+                                                        <li class="mb-1.5 d-flex align-items-center gap-2">
+                                                            <i class="bi bi-check2 text-success"></i>
+                                                            <span class="text-heading">{{ $jam }}</span>
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            @else
+                                                <div class="text-heading small">{{ $item['jam_kerja'] ?? 'Senin - Sabtu' }}</div>
+                                            @endif
+
+                                            <hr class="my-3 opacity-25">
+
+                                            <h6 class="fw-bold text-heading mb-2"><i class="bi bi-bar-chart-fill text-info me-2"></i>Data Sivitas Akademika</h6>
+                                            <div class="d-flex gap-3">
+                                                <div>
+                                                    <span class="text-muted small d-block">Total Siswa:</span>
+                                                    <span class="fs-5 fw-bold text-primary">{{ $item['total_siswa'] ?? 0 }}</span>
+                                                </div>
+                                                <div class="vr opacity-25"></div>
+                                                <div>
+                                                    <span class="text-muted small d-block">Guru & Pegawai:</span>
+                                                    <span class="fs-5 fw-bold text-warning">{{ $item['total_pegawai'] ?? 0 }}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body py-4">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <div class="p-3 rounded-3 h-100" style="background: var(--bg-page-subtle); border: 1px solid var(--card-border);">
-                                                <h6 class="fw-bold text-heading mb-3"><i class="bi bi-info-circle-fill text-primary me-2"></i>Informasi Umum</h6>
-                                                @if (!empty($item['npsn']))
-                                                    <div class="mb-2.5">
-                                                        <span class="text-muted small d-block">NPSN (Nomor Pokok Sekolah Nasional):</span>
-                                                        <span class="fw-bold text-heading font-monospace">{{ $item['npsn'] }}</span>
-                                                    </div>
-                                                @endif
-                                                @if (!empty($item['nomor_statistik']))
-                                                    <div class="mb-2.5">
-                                                        <span class="text-muted small d-block">Nomor Statistik (NSS / NSM):</span>
-                                                        <span class="fw-bold text-heading font-monospace">{{ $item['nomor_statistik'] }}</span>
-                                                    </div>
-                                                @endif
-                                                @if (!empty($item['akreditasi']))
-                                                    <div class="mb-2.5">
-                                                        <span class="text-muted small d-block">Status Akreditasi:</span>
-                                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-bold px-2 py-1">
-                                                            <i class="bi bi-patch-check-fill text-warning me-1"></i> Akreditasi {{ $item['akreditasi'] }}
-                                                        </span>
-                                                    </div>
-                                                @endif
-                                                <div class="mb-2.5">
-                                                    <span class="text-muted small d-block">Kepala Lembaga:</span>
-                                                    <strong class="text-heading">{{ $item['kepala'] ?: '-' }}</strong>
-                                                </div>
-                                                <div class="mb-2.5">
-                                                    <span class="text-muted small d-block">Alamat Lengkap:</span>
-                                                    <span class="text-heading small">{{ $item['alamat'] ?: '-' }}</span>
-                                                </div>
-                                                <div class="mb-2.5">
-                                                    <span class="text-muted small d-block">Kontak / Telepon:</span>
-                                                    <span class="text-heading small">{{ $item['telp'] ?: $item['kontak'] ?: '-' }}</span>
-                                                </div>
-                                                <div class="mb-2.5">
-                                                    <span class="text-muted small d-block">Email Resmi:</span>
-                                                    <span class="text-heading small">{{ $item['email'] ?: '-' }}</span>
-                                                </div>
-                                                @if (!empty($item['website']))
-                                                    <div>
-                                                        <span class="text-muted small d-block">Website Resmi:</span>
-                                                        <a href="{{ str_starts_with($item['website'], 'http') ? $item['website'] : 'https://' . $item['website'] }}" target="_blank" rel="noopener" class="small text-primary text-decoration-none fw-semibold">
-                                                            <i class="bi bi-globe me-1"></i> {{ $item['website'] }} <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.7rem;"></i>
-                                                        </a>
-                                                    </div>
-                                                @endif
+
+                                    {{-- Google Maps Embed if available --}}
+                                    @if (!empty($item['maps_embed']))
+                                        <div class="col-12 mt-3">
+                                            <div class="rounded-3 overflow-hidden" style="border: 1px solid var(--card-border); max-height: 250px;">
+                                                {!! $item['maps_embed'] !!}
                                             </div>
                                         </div>
-
-                                        <div class="col-md-6">
-                                            <div class="p-3 rounded-3 h-100" style="background: var(--bg-page-subtle); border: 1px solid var(--card-border);">
-                                                <h6 class="fw-bold text-heading mb-3"><i class="bi bi-clock-fill text-warning me-2"></i>Jadwal & Jam Operasional</h6>
-                                                @if (is_array($item['jam_kerja'] ?? null))
-                                                    <ul class="list-unstyled mb-0 small">
-                                                        @foreach ($item['jam_kerja'] as $jam)
-                                                            <li class="mb-1.5 d-flex align-items-center gap-2">
-                                                                <i class="bi bi-check2 text-success"></i>
-                                                                <span class="text-heading">{{ $jam }}</span>
-                                                            </li>
-                                                        @endforeach
-                                                    </ul>
-                                                @else
-                                                    <div class="text-heading small">{{ $item['jam_kerja'] ?? 'Senin - Sabtu' }}</div>
-                                                @endif
-
-                                                <hr class="my-3 opacity-25">
-
-                                                <h6 class="fw-bold text-heading mb-2"><i class="bi bi-bar-chart-fill text-info me-2"></i>Data Sivitas Akademika</h6>
-                                                <div class="d-flex gap-3">
-                                                    <div>
-                                                        <span class="text-muted small d-block">Total Siswa:</span>
-                                                        <span class="fs-5 fw-bold text-primary">{{ $item['total_siswa'] ?? 0 }}</span>
-                                                    </div>
-                                                    <div class="vr opacity-25"></div>
-                                                    <div>
-                                                        <span class="text-muted small d-block">Guru & Pegawai:</span>
-                                                        <span class="fs-5 fw-bold text-warning">{{ $item['total_pegawai'] ?? 0 }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- Google Maps Embed if available --}}
-                                        @if (!empty($item['maps_embed']))
-                                            <div class="col-12 mt-3">
-                                                <div class="rounded-3 overflow-hidden" style="border: 1px solid var(--card-border); max-height: 250px;">
-                                                    {!! $item['maps_embed'] !!}
-                                                </div>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="modal-footer border-0 pt-0">
-                                    @if (!empty($item['website']))
-                                        <a href="{{ str_starts_with($item['website'], 'http') ? $item['website'] : 'https://' . $item['website'] }}" target="_blank" rel="noopener" class="btn btn-outline-primary rounded-pill px-3">
-                                            <i class="bi bi-globe me-1"></i> Kunjungi Website
-                                        </a>
                                     @endif
-                                    @if ($unitWa)
-                                        <a href="{{ $unitWa }}" target="_blank" rel="noopener" class="btn btn-success rounded-pill px-4">
-                                            <i class="bi bi-whatsapp me-1"></i> Hubungi WhatsApp
-                                        </a>
-                                    @endif
-                                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
                                 </div>
+                            </div>
+                            <div class="modal-footer border-0 pt-0">
+                                @if (!empty($item['website']))
+                                    <a href="{{ str_starts_with($item['website'], 'http') ? $item['website'] : 'https://' . $item['website'] }}" target="_blank" rel="noopener" class="btn btn-outline-primary rounded-pill px-3">
+                                        <i class="bi bi-globe me-1"></i> Kunjungi Website
+                                    </a>
+                                @endif
+                                @if ($unitWa)
+                                    <a href="{{ $unitWa }}" target="_blank" rel="noopener" class="btn btn-success rounded-pill px-4">
+                                        <i class="bi bi-whatsapp me-1"></i> Hubungi WhatsApp
+                                    </a>
+                                @endif
+                                <button type="button" class="btn btn-secondary rounded-pill px-4" @click="activeModal = null">Tutup</button>
                             </div>
                         </div>
                     </div>
