@@ -322,7 +322,7 @@ new class extends \Livewire\Volt\Component {
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group">
-                                        <button wire:click="openJadwalModal('{{ $pb->id }}')" data-bs-toggle="modal" data-bs-target="#modalJadwal"
+                                        <button wire:click="openJadwalModal('{{ $pb->id }}')"
                                             class="btn btn-sm btn-outline-primary" title="Jadwal"><i class="bi bi-calendar-week"></i></button>
                                         <a href="{{ route('pembelajaran.jurnal.nilai.index', $pb->id) }}" wire:navigate
                                             class="btn btn-sm btn-outline-danger" title="Nilai"><i
@@ -363,97 +363,115 @@ new class extends \Livewire\Volt\Component {
     </div>
 
     {{-- MODAL JADWAL --}}
-    <div wire:ignore.self class="modal fade" id="modalJadwal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Kelola Jadwal Pembelajaran</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="$set('jadwal_pembelajaran_id', null)"></button>
+    @if ($jadwal_pembelajaran_id)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+            <div class="w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-cyan-500/20 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden">
+                <div class="bg-gradient-to-r from-sky-600 to-cyan-600 text-white p-4 flex items-center justify-between">
+                    <h5 class="font-display font-bold text-white flex items-center gap-2 text-sm">
+                        <i class="bi bi-calendar-week text-cyan-200"></i> Kelola Jadwal Pembelajaran
+                    </h5>
+                    <button type="button" class="text-white hover:text-slate-200" wire:click="$set('jadwal_pembelajaran_id', null)">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
-                <div class="modal-body">
-                    @if ($jadwal_pembelajaran_id)
-                        @php
-                            $pbData = App\Models\Pembelajaran::with('jadwal.user', 'pelajaran')->find($jadwal_pembelajaran_id);
-                        @endphp
-                        @if ($pbData)
-                            <div class="alert alert-info py-2 mb-3">
-                                <i class="bi bi-info-circle me-1"></i> <strong>{{ $pbData->keterangan }}</strong> ({{ $pbData->pelajaran->nama ?? '' }})
+                <div class="p-5">
+                    @php
+                        $pbData = App\Models\Pembelajaran::with('jadwal.user', 'pelajaran')->find($jadwal_pembelajaran_id);
+                    @endphp
+                    @if ($pbData)
+                        <div class="p-3 rounded-2xl mb-4 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900 text-xs text-sky-800 dark:text-cyan-300 flex items-center gap-2">
+                            <i class="bi bi-info-circle text-base text-sky-600 dark:text-cyan-400"></i>
+                            <div>
+                                <strong>{{ $pbData->keterangan }}</strong> ({{ $pbData->pelajaran->nama ?? '' }})
                             </div>
+                        </div>
 
-                            <div class="table-responsive mb-4">
-                                <table class="table table-sm table-bordered">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Hari</th>
-                                            <th>Jam</th>
-                                            <th>Pengampu</th>
-                                            <th class="text-center">Aksi</th>
+                        <div class="table-responsive rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-xs mb-4">
+                            <table class="table table-hover align-middle mb-0 text-xs">
+                                <thead class="bg-slate-100 dark:bg-slate-800 font-display">
+                                    <tr>
+                                        <th class="py-2.5">Hari</th>
+                                        <th class="py-2.5">Jam</th>
+                                        <th class="py-2.5">Pengampu</th>
+                                        <th class="text-center py-2.5" style="width: 80px;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($pbData->jadwal->sortBy('hari') as $j)
+                                        <tr wire:key="jadwal-{{ $j->id }}">
+                                            <td>
+                                                <span class="badge {{ $hariColors[$j->hari] ?? 'bg-primary' }} rounded-pill text-uppercase px-2.5 py-1 text-[11px]" style="min-width: 60px;">
+                                                    {{ $j->hari_text }}
+                                                </span>
+                                            </td>
+                                            <td class="font-mono font-medium">{{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}</td>
+                                            <td class="font-semibold">{{ $j->user->name ?? '-' }}</td>
+                                            <td class="text-center">
+                                                <div class="flex items-center justify-center gap-1">
+                                                    <button wire:click="duplicateJadwal('{{ $j->id }}')" class="p-1 px-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-800" title="Duplikat"><i class="bi bi-copy"></i></button>
+                                                    <button wire:click="deleteJadwal('{{ $j->id }}')" wire:confirm="Hapus jadwal ini?" class="p-1 px-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 hover:bg-rose-100 border border-rose-200 dark:border-rose-800" title="Hapus"><i class="bi bi-trash"></i></button>
+                                                </div>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($pbData->jadwal->sortBy('hari') as $j)
-                                            <tr wire:key="jadwal-{{ $j->id }}">
-                                                <td><span class="badge {{ $hariColors[$j->hari] ?? 'bg-primary' }} rounded-pill text-uppercase" style="min-width: 60px;">{{ $j->hari_text }}</span></td>
-                                                <td>{{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}</td>
-                                                <td>{{ $j->user->name ?? '-' }}</td>
-                                                <td class="text-center">
-                                                    <button wire:click="duplicateJadwal('{{ $j->id }}')" class="btn btn-sm btn-outline-success py-0 px-1"><i class="bi bi-copy"></i></button>
-                                                    <button wire:click="deleteJadwal('{{ $j->id }}')" wire:confirm="Hapus jadwal ini?" class="btn btn-sm btn-outline-danger py-0 px-1"><i class="bi bi-trash"></i></button>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="4" class="text-center text-muted small py-2">Belum ada jadwal</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="text-center text-slate-400 text-xs py-3 italic">Belum ada jadwal</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
 
-                            <form wire:submit="storeJadwal" class="row g-2 align-items-end p-3 bg-light rounded border">
-                                <h6 class="mb-2 text-primary">
-                                    @if ($jadwal_hari == '')
-                                        <i class="bi bi-plus-circle me-1"></i> Tambah Jadwal Baru
-                                    @else
-                                        <i class="bi bi-copy me-1"></i> Duplikat Jadwal
-                                    @endif
-                                </h6>
-                                <div class="col-md-3">
-                                    <label class="form-label small fw-bold mb-1">Hari</label>
-                                    <select wire:model="jadwal_hari" class="form-select form-select-sm" required>
+                        <form wire:submit="storeJadwal" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850/50 border border-slate-200 dark:border-slate-800 space-y-3">
+                            <h6 class="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-cyan-400 font-display flex items-center gap-1.5 mb-2">
+                                @if ($jadwal_hari == '')
+                                    <i class="bi bi-plus-circle"></i> Tambah Jadwal Baru
+                                @else
+                                    <i class="bi bi-copy"></i> Duplikat Jadwal
+                                @endif
+                            </h6>
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                                <div class="md:col-span-3">
+                                    <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Hari</label>
+                                    <select wire:model="jadwal_hari" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                         <option value="">--Pilih Hari--</option>
                                         @foreach ($hariOptions as $k => $v)
                                             <option value="{{ $k }}">{{ $v }}</option>
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-2">
-                                    <label class="form-label small fw-bold mb-1">Mulai</label>
-                                    <input type="time" wire:model="jadwal_jam_mulai" class="form-control form-control-sm" required>
+                                <div class="md:col-span-2">
+                                    <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Mulai</label>
+                                    <input type="time" wire:model="jadwal_jam_mulai" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                 </div>
-                                <div class="col-md-2">
-                                    <label class="form-label small fw-bold mb-1">Selesai</label>
-                                    <input type="time" wire:model="jadwal_jam_selesai" class="form-control form-control-sm" required>
+                                <div class="md:col-span-2">
+                                    <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Selesai</label>
+                                    <input type="time" wire:model="jadwal_jam_selesai" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label small fw-bold mb-1">Pengampu</label>
-                                    <select wire:model="jadwal_user_id" class="form-select form-select-sm" required>
+                                <div class="md:col-span-3">
+                                    <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Pengampu</label>
+                                    <select wire:model="jadwal_user_id" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                         <option value="">--Pilih Guru--</option>
                                         @foreach ($users as $u)
                                             <option value="{{ $u->id }}">{{ $u->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-2">
-                                    <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-save me-1"></i> SIMPAN</button>
+                                <div class="md:col-span-2">
+                                    <button type="submit" class="btn-logo-gradient w-100 py-1.5 rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-1.5"><i class="bi bi-save"></i> SIMPAN</button>
                                 </div>
-                            </form>
-                        @endif
+                            </div>
+                        </form>
                     @else
-                        <div class="text-center py-4">Memuat data...</div>
+                        <div class="text-center py-4 text-slate-400 text-xs">Memuat data...</div>
                     @endif
+                </div>
+                <div class="p-3 border-t border-slate-200 dark:border-slate-800 flex justify-end bg-slate-50 dark:bg-slate-850">
+                    <button type="button" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold" wire:click="$set('jadwal_pembelajaran_id', null)">
+                        Tutup
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 </div>

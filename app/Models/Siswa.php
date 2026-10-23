@@ -316,4 +316,24 @@ class Siswa extends Model
     {
         return $this->hasMany(Presensi::class);
     }
+
+    /**
+     * Get label status siswa.
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return function_exists('status_siswa') ? status_siswa($this->status) : (string) $this->status;
+    }
+
+    /**
+     * Get label jenis kelamin.
+     */
+    public function getJenisKelaminLabelAttribute(): string
+    {
+        $jk = strtoupper((string) $this->jenis_kelamin);
+        if ($jk === 'L') return 'Laki-laki';
+        if ($jk === 'P') return 'Perempuan';
+        return '-';
+    }
 }
+

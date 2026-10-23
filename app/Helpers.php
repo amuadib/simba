@@ -291,3 +291,43 @@ if (! function_exists('gmaps_url')) {
         return null;
     }
 }
+
+if (! function_exists('status_siswa')) {
+    function status_siswa($status)
+    {
+        if ($status === null || $status === '') {
+            return '-';
+        }
+        $statuses = config('local.status_siswa', [
+            1 => 'Aktif',
+            2 => 'Lulus',
+            3 => 'Mutasi',
+            4 => 'Non-Aktif',
+            5 => 'Almarhum',
+            6 => 'Keluar',
+        ]);
+
+        return $statuses[$status] ?? (is_numeric($status) ? '-' : (string) $status);
+    }
+}
+
+if (! function_exists('status_pegawai')) {
+    function status_pegawai($status)
+    {
+        if ($status === null || $status === '') {
+            return '-';
+        }
+        $statuses = config('local.status_pegawai', [
+            1 => 'Aktif',
+            2 => 'Cuti',
+            3 => 'Non-Aktif',
+            4 => 'Mutasi',
+            5 => 'Pensiun',
+            6 => 'Keluar',
+            7 => 'Almarhum',
+        ]);
+
+        return $statuses[$status] ?? (is_numeric($status) ? '-' : (string) $status);
+    }
+}
+

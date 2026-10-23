@@ -100,8 +100,12 @@ new class extends Component {
             $this->editSiswaNama = $siswa->nama;
             $this->editSiswaPanggilan = $siswa->panggilan ?? $siswa->nama;
             $this->editSiswaJenisKelamin = $siswa->jenis_kelamin;
-            $this->dispatch('open-modal', id: 'modalEditSantri');
         }
+    }
+
+    public function closeEditSantriModal()
+    {
+        $this->editSiswaId = null;
     }
 
     public function updateDataSantri()
@@ -114,7 +118,7 @@ new class extends Component {
                 'jenis_kelamin' => $this->editSiswaJenisKelamin,
             ]);
             $this->pembelajaran->load('anggota.siswa');
-            $this->dispatch('close-modal', id: 'modalEditSantri');
+            $this->editSiswaId = null;
             $this->dispatch('toast', message: 'Data santri berhasil diupdate', type: 'success');
         }
     }
@@ -245,53 +249,51 @@ new class extends Component {
     </style>
 
     {{-- MODAL EDIT SANTRI --}}
-    <div wire:ignore.self class="modal fade" id="modalEditSantri" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
+    @if ($editSiswaId)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+            <div class="w-full max-w-md rounded-3xl border border-slate-200 dark:border-cyan-500/20 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden">
                 <form wire:submit="updateDataSantri">
-                    <div class="modal-header">
-                        <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i> Edit Data Santri</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="bg-gradient-to-r from-sky-600 to-cyan-600 text-white p-4 flex items-center justify-between">
+                        <h5 class="font-display font-bold text-white flex items-center gap-2 text-sm">
+                            <i class="bi bi-pencil-square text-cyan-200"></i> Edit Data Santri
+                        </h5>
+                        <button type="button" wire:click="closeEditSantriModal" class="text-white hover:text-slate-200">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Nama Lengkap</label>
-                            <input type="text" class="form-control" wire:model="editSiswaNama" required>
+                    <div class="p-5 space-y-4">
+                        <div>
+                            <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Nama Lengkap</label>
+                            <input type="text" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl font-semibold" wire:model="editSiswaNama" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Nama Panggilan</label>
-                            <input type="text" class="form-control" wire:model="editSiswaPanggilan">
+                        <div>
+                            <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Nama Panggilan</label>
+                            <input type="text" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" wire:model="editSiswaPanggilan">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold d-block">Jenis Kelamin</label>
-                            <div class="d-flex gap-4 mt-1">
-                                <div class="form-check">
-                                    <input wire:model="editSiswaJenisKelamin" class="form-check-input" type="radio" value="L" id="editJkL" required>
-                                    <label class="form-check-label" for="editJkL">Laki-laki (L)</label>
-                                </div>
-                                <div class="form-check">
-                                    <input wire:model="editSiswaJenisKelamin" class="form-check-input" type="radio" value="P" id="editJkP" required>
-                                    <label class="form-check-label" for="editJkP">Perempuan (P)</label>
-                                </div>
+                        <div>
+                            <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300 d-block">Jenis Kelamin</label>
+                            <div class="flex gap-4 pt-1">
+                                <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                    <input wire:model="editSiswaJenisKelamin" class="form-check-input text-sky-600" type="radio" value="L" id="editJkL" required>
+                                    <span>Laki-laki (L)</span>
+                                </label>
+                                <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                    <input wire:model="editSiswaJenisKelamin" class="form-check-input text-pink-600" type="radio" value="P" id="editJkP" required>
+                                    <span>Perempuan (P)</span>
+                                </label>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-warning w-100" wire:loading.attr="disabled">
-                            <i class="bi bi-save me-1"></i> SIMPAN PERUBAHAN
-                        </button>
+                        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                            <button type="button" wire:click="closeEditSantriModal" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
+                                Batal
+                            </button>
+                            <button type="submit" class="btn-logo-gradient px-5 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5" wire:loading.attr="disabled">
+                                <i class="bi bi-save"></i> Simpan Perubahan
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
-
-    @script
-    <script>
-        $wire.on('close-modal', ({id}) => {
-            bootstrap.Modal.getInstance(document.getElementById(id))?.hide();
-        });
-        $wire.on('open-modal', ({id}) => {
-            new bootstrap.Modal(document.getElementById(id)).show();
-        });
-    </script>
-    @endscript
+    @endif
 </div>

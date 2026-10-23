@@ -41,6 +41,8 @@ new class extends \Livewire\Volt\Component {
     public $bulkRombelId = '';
     public $bulkStatus = '';
     public $bulkTags = [];
+    public $showBulkUpdateModal = false;
+    public $showBulkDeleteModal = false;
 
     public $selected_siswa_id = '';
 
@@ -88,7 +90,14 @@ new class extends \Livewire\Volt\Component {
     {
         $this->randomConfirmString = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 5);
         $this->confirmText = '';
-        $this->dispatch('show-modal-delete');
+        $this->showBulkDeleteModal = true;
+    }
+
+    public function cancelBulkDelete()
+    {
+        $this->showBulkDeleteModal = false;
+        $this->randomConfirmString = '';
+        $this->confirmText = '';
     }
 
     public function bulkDelete()
@@ -106,7 +115,7 @@ new class extends \Livewire\Volt\Component {
 
         $this->checkedSiswa = [];
         $this->selectAll = false;
-        $this->dispatch('close-modal', id: 'modalBulkDelete');
+        $this->showBulkDeleteModal = false;
         $this->dispatch('toast', message: 'Data siswa berhasil dihapus', type: 'success');
     }
 
@@ -121,7 +130,6 @@ new class extends \Livewire\Volt\Component {
     {
         $this->resetForm();
         $this->action = 'create';
-        $this->dispatch('show-modal-siswa');
     }
 
     public function store()
@@ -168,7 +176,6 @@ new class extends \Livewire\Volt\Component {
         $siswa->syncTagsWithHistory($tagIds, 'create');
 
         $this->resetForm();
-        $this->dispatch('close-modal', id: 'modalSiswaForm');
         $this->dispatch('toast', message: 'Siswa berhasil ditambahkan', type: 'success');
     }
 
@@ -177,7 +184,6 @@ new class extends \Livewire\Volt\Component {
         $this->editingId = null;
         $this->showId = $id;
         $this->action = 'show';
-        $this->dispatch('show-modal-siswa');
     }
 
     public function edit($id)
@@ -207,7 +213,6 @@ new class extends \Livewire\Volt\Component {
         $this->existing_foto = $siswa->foto;
         $this->foto = null;
         $this->selectedTags = $siswa->tags->pluck('nama')->toArray();
-        $this->dispatch('show-modal-siswa');
     }
 
     public function update()
@@ -264,7 +269,6 @@ new class extends \Livewire\Volt\Component {
         $siswa->syncTagsWithHistory($tagIds, 'update');
 
         $this->resetForm();
-        $this->dispatch('close-modal', id: 'modalSiswaForm');
         $this->dispatch('toast', message: 'Siswa berhasil diperbarui', type: 'success');
     }
 
@@ -272,6 +276,19 @@ new class extends \Livewire\Volt\Component {
     public function resetForm()
     {
         $this->reset(['nama', 'panggilan', 'jenis_kelamin', 'nisn', 'form_rombel_id', 'form_status', 'selectedTags', 'action', 'editingId', 'showId', 'nik', 'nis', 'no_akte', 'no_kk', 'tempat_lahir', 'tanggal_lahir', 'lembaga_id', 'alamat', 'telepon', 'ayah', 'ibu', 'foto', 'existing_foto']);
+    }
+
+    public function openBulkUpdate()
+    {
+        $this->showBulkUpdateModal = true;
+    }
+
+    public function closeBulkUpdate()
+    {
+        $this->showBulkUpdateModal = false;
+        $this->bulkRombelId = '';
+        $this->bulkStatus = '';
+        $this->bulkTags = [];
     }
 
     public function bulkUpdate()
@@ -327,7 +344,7 @@ new class extends \Livewire\Volt\Component {
         }
 
         $this->reset(['bulkRombelId', 'bulkStatus', 'bulkTags', 'checkedSiswa', 'selectAll']);
-        $this->dispatch('close-modal', id: 'modalBulkUpdate');
+        $this->showBulkUpdateModal = false;
         $this->dispatch('toast', message: 'Data siswa berhasil diperbarui secara massal', type: 'success');
     }
 
@@ -336,13 +353,11 @@ new class extends \Livewire\Volt\Component {
     public function openHistory($id)
     {
         $this->historySiswaId = $id;
-        $this->dispatch('show-modal-history');
     }
 
     public function closeHistory()
     {
         $this->historySiswaId = null;
-        $this->dispatch('close-modal', id: 'modalSiswaHistory');
     }
 
     public function undoHistory($historyId)
@@ -455,15 +470,34 @@ new class extends \Livewire\Volt\Component {
 <div>
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-            <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Data Siswa</h1>
-            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Kelola data peserta didik, rombongan belajar & status keaktifan</p>
+            @if ($action === 'create')
+                <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Tambah Data Siswa</h1>
+                <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Isi formulir lengkap untuk mendaftarkan peserta didik baru</p>
+            @elseif ($action === 'edit')
+                <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Edit Data Siswa</h1>
+                <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Perbarui informasi data peserta didik {{ $nama }}</p>
+            @elseif ($action === 'show')
+                <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Detail Profil Siswa</h1>
+                <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Informasi lengkap peserta didik</p>
+            @else
+                <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Data Siswa</h1>
+                <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Kelola data peserta didik, rombongan belajar & status keaktifan</p>
+            @endif
         </div>
 
-        <div wire:key="breadcrumb-wrapper" wire:ignore>
-            <x-breadcrumb />
+        <div class="flex items-center gap-2">
+            @if ($action !== '')
+                <button type="button" wire:click="resetForm" class="btn btn-outline-secondary btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold flex items-center gap-2">
+                    <i class="bi bi-arrow-left"></i> Kembali ke Daftar
+                </button>
+            @endif
+            <div wire:key="breadcrumb-wrapper" wire:ignore>
+                <x-breadcrumb />
+            </div>
         </div>
     </div>
 
+    @if ($action === '')
     <div class="glass-panel rounded-3xl p-4 md:p-6 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">
         <div>
 
@@ -510,8 +544,7 @@ new class extends \Livewire\Volt\Component {
                     {{-- TOMBOL AKSI SEJAJAR TAB --}}
                     <div class="flex items-center gap-2 flex-wrap">
                         @if (count($checkedSiswa) > 0)
-                            <button type="button" class="btn btn-outline-primary btn-sm rounded-xl px-3 py-1.5 text-xs font-semibold" data-bs-toggle="modal"
-                                data-bs-target="#modalBulkUpdate">
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-xl px-3 py-1.5 text-xs font-semibold" wire:click="openBulkUpdate">
                                 <i class="bi bi-pencil-square me-1"></i> Update ({{ count($checkedSiswa) }})
                             </button>
                             <button type="button" class="btn btn-outline-danger btn-sm rounded-xl px-3 py-1.5 text-xs font-semibold" wire:click="prepareBulkDelete">
@@ -1029,270 +1062,532 @@ new class extends \Livewire\Volt\Component {
             </div>
         </div>
     </div>
+    @endif
 
-    
-    {{-- MODAL SISWA FORM --}}
-    <div wire:ignore.self class="modal fade" id="modalSiswaForm" data-bs-backdrop="static" tabindex="-1">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        @if($action == 'edit') <i class="bi bi-pencil-square me-2"></i> Edit Data Siswa
-                        @elseif($action == 'create') <i class="bi bi-plus-circle me-2"></i> Tambah Data Siswa
-                        @else <i class="bi bi-eye me-2"></i> Detail Siswa @endif
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetForm"></button>
+    {{-- SPA FORM VIEW FOR SISWA --}}
+    @if ($action === 'create' || $action === 'edit')
+        <div class="glass-panel rounded-3xl p-6 md:p-8 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl" x-transition>
+            {{-- Form Header & Quick Back --}}
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 mb-6 border-b border-slate-200/80 dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                    <button type="button" wire:click="resetForm" class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all shadow-xs" title="Kembali ke Daftar Siswa">
+                        <i class="bi bi-arrow-left text-lg"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold font-display text-slate-800 dark:text-white m-0">
+                            @if ($action === 'edit')
+                                <i class="bi bi-pencil-square text-amber-500 me-1"></i> Edit Data Siswa: <span class="text-sky-600 dark:text-cyan-400">{{ $nama }}</span>
+                            @else
+                                <i class="bi bi-person-plus-fill text-sky-500 dark:text-cyan-400 me-1"></i> Formulir Tambah Siswa Baru
+                            @endif
+                        </h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 m-0 mt-0.5">
+                            Pastikan data pokok, identitas kependudukan, dan rombel terisi dengan benar.
+                        </p>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    {{-- FORM AREA --}}
-                    @if ($action == 'edit' || $action == 'create')
-                            <div class="bg-primary bg-opacity-10 rounded border p-3">
-                                
-                                <form wire:submit="{{ $action == 'edit' ? 'update' : 'store' }}" class="row g-3">
-                                    <div class="col-md-4">
-                                        <label class="form-label small fw-bold">Nama Lengkap</label>
-                                        <input wire:model="nama" class="form-control" placeholder="Nama Lengkap" required>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label small fw-bold">Panggilan</label>
-                                        <input wire:model="panggilan" class="form-control" placeholder="Panggilan">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label small fw-bold">JK</label>
-                                        <div class="d-flex gap-3 pt-2">
-                                            <div class="form-check">
-                                                <input wire:model="jenis_kelamin" class="form-check-input" type="radio"
-                                                    value="L" id="jkL">
-                                                <label class="form-check-label" for="jkL">L</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input wire:model="jenis_kelamin" class="form-check-input" type="radio"
-                                                    value="P" id="jkP">
-                                                <label class="form-check-label" for="jkP">P</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label small fw-bold">NISN</label>
-                                        <input wire:model="nisn" class="form-control" placeholder="NISN">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label small fw-bold">Rombel</label>
-                                        <select wire:model="form_rombel_id" class="form-select" required>
-                                            <option value="">--Pilih--</option>
-                                            @foreach ($rombels as $r)
-                                                <option value="{{ $r->id }}">{{ $r->nama }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label small fw-bold">Status</label>
-                                        <select wire:model="form_status" class="form-select" required>
-                                            <option value="">--Pilih--</option>
-                                            @foreach ($statusOptions as $k => $v)
-                                                <option value="{{ $k }}">{{ $v }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small fw-bold">NIK</label>
-                                        <input wire:model="nik" class="form-control" placeholder="NIK">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small fw-bold">NIS</label>
-                                        <input wire:model="nis" class="form-control" placeholder="NIS">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small fw-bold">No Akte</label>
-                                        <input wire:model="no_akte" class="form-control" placeholder="No Akte">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small fw-bold">No KK</label>
-                                        <input wire:model="no_kk" class="form-control" placeholder="No KK">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small fw-bold">Tempat Lahir</label>
-                                        <input wire:model="tempat_lahir" class="form-control" placeholder="Tempat Lahir">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small fw-bold">Tanggal Lahir</label>
-                                        <input type="date" wire:model="tanggal_lahir" class="form-control">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small fw-bold">Lembaga</label>
-                                        <select wire:model="lembaga_id" class="form-select" required>
-                                            <option value="">Pilih Lembaga</option>
-                                            @foreach (daftar_lembaga() as $id => $namaLembaga)
-                                                <option value="{{ $id }}">{{ $namaLembaga }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small fw-bold">Telepon</label>
-                                        <input wire:model="telepon" class="form-control" placeholder="Telepon">
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label small fw-bold">Alamat</label>
-                                        <input wire:model="alamat" class="form-control" placeholder="Alamat Lengkap">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small fw-bold">Ayah</label>
-                                        <input wire:model="ayah" class="form-control" placeholder="Nama Ayah">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small fw-bold">Ibu</label>
-                                        <input wire:model="ibu" class="form-control" placeholder="Nama Ibu">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold">Foto Siswa</label>
-                                        <input type="file" wire:model="foto" class="form-control" accept="image/*">
-                                        <div wire:loading wire:target="foto" class="mt-1 small text-muted">Mengunggah...</div>
-                                        @error('foto') <span class="text-danger small">{{ $message }}</span> @enderror
-                                        @if ($foto && !is_string($foto))
-                                            <div class="mt-2">
-                                                <img src="{{ $foto->temporaryUrl() }}" class="img-thumbnail" style="max-height: 100px;">
-                                            </div>
-                                        @elseif ($existing_foto)
-                                            <div class="mt-2">
-                                                <img src="{{ asset('storage/' . $existing_foto) }}" class="img-thumbnail" style="max-height: 100px;">
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold">Tag</label>
-                                        <div x-data="{
-                                            open: false,
-                                            text: '',
-                                            tags: @entangle('selectedTags'),
-                                            allTags: @js($allTags),
-                                            get suggestions(){
-                                                if(this.text.trim() === '') return [];
-                                                return this.allTags.filter(t => t.toLowerCase().includes(this.text.toLowerCase()) && !this.tags.includes(t));
-                                            },
-                                            addTag(tag){
-                                                tag = tag.trim();
-                                                if(tag && !this.tags.includes(tag)){
-                                                    this.tags.push(tag);
-                                                }
-                                                this.text = '';
-                                                this.open = false;
-                                            },
-                                            removeTag(index){
-                                                this.tags.splice(index, 1);
-                                            }
-                                        }" class="position-relative">
-                                            <div class="form-control d-flex flex-wrap gap-1 align-items-center" :class="{ 'border-success': open }" style="min-height: 38px;">
-                                                <template x-for="(tag, index) in tags" :key="index">
-                                                    <span class="badge bg-primary d-inline-flex align-items-center rounded-1">
-                                                        <span x-text="tag"></span>
-                                                        <button type="button" @click="removeTag(index)" class="btn-close btn-close-white ms-2" style="font-size: 0.5em;" aria-label="Remove"></button>
-                                                    </span>
-                                                </template>
-                                                <input type="text" x-model="text" @keydown.enter.prevent="addTag(text)"
-                                                        @keydown.comma.prevent="addTag(text)" @keydown.escape="open = false"
-                                                        @focus="open = true" @click.away="open = false"
-                                                        class="border-0 p-0 m-0 flex-grow-1 bg-transparent text-sm"
-                                                        style="outline: none; min-width: 100px; box-shadow: none;"
-                                                        placeholder="">
-                                            </div>
-                                            <div x-show="open && suggestions.length > 0" x-cloak
-                                                 class="position-absolute z-3 mt-1 w-100 bg-body border rounded shadow-sm overflow-auto" style="max-height: 200px;">
-                                                <template x-for="suggestion in suggestions" :key="suggestion">
-                                                    <div @click="addTag(suggestion)"
-                                                         class="px-3 py-2 text-body border-bottom" style="cursor: pointer;"
-                                                         onmouseover="this.classList.add('bg-secondary', 'bg-opacity-10')" onmouseout="this.classList.remove('bg-secondary', 'bg-opacity-10')">
-                                                        <span x-text="suggestion"></span>
-                                                    </div>
-                                                </template>
-                                            </div>
-                                            <div class="form-text small text-muted">Tekan Enter atau Koma untuk menambah tag</div>
-                                        </div>
-                                    </div>
 
-                                    <div class="col-md-10 d-flex align-items-end gap-2">
-                                        <button type="submit" class="btn btn-{{ $action == 'edit' ? 'warning' : 'primary' }}">
-                                            <i class="bi bi-save me-1"></i> SIMPAN
-                                        </button>
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetForm">BATAL</button>
-                                    </div>
-                                </form>
+                <div class="flex items-center gap-2 self-end sm:self-auto">
+                    <button type="button" wire:click="resetForm" class="btn btn-outline-secondary btn-sm rounded-xl px-4 py-2 text-xs font-semibold">
+                        Batal
+                    </button>
+                    <button type="button" wire:click="{{ $action === 'edit' ? 'update' : 'store' }}" wire:loading.attr="disabled" class="btn-logo-gradient inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold shadow-md">
+                        <span wire:loading.remove wire:target="{{ $action === 'edit' ? 'update' : 'store' }}">
+                            <i class="bi bi-check2-circle text-sm"></i> {{ $action === 'edit' ? 'Simpan Perubahan' : 'Simpan Siswa' }}
+                        </span>
+                        <span wire:loading wire:target="{{ $action === 'edit' ? 'update' : 'store' }}" class="inline-flex items-center gap-2">
+                            <span class="spinner-border spinner-border-sm" role="status"></span> Menyimpan...
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Form Body --}}
+            <form wire:submit="{{ $action == 'edit' ? 'update' : 'store' }}">
+                <div class="space-y-6">
+                    {{-- SECTION 1: DATA POKOK --}}
+                    <div class="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-7 h-7 rounded-lg bg-sky-500/10 text-sky-600 dark:text-cyan-400 flex items-center justify-center font-bold text-xs">
+                                1
                             </div>
-                        @elseif($action == 'show')
-                            <div class="bg-info rounded border bg-opacity-10 p-3">
-                                
-                                @php $sData = App\Models\Siswa::find($showId); @endphp
-                                @if ($sData)
-                                    <div class="row g-3">
-                                        <div class="col-md-3"><strong>Nama</strong><br>{{ $sData->nama }}</div>
-                                        <div class="col-md-2"><strong>Panggilan</strong><br>{{ $sData->panggilan ?? '-' }}</div>
-                                        <div class="col-md-2"><strong>JK</strong><br>{{ $sData->jenis_kelamin }}</div>
-                                        <div class="col-md-2"><strong>NISN</strong><br>{{ $sData->nisn ?? '-' }}</div>
-                                        <div class="col-md-3"><strong>Rombel</strong><br>{{ $sData->rombel->nama }}</div>
-                                        <div class="col-md-3"><strong>NIK</strong><br>{{ $sData->nik ?? '-' }}</div>
-                                        <div class="col-md-2"><strong>NIS</strong><br>{{ $sData->nis ?? '-' }}</div>
-                                        <div class="col-md-2"><strong>No Akte</strong><br>{{ $sData->no_akte ?? '-' }}</div>
-                                        <div class="col-md-2"><strong>No KK</strong><br>{{ $sData->no_kk ?? '-' }}</div>
-                                        <div class="col-md-3"><strong>Tempat Lahir</strong><br>{{ $sData->tempat_lahir ?? '-' }}</div>
-                                        <div class="col-md-3"><strong>Tanggal Lahir</strong><br>{{ $sData->tanggal_lahir ? date('d M Y', strtotime($sData->tanggal_lahir)) : '-' }}</div>
-                                        <div class="col-md-2"><strong>Lembaga</strong><br>{{ nama_lembaga($sData->lembaga_id) }}</div>
-                                        <div class="col-md-4"><strong>Alamat</strong><br>{{ $sData->alamat ?? '-' }}</div>
-                                        <div class="col-md-2"><strong>Telepon</strong><br>{{ $sData->telepon ?? '-' }}</div>
-                                        <div class="col-md-3"><strong>Ayah</strong><br>{{ $sData->ayah ?? '-' }}</div>
-                                        <div class="col-md-3"><strong>Ibu</strong><br>{{ $sData->ibu ?? '-' }}</div>
-                                        <div class="col-md-12"><strong>Foto</strong><br>
-                                            @if($sData->foto)
-                                                <img src="{{ asset('storage/' . $sData->foto) }}" class="img-thumbnail mt-2" style="max-height: 150px;">
-                                            @else
-                                                -
-                                            @endif
+                            <h3 class="text-sm font-bold font-display text-slate-800 dark:text-slate-200 m-0">Data Pokok Siswa</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-6">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Nama Lengkap <span class="text-rose-500">*</span></label>
+                                <input wire:model="nama" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" placeholder="Masukkan nama lengkap siswa" required>
+                                @error('nama') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Nama Panggilan</label>
+                                <input wire:model="panggilan" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" placeholder="Panggilan akrab">
+                                @error('panggilan') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Jenis Kelamin</label>
+                                <div class="flex items-center gap-4 pt-2">
+                                    <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                        <input wire:model="jenis_kelamin" type="radio" value="L" class="form-check-input mt-0">
+                                        <span>Laki-laki (L)</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                        <input wire:model="jenis_kelamin" type="radio" value="P" class="form-check-input mt-0">
+                                        <span>Perempuan (P)</span>
+                                    </label>
+                                </div>
+                                @error('jenis_kelamin') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">NISN</label>
+                                <input wire:model="nisn" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" placeholder="10 digit NISN">
+                                @error('nisn') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">NIS</label>
+                                <input wire:model="nis" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" placeholder="Nomor Induk Siswa">
+                                @error('nis') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Rombongan Belajar (Rombel) <span class="text-rose-500">*</span></label>
+                                <select wire:model="form_rombel_id" class="form-select rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" required>
+                                    <option value="">-- Pilih Rombel --</option>
+                                    @foreach ($rombels as $r)
+                                        <option value="{{ $r->id }}">{{ $r->nama }}</option>
+                                    @endforeach
+                                </select>
+                                @error('form_rombel_id') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Status Keaktifan <span class="text-rose-500">*</span></label>
+                                <select wire:model="form_status" class="form-select rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" required>
+                                    <option value="">-- Pilih Status --</option>
+                                    @foreach ($statusOptions as $k => $v)
+                                        <option value="{{ $k }}">{{ $v }}</option>
+                                    @endforeach
+                                </select>
+                                @error('form_status') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Lembaga</label>
+                                <select wire:model="lembaga_id" class="form-select rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100">
+                                    <option value="">-- Pilih Lembaga --</option>
+                                    @foreach (daftar_lembaga() as $id => $namaLembaga)
+                                        <option value="{{ $id }}">{{ $namaLembaga }}</option>
+                                    @endforeach
+                                </select>
+                                @error('lembaga_id') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- SECTION 2: KELAHIRAN & KEPENDUDUKAN --}}
+                    <div class="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
+                                2
+                            </div>
+                            <h3 class="text-sm font-bold font-display text-slate-800 dark:text-slate-200 m-0">Data Kelahiran & Kependudukan</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-4">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Tempat Lahir</label>
+                                <input wire:model="tempat_lahir" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" placeholder="Kota/Kabupaten lahir">
+                                @error('tempat_lahir') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-4">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Tanggal Lahir</label>
+                                <input type="date" wire:model="tanggal_lahir" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100">
+                                @error('tanggal_lahir') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-4">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">NIK (Nomor Induk Kependudukan)</label>
+                                <input wire:model="nik" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" placeholder="16 digit NIK siswa">
+                                @error('nik') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">No. Kartu Keluarga (KK)</label>
+                                <input wire:model="no_kk" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" placeholder="Nomor KK keluarga">
+                                @error('no_kk') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">No. Akte Kelahiran</label>
+                                <input wire:model="no_akte" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" placeholder="Nomor registrasi akte lahir">
+                                @error('no_akte') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- SECTION 3: KONTAK & ORANG TUA --}}
+                    <div class="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs">
+                                3
+                            </div>
+                            <h3 class="text-sm font-bold font-display text-slate-800 dark:text-slate-200 m-0">Kontak & Data Orang Tua</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-12">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Alamat Lengkap Siswa</label>
+                                <textarea wire:model="alamat" rows="2" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" placeholder="Nama jalan, RT/RW, Dusun, Desa/Kelurahan, Kecamatan, dsb."></textarea>
+                                @error('alamat') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-4">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Nomor Telepon / WhatsApp</label>
+                                <input wire:model="telepon" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" placeholder="Contoh: 08123456789">
+                                @error('telepon') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-4">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Nama Ayah Kandung</label>
+                                <input wire:model="ayah" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" placeholder="Nama lengkap ayah">
+                                @error('ayah') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="md:col-span-4">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Nama Ibu Kandung</label>
+                                <input wire:model="ibu" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" placeholder="Nama lengkap ibu">
+                                @error('ibu') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- SECTION 4: FOTO & TAGS --}}
+                    <div class="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-xs">
+                                4
+                            </div>
+                            <h3 class="text-sm font-bold font-display text-slate-800 dark:text-slate-200 m-0">Foto Profil & Tag Label</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                            <div class="md:col-span-6">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Foto Siswa</label>
+                                <input type="file" wire:model="foto" class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100" accept="image/*">
+                                <div wire:loading wire:target="foto" class="mt-1 text-xs text-sky-600 dark:text-cyan-400">
+                                    <span class="spinner-border spinner-border-sm me-1" role="status"></span> Mengunggah foto...
+                                </div>
+                                @error('foto') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+
+                                @if ($foto && !is_string($foto))
+                                    <div class="mt-3 flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                        <img src="{{ $foto->temporaryUrl() }}" class="w-20 h-20 rounded-xl object-cover shadow-sm">
+                                        <div class="text-xs text-slate-500 dark:text-slate-400">
+                                            <span class="font-bold text-emerald-600 dark:text-emerald-400 block mb-0.5">Foto Baru Dipilih</span>
+                                            Pratinjau sebelum disimpan
                                         </div>
-                                        <div class="col-12 mt-3 d-flex gap-2">
-                                            <button type="button" data-bs-dismiss="modal" wire:click="resetForm" class="btn btn-sm btn-secondary">Tutup</button>
-                                            <button type="button" wire:click="openHistory('{{ $sData->id }}')" class="btn btn-sm btn-outline-info">
-                                                <i class="bi bi-clock-history me-1"></i> Riwayat Perubahan ({{ $sData->histories()->count() }})
-                                            </button>
+                                    </div>
+                                @elseif ($existing_foto)
+                                    <div class="mt-3 flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                                        <img src="{{ asset('storage/' . $existing_foto) }}" class="w-20 h-20 rounded-xl object-cover shadow-sm">
+                                        <div class="text-xs text-slate-500 dark:text-slate-400">
+                                            <span class="font-bold text-slate-700 dark:text-slate-300 block mb-0.5">Foto Saat Ini</span>
+                                            Unggah file baru jika ingin mengganti
                                         </div>
                                     </div>
                                 @endif
                             </div>
+
+                            <div class="md:col-span-6">
+                                <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Tag Label Siswa</label>
+                                <div x-data="{
+                                    open: false,
+                                    text: '',
+                                    tags: @entangle('selectedTags'),
+                                    allTags: @js($allTags),
+                                    get suggestions(){
+                                        if(this.text.trim() === '') return [];
+                                        return this.allTags.filter(t => t.toLowerCase().includes(this.text.toLowerCase()) && !this.tags.includes(t));
+                                    },
+                                    addTag(tag){
+                                        tag = tag.trim();
+                                        if(tag && !this.tags.includes(tag)){
+                                            this.tags.push(tag);
+                                        }
+                                        this.text = '';
+                                        this.open = false;
+                                    },
+                                    removeTag(index){
+                                        this.tags.splice(index, 1);
+                                    }
+                                }" class="relative">
+                                    <div class="form-control rounded-xl dark:bg-slate-900 dark:border-slate-700 flex flex-wrap gap-1.5 items-center p-2 min-h-[46px]" :class="{ 'ring-2 ring-sky-500/30 border-sky-500': open }">
+                                        <template x-for="(tag, index) in tags" :key="index">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-500/15 text-sky-700 dark:text-cyan-300 border border-sky-500/30">
+                                                <span x-text="tag"></span>
+                                                <button type="button" @click="removeTag(index)" class="hover:text-rose-500 transition-colors ml-1 font-bold text-sm leading-none" aria-label="Remove">&times;</button>
+                                            </span>
+                                        </template>
+                                        <input type="text" x-model="text" @keydown.enter.prevent="addTag(text)"
+                                                @keydown.comma.prevent="addTag(text)" @keydown.escape="open = false"
+                                                @focus="open = true" @click.away="open = false"
+                                                class="border-0 p-0 m-0 flex-grow bg-transparent text-xs text-slate-800 dark:text-slate-200 focus:ring-0 focus:outline-hidden"
+                                                style="min-width: 120px;"
+                                                placeholder="Ketik tag & Enter...">
+                                    </div>
+
+                                    <div x-show="open && suggestions.length > 0" x-cloak
+                                         class="absolute z-20 mt-1.5 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl overflow-auto max-h-48 divide-y divide-slate-100 dark:divide-slate-800">
+                                        <template x-for="suggestion in suggestions" :key="suggestion">
+                                            <div @click="addTag(suggestion)"
+                                                 class="px-3.5 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-slate-800 cursor-pointer transition-colors flex items-center justify-between">
+                                                <span x-text="suggestion"></span>
+                                                <i class="bi bi-plus text-sky-500"></i>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+                                        <i class="bi bi-info-circle"></i> Tekan <kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px]">Enter</kbd> atau <kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px]">,</kbd> untuk menambahkan tag
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Bottom Action Buttons --}}
+                <div class="flex items-center justify-between gap-3 mt-8 pt-5 border-t border-slate-200/80 dark:border-slate-800">
+                    <button type="button" wire:click="resetForm" class="btn btn-outline-secondary rounded-xl px-5 py-2.5 text-xs font-semibold">
+                        <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar
+                    </button>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" wire:click="resetForm" class="btn btn-secondary rounded-xl px-5 py-2.5 text-xs font-semibold">
+                            Batal
+                        </button>
+                        <button type="submit" wire:loading.attr="disabled" class="btn-logo-gradient inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg">
+                            <span wire:loading.remove wire:target="{{ $action == 'edit' ? 'update' : 'store' }}">
+                                <i class="bi bi-check2-circle text-base"></i> {{ $action == 'edit' ? 'Simpan Perubahan Siswa' : 'Simpan Siswa' }}
+                            </span>
+                            <span wire:loading wire:target="{{ $action == 'edit' ? 'update' : 'store' }}" class="inline-flex items-center gap-2">
+                                <span class="spinner-border spinner-border-sm" role="status"></span> Menyimpan Data...
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    {{-- SPA DETAIL VIEW FOR SISWA --}}
+    @elseif ($action === 'show')
+        @php
+            $sData = App\Models\Siswa::with(['rombel', 'tags', 'histories.user'])->find($showId);
+        @endphp
+        @if ($sData)
+            <div class="glass-panel rounded-3xl p-6 md:p-8 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl" x-transition>
+                {{-- Detail Top Bar --}}
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-200/80 dark:border-slate-800">
+                    <div class="flex items-center gap-3">
+                        <button type="button" wire:click="resetForm" class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all shadow-xs" title="Kembali ke Daftar Siswa">
+                            <i class="bi bi-arrow-left text-lg"></i>
+                        </button>
+                        <div>
+                            <h2 class="text-xl md:text-2xl font-bold font-display text-slate-800 dark:text-white m-0 flex items-center gap-2">
+                                <i class="bi bi-person-vcard text-sky-500 dark:text-cyan-400"></i> Detail Profil Siswa
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 m-0 mt-0.5">
+                                Informasi lengkap dan riwayat aktivitas siswa
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button type="button" wire:click="edit('{{ $sData->id }}')" class="btn btn-outline-warning btn-sm rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-1.5">
+                            <i class="bi bi-pencil-square"></i> Edit Siswa
+                        </button>
+                        <button type="button" wire:click="openHistory('{{ $sData->id }}')" class="btn btn-outline-info btn-sm rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-1.5">
+                            <i class="bi bi-clock-history"></i> Riwayat Perubahan ({{ $sData->histories()->count() }})
+                        </button>
+                        <button type="button" wire:click="resetForm" class="btn btn-secondary btn-sm rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-1.5">
+                            <i class="bi bi-arrow-left"></i> Kembali
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Profile Hero Card --}}
+                <div class="p-6 rounded-2xl bg-gradient-to-r from-sky-600/10 via-cyan-500/10 to-emerald-500/10 border border-sky-500/20 dark:border-cyan-500/30 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+                    <div class="flex items-center gap-4">
+                        @if ($sData->foto)
+                            <img src="{{ asset('storage/' . $sData->foto) }}" class="w-20 h-20 rounded-2xl object-cover shadow-md border-2 border-white dark:border-slate-800">
+                        @else
+                            <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-400 text-white flex items-center justify-center font-bold text-2xl shadow-md border-2 border-white dark:border-slate-800">
+                                {{ strtoupper(substr($sData->nama, 0, 2)) }}
+                            </div>
                         @endif
+
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="text-xl font-bold font-display text-slate-800 dark:text-white m-0">{{ $sData->nama }}</h3>
+                                @if ($sData->panggilan)
+                                    <span class="text-xs px-2.5 py-0.5 rounded-full bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium">({{ $sData->panggilan }})</span>
+                                @endif
+                            </div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-3 flex-wrap">
+                                <span>NISN: <strong class="text-slate-700 dark:text-slate-200">{{ $sData->nisn ?? '-' }}</strong></span>
+                                <span>NIS: <strong class="text-slate-700 dark:text-slate-200">{{ $sData->nis ?? '-' }}</strong></span>
+                                <span>JK: <strong class="text-slate-700 dark:text-slate-200">{{ $sData->jenis_kelamin == 'L' ? 'Laki-laki' : ($sData->jenis_kelamin == 'P' ? 'Perempuan' : '-') }}</strong></span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2 flex-wrap">
+                                <span class="badge bg-sky-500/15 text-sky-700 dark:text-cyan-300 border border-sky-500/30">
+                                    <i class="bi bi-door-open me-1"></i> Rombel: {{ $sData->rombel->nama ?? '-' }}
+                                </span>
+                                @php
+                                    $detailStatusColor = match ((int) $sData->status) {
+                                        1 => 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
+                                        2 => 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30',
+                                        3 => 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
+                                        4 => 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30',
+                                        5 => 'bg-neutral-800/15 text-neutral-700 dark:text-neutral-300 border-neutral-500/30',
+                                        6 => 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30',
+                                        default => 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30',
+                                    };
+                                @endphp
+                                <span class="badge {{ $detailStatusColor }} border">
+                                    <i class="bi bi-check-circle me-1"></i> {{ status_siswa($sData->status) }}
+                                </span>
+                                <span class="badge bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30">
+                                    <i class="bi bi-building me-1"></i> {{ nama_lembaga($sData->lembaga_id) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Detail Sections Grid --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {{-- Card 1: Data Kelahiran & Identitas --}}
+                    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-2">
+                            <i class="bi bi-card-text text-sky-500"></i> Data Kependudukan & Kelahiran
+                        </h4>
+                        <dl class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                            <div class="py-2.5 flex justify-between gap-4">
+                                <dt class="text-slate-500">NIK (KTP/KIA)</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->nik ?? '-' }}</dd>
+                            </div>
+                            <div class="py-2.5 flex justify-between gap-4">
+                                <dt class="text-slate-500">Tempat, Tanggal Lahir</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">
+                                    {{ $sData->tempat_lahir ?? '-' }}, {{ $sData->tanggal_lahir ? date('d M Y', strtotime($sData->tanggal_lahir)) : '-' }}
+                                </dd>
+                            </div>
+                            <div class="py-2.5 flex justify-between gap-4">
+                                <dt class="text-slate-500">No. Kartu Keluarga (KK)</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->no_kk ?? '-' }}</dd>
+                            </div>
+                            <div class="py-2.5 flex justify-between gap-4">
+                                <dt class="text-slate-500">No. Akte Kelahiran</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->no_akte ?? '-' }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    {{-- Card 2: Kontak & Orang Tua --}}
+                    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-2">
+                            <i class="bi bi-people text-emerald-500"></i> Orang Tua & Kontak
+                        </h4>
+                        <dl class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                            <div class="py-2.5 flex justify-between gap-4">
+                                <dt class="text-slate-500">Nama Ayah</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->ayah ?? '-' }}</dd>
+                            </div>
+                            <div class="py-2.5 flex justify-between gap-4">
+                                <dt class="text-slate-500">Nama Ibu</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->ibu ?? '-' }}</dd>
+                            </div>
+                            <div class="py-2.5 flex justify-between gap-4">
+                                <dt class="text-slate-500">Nomor Telepon/WA</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->telepon ?? '-' }}</dd>
+                            </div>
+                            <div class="py-2.5 flex justify-between gap-4">
+                                <dt class="text-slate-500">Alamat</dt>
+                                <dd class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ $sData->alamat ?? '-' }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    {{-- Card 3: Tag Label --}}
+                    <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 shadow-xs md:col-span-2">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-2">
+                            <i class="bi bi-tags text-purple-500"></i> Tag Label Terpasang
+                        </h4>
+                        <div class="flex flex-wrap gap-2">
+                            @forelse ($sData->tags as $t)
+                                <span class="badge bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-lg text-xs">
+                                    #{{ $t->nama }}
+                                </span>
+                            @empty
+                                <span class="text-xs text-slate-400 italic">Belum ada tag untuk siswa ini.</span>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Bottom Return Button --}}
+                <div class="mt-8 pt-5 border-t border-slate-200/80 dark:border-slate-800 flex justify-between items-center">
+                    <button type="button" wire:click="resetForm" class="btn btn-secondary rounded-xl px-5 py-2.5 text-xs font-semibold">
+                        <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar Siswa
+                    </button>
+                    <button type="button" wire:click="edit('{{ $sData->id }}')" class="btn btn-warning rounded-xl px-5 py-2.5 text-xs font-semibold">
+                        <i class="bi bi-pencil-square me-1"></i> Edit Data Ini
+                    </button>
                 </div>
             </div>
-        </div>
-    </div>
+        @endif
+    @endif
 
-    {{-- MODAL BULK UPDATE --}}
-    <div wire:ignore.self class="modal fade" id="modalBulkUpdate" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Update Data secara Massal</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    {{-- MODAL BULK UPDATE (TAILWIND / ALPINE) --}}
+    @if ($showBulkUpdateModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" x-transition>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-cyan-500/30 shadow-2xl w-full max-w-lg overflow-hidden">
+                <div class="p-4 md:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <h5 class="font-bold flex items-center gap-2 mb-0 text-slate-900 dark:text-white">
+                        <i class="bi bi-pencil-square text-sky-500"></i> Update Data secara Massal
+                    </h5>
+                    <button type="button" wire:click="closeBulkUpdate" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xl font-bold p-1">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
-                <div class="modal-body">
-                    <p class="small text-muted">
-                        Perubahan akan diterapkan pada <strong>{{ count($checkedSiswa) }}</strong> siswa yang dipilih.
+                <div class="p-5">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                        Perubahan akan diterapkan pada <strong class="text-sky-600 dark:text-cyan-400 font-bold">{{ count($checkedSiswa) }}</strong> siswa yang dipilih.
                     </p>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Kelas (Rombel)</label>
-                        <select wire:model="bulkRombelId" class="form-select">
+                    <div class="mb-4">
+                        <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Kelas (Rombel)</label>
+                        <select wire:model="bulkRombelId" class="form-select rounded-xl dark:bg-slate-800 dark:border-slate-700">
                             <option value="">-- Tetap (Tidak Berubah) --</option>
                             @foreach ($rombels as $r)
                                 <option value="{{ $r->id }}">{{ $r->nama }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Status</label>
-                        <select wire:model="bulkStatus" class="form-select">
+                    <div class="mb-4">
+                        <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Status Keaktifan</label>
+                        <select wire:model="bulkStatus" class="form-select rounded-xl dark:bg-slate-800 dark:border-slate-700">
                             <option value="">-- Tetap (Tidak Berubah) --</option>
                             @foreach ($statusOptions as $k => $v)
                                 <option value="{{ $k }}">{{ $v }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Tambah Tag</label>
+                    <div class="mb-4">
+                        <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Tambah Tag</label>
                         <div x-data="{
                             open: false,
                             text: '',
@@ -1313,249 +1608,249 @@ new class extends \Livewire\Volt\Component {
                             removeTag(index){
                                 this.tags.splice(index, 1);
                             }
-                        }" class="position-relative">
-                            <div class="form-control d-flex flex-wrap gap-1 align-items-center" :class="{ 'border-success': open }" style="min-height: 38px;">
+                        }" class="relative">
+                            <div class="form-control rounded-xl dark:bg-slate-800 dark:border-slate-700 flex flex-wrap gap-1.5 items-center p-2 min-h-[42px]" :class="{ 'ring-2 ring-sky-500/30 border-sky-500': open }">
                                 <template x-for="(tag, index) in tags" :key="index">
-                                    <span class="badge bg-primary d-inline-flex align-items-center rounded-1">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-sky-500/15 text-sky-700 dark:text-cyan-300 border border-sky-500/30">
                                         <span x-text="tag"></span>
-                                        <button type="button" @click="removeTag(index)" class="btn-close btn-close-white ms-2" style="font-size: 0.5em;" aria-label="Remove"></button>
+                                        <button type="button" @click="removeTag(index)" class="hover:text-rose-500 transition-colors ml-1 font-bold text-sm leading-none" aria-label="Remove">&times;</button>
                                     </span>
                                 </template>
                                 <input type="text" x-model="text" @keydown.enter.prevent="addTag(text)"
                                         @keydown.comma.prevent="addTag(text)" @keydown.escape="open = false"
                                         @focus="open = true" @click.away="open = false"
-                                        class="border-0 p-0 m-0 flex-grow-1 bg-transparent text-sm"
-                                        style="outline: none; min-width: 100px; box-shadow: none;"
-                                        placeholder="">
+                                        class="border-0 p-0 m-0 flex-grow bg-transparent text-xs text-slate-800 dark:text-slate-200 focus:ring-0 focus:outline-hidden"
+                                        style="min-width: 100px;"
+                                        placeholder="Ketik tag...">
                             </div>
                             <div x-show="open && suggestions.length > 0" x-cloak
-                                 class="position-absolute z-3 mt-1 w-100 bg-body border rounded shadow-sm overflow-auto" style="max-height: 200px;">
+                                 class="absolute z-20 mt-1.5 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl overflow-auto max-h-40 divide-y divide-slate-100 dark:divide-slate-800">
                                 <template x-for="suggestion in suggestions" :key="suggestion">
                                     <div @click="addTag(suggestion)"
-                                         class="px-3 py-2 text-body border-bottom" style="cursor: pointer;"
-                                         onmouseover="this.classList.add('bg-secondary', 'bg-opacity-10')" onmouseout="this.classList.remove('bg-secondary', 'bg-opacity-10')">
+                                         class="px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-slate-800 cursor-pointer transition-colors flex items-center justify-between">
                                         <span x-text="suggestion"></span>
+                                        <i class="bi bi-plus text-sky-500"></i>
                                     </div>
                                 </template>
                             </div>
-                            <div class="form-text small text-muted">Tekan Enter atau Koma untuk menambah tag</div>
                         </div>
                     </div>
-                    <button wire:click="bulkUpdate" class="btn btn-primary w-100" wire:loading.attr="disabled">
-                        <i class="bi bi-save me-1"></i> SIMPAN PERUBAHAN MASSAL
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- MODAL BULK DELETE --}}
-    <div wire:ignore.self class="modal fade" id="modalBulkDelete" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Konfirmasi Hapus Massal</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Anda yakin ingin menghapus <strong>{{ count($checkedSiswa) }}</strong> siswa yang dipilih?</p>
-                    <p class="text-danger small"><i class="bi bi-info-circle me-1"></i>Tindakan ini tidak dapat dibatalkan!</p>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Ketik karakter berikut untuk konfirmasi: <strong class="fs-5 ms-2 user-select-none">{{ $randomConfirmString }}</strong></label>
-                        <input type="text" wire:model="confirmText" class="form-control" placeholder="Ketik karakter konfirmasi..." autocomplete="off">
+                    <div class="flex items-center gap-2 pt-2">
+                        <button type="button" wire:click="closeBulkUpdate" class="btn btn-secondary rounded-xl flex-1 py-2 text-xs font-semibold">
+                            Batal
+                        </button>
+                        <button wire:click="bulkUpdate" class="btn-logo-gradient rounded-xl flex-1 py-2 text-xs font-bold shadow-md" wire:loading.attr="disabled">
+                            <i class="bi bi-save me-1"></i> Simpan
+                        </button>
                     </div>
-                    
-                    <button wire:click="bulkDelete" class="btn btn-danger w-100" wire:loading.attr="disabled">
-                        <i class="bi bi-trash me-1"></i> HAPUS DATA
-                    </button>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 
-    {{-- MODAL RIWAYAT PERUBAHAN SISWA --}}
-    <div wire:ignore.self class="modal fade" id="modalSiswaHistory" tabindex="-1">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header border-bottom">
+    {{-- MODAL BULK DELETE (TAILWIND / ALPINE) --}}
+    @if ($showBulkDeleteModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" x-transition>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-rose-500/30 shadow-2xl w-full max-w-md overflow-hidden">
+                <div class="p-4 md:p-5 bg-gradient-to-r from-rose-600 to-red-700 text-white flex items-center justify-between">
+                    <h5 class="font-bold flex items-center gap-2 mb-0 text-white text-sm">
+                        <i class="bi bi-exclamation-triangle"></i> Konfirmasi Hapus Massal
+                    </h5>
+                    <button type="button" wire:click="cancelBulkDelete" class="text-white hover:text-rose-200 text-xl font-bold p-1">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="p-5">
+                    <p class="text-xs text-slate-600 dark:text-slate-300">
+                        Anda yakin ingin menghapus <strong class="text-rose-600 font-bold">{{ count($checkedSiswa) }}</strong> siswa yang dipilih?
+                    </p>
+                    <p class="text-rose-500 text-xs font-semibold flex items-center gap-1.5 mt-1 mb-4">
+                        <i class="bi bi-info-circle"></i> Tindakan ini tidak dapat dibatalkan!
+                    </p>
+
+                    <div class="mb-4">
+                        <label class="form-label text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            Ketik karakter berikut: <strong class="text-base text-rose-600 font-bold ml-1 tracking-widest select-none">{{ $randomConfirmString }}</strong>
+                        </label>
+                        <input type="text" wire:model="confirmText" class="form-control rounded-xl dark:bg-slate-800 dark:border-slate-700 font-mono text-center uppercase tracking-widest" placeholder="Ketik karakter..." autocomplete="off">
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" wire:click="cancelBulkDelete" class="btn btn-secondary rounded-xl flex-1 py-2 text-xs font-semibold">
+                            Batal
+                        </button>
+                        <button wire:click="bulkDelete" class="btn btn-danger rounded-xl flex-1 py-2 text-xs font-bold shadow-md" wire:loading.attr="disabled">
+                            <i class="bi bi-trash me-1"></i> Hapus Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- MODAL RIWAYAT PERUBAHAN SISWA (TAILWIND / ALPINE) --}}
+    @if ($historySiswaId && $historySiswa)
+        <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" x-transition>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-cyan-500/30 shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[90vh]">
+                <div class="p-4 md:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                     <div>
-                        <h5 class="modal-title font-bold flex items-center gap-2 mb-0">
+                        <h5 class="font-bold flex items-center gap-2 mb-0 text-slate-900 dark:text-white">
                             <i class="bi bi-clock-history text-cyan-500"></i>
                             Riwayat Perubahan Data Siswa
                         </h5>
-                        @if ($historySiswa)
-                            <div class="text-xs text-muted mt-1">
-                                <strong class="text-slate-800 dark:text-slate-200">{{ $historySiswa->nama }}</strong>
-                                <span class="mx-1">•</span> Rombel: <span class="fw-semibold">{{ $historySiswa->rombel->nama ?? '-' }}</span>
-                                <span class="mx-1">•</span> NISN: <span class="fw-semibold">{{ $historySiswa->nisn ?? '-' }}</span>
-                            </div>
-                        @endif
+                        <div class="text-xs text-muted mt-1">
+                            <strong class="text-slate-800 dark:text-slate-200">{{ $historySiswa->nama }}</strong>
+                            <span class="mx-1">•</span> Rombel: <span class="fw-semibold">{{ $historySiswa->rombel->nama ?? '-' }}</span>
+                            <span class="mx-1">•</span> NISN: <span class="fw-semibold">{{ $historySiswa->nisn ?? '-' }}</span>
+                        </div>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="closeHistory"></button>
+                    <button type="button" wire:click="closeHistory" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xl font-bold p-1">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
-                <div class="modal-body p-4">
-                    @if ($historySiswa)
-                        @php
-                            $histories = $historySiswa->histories;
-                            $latestUndoable = $histories->where('is_reverted', false)->whereIn('action', ['update', 'bulk_update', 'rollback'])->whereNotNull('old_values')->first();
-                        @endphp
 
-                        {{-- TOP ACTION / SUMMARY BAR --}}
-                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-3 mb-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-500 d-flex align-items-center justify-center font-bold">
-                                    <i class="bi bi-journal-text fs-5"></i>
-                                </div>
-                                <div>
-                                    <div class="text-xs text-muted">Total Riwayat Perubahan</div>
-                                    <div class="fw-bold text-sm text-slate-800 dark:text-slate-200">
-                                        {{ $histories->count() }} aktivitas tercatat
-                                    </div>
+                <div class="p-4 md:p-6 overflow-y-auto flex-1">
+                    @php
+                        $histories = $historySiswa->histories;
+                        $latestUndoable = $histories->where('is_reverted', false)->whereIn('action', ['update', 'bulk_update', 'rollback'])->whereNotNull('old_values')->first();
+                    @endphp
+
+                    {{-- TOP ACTION / SUMMARY BAR --}}
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-3 mb-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-500 d-flex align-items-center justify-center font-bold">
+                                <i class="bi bi-journal-text fs-5"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-muted">Total Riwayat Perubahan</div>
+                                <div class="fw-bold text-sm text-slate-800 dark:text-slate-200">
+                                    {{ $histories->count() }} aktivitas tercatat
                                 </div>
                             </div>
-
-                            @if ($latestUndoable)
-                                <button type="button" 
-                                        wire:click="undoLatestHistory('{{ $historySiswa->id }}')"
-                                        wire:confirm="Yakin ingin membatalkan (undo) perubahan terakhir pada siswa ini?"
-                                        class="btn btn-warning btn-sm d-inline-flex align-items-center gap-1.5 fw-bold shadow-xs">
-                                    <i class="bi bi-arrow-counterclockwise"></i>
-                                    <span>Undo Perubahan Terakhir</span>
-                                </button>
-                            @endif
                         </div>
 
-                        {{-- TIMELINE / TABLE OF HISTORIES --}}
-                        @if ($histories->isEmpty())
-                            <div class="text-center py-5 text-muted">
-                                <i class="bi bi-clock fs-1 d-block mb-2 text-slate-300 dark:text-slate-600"></i>
-                                <p class="mb-1 fw-bold">Belum ada riwayat perubahan yang tercatat</p>
-                                <p class="small text-muted m-0">Setiap perubahan data siswa ke depan akan otomatis terekam secara kronologis di sini.</p>
-                            </div>
-                        @else
-                            <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-slate-700/80">
-                                <table class="table table-hover table-striped align-middle mb-0" style="font-size: 0.85rem;">
-                                    <thead class="table-light text-slate-600 dark:text-slate-300">
-                                        <tr>
-                                            <th style="width: 140px;">Waktu & User</th>
-                                            <th style="width: 120px;">Aksi</th>
-                                            <th>Rincian Perubahan (Sebelum <i class="bi bi-arrow-right"></i> Sesudah)</th>
-                                            <th class="text-center" style="width: 110px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($histories as $h)
-                                            <tr class="{{ $h->is_reverted ? 'opacity-60' : '' }}">
-                                                <td>
-                                                    <div class="fw-bold text-slate-800 dark:text-slate-200">
-                                                        {{ $h->created_at->format('d/m/Y H:i') }}
-                                                    </div>
-                                                    <div class="text-xs text-muted" title="{{ $h->created_at }}">
-                                                        {{ $h->created_at->diffForHumans() }}
-                                                    </div>
-                                                    <div class="text-xs text-cyan-600 dark:text-cyan-400 mt-1 d-flex align-items-center gap-1">
-                                                        <i class="bi bi-person-fill"></i>
-                                                        <span>{{ $h->user->name ?? 'Sistem' }}</span>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    @if ($h->action === 'create')
-                                                        <span class="badge bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">Tambah Data</span>
-                                                    @elseif ($h->action === 'update')
-                                                        <span class="badge bg-sky-500/15 text-sky-600 border border-sky-500/30">Pembaruan</span>
-                                                    @elseif ($h->action === 'bulk_update')
-                                                        <span class="badge bg-purple-500/15 text-purple-600 border border-purple-500/30">Massal</span>
-                                                    @elseif ($h->action === 'rollback')
-                                                        <span class="badge bg-amber-500/15 text-amber-600 border border-amber-500/30">Undo/Rollback</span>
-                                                    @else
-                                                        <span class="badge bg-secondary">{{ $h->action }}</span>
-                                                    @endif
-
-                                                    @if ($h->is_reverted)
-                                                        <div class="mt-1">
-                                                            <span class="badge bg-rose-500/10 text-rose-600 border border-rose-500/20 text-[10px]">
-                                                                <i class="bi bi-arrow-counterclockwise"></i> Sudah Di-undo
-                                                            </span>
-                                                        </div>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    <div class="small fw-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                                        {{ $h->description ?? 'Perubahan data' }}
-                                                    </div>
-
-                                                    @if ($h->old_values && $h->new_values)
-                                                        <div class="d-flex flex-column gap-1 mt-1.5">
-                                                            @foreach ($h->new_values as $field => $newVal)
-                                                                @php
-                                                                    $oldVal = $h->old_values[$field] ?? null;
-                                                                    $fieldLabel = App\Models\SiswaHistory::formatFieldName($field);
-                                                                    $oldFormatted = App\Models\SiswaHistory::formatFieldValue($field, $oldVal);
-                                                                    $newFormatted = App\Models\SiswaHistory::formatFieldValue($field, $newVal);
-                                                                @endphp
-                                                                <div class="p-1.5 px-2 rounded-lg bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 text-xs d-flex flex-wrap items-center gap-1.5">
-                                                                    <strong class="text-slate-600 dark:text-slate-400">{{ $fieldLabel }}:</strong>
-                                                                    <span class="badge bg-rose-500/10 text-rose-600 border border-rose-500/20 font-normal">{!! $oldFormatted !!}</span>
-                                                                    <i class="bi bi-arrow-right text-muted small"></i>
-                                                                    <span class="badge bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-normal">{!! $newFormatted !!}</span>
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                    @elseif ($h->action === 'create')
-                                                        <span class="text-xs text-muted">Pembuatan entri awal data siswa</span>
-                                                    @endif
-                                                </td>
-                                                <td class="text-center">
-                                                    @if (!$h->is_reverted && $h->action !== 'create' && !empty($h->old_values))
-                                                        <button type="button" 
-                                                                wire:click="undoHistory({{ $h->id }})"
-                                                                wire:confirm="Yakin ingin membatalkan perubahan ini dan mengembalikan nilai ke sebelum perubahan?"
-                                                                class="btn btn-outline-warning btn-sm py-1 px-2 text-xs font-semibold rounded-lg"
-                                                                title="Batalkan perubahan ini">
-                                                            <i class="bi bi-arrow-counterclockwise"></i> Undo
-                                                        </button>
-                                                    @elseif ($h->is_reverted)
-                                                        <span class="text-muted text-xs italic">
-                                                            Di-undo {{ $h->reverted_at ? $h->reverted_at->diffForHumans() : '' }}
-                                                        </span>
-                                                    @else
-                                                        <span class="text-muted text-xs">-</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
+                        @if ($latestUndoable)
+                            <button type="button" 
+                                    wire:click="undoLatestHistory('{{ $historySiswa->id }}')"
+                                    wire:confirm="Yakin ingin membatalkan (undo) perubahan terakhir pada siswa ini?"
+                                    class="btn btn-warning btn-sm d-inline-flex align-items-center gap-1.5 fw-bold shadow-xs">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                <span>Undo Perubahan Terakhir</span>
+                            </button>
                         @endif
+                    </div>
+
+                    {{-- TIMELINE / TABLE OF HISTORIES --}}
+                    @if ($histories->isEmpty())
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-clock fs-1 d-block mb-2 text-slate-300 dark:text-slate-600"></i>
+                            <p class="mb-1 fw-bold">Belum ada riwayat perubahan yang tercatat</p>
+                            <p class="small text-muted m-0">Setiap perubahan data siswa ke depan akan otomatis terekam secara kronologis di sini.</p>
+                        </div>
+                    @else
+                        <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-slate-700/80">
+                            <table class="table table-hover table-striped align-middle mb-0" style="font-size: 0.85rem;">
+                                <thead class="table-light text-slate-600 dark:text-slate-300">
+                                    <tr>
+                                        <th style="width: 140px;">Waktu & User</th>
+                                        <th style="width: 120px;">Aksi</th>
+                                        <th>Rincian Perubahan (Sebelum <i class="bi bi-arrow-right"></i> Sesudah)</th>
+                                        <th class="text-center" style="width: 110px;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($histories as $h)
+                                        <tr class="{{ $h->is_reverted ? 'opacity-60' : '' }}">
+                                            <td>
+                                                <div class="fw-bold text-slate-800 dark:text-slate-200">
+                                                    {{ $h->created_at->format('d/m/Y H:i') }}
+                                                </div>
+                                                <div class="text-xs text-muted" title="{{ $h->created_at }}">
+                                                    {{ $h->created_at->diffForHumans() }}
+                                                </div>
+                                                <div class="text-xs text-cyan-600 dark:text-cyan-400 mt-1 d-flex align-items-center gap-1">
+                                                    <i class="bi bi-person-fill"></i>
+                                                    <span>{{ $h->user->name ?? 'Sistem' }}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if ($h->action === 'create')
+                                                    <span class="badge bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">Tambah Data</span>
+                                                @elseif ($h->action === 'update')
+                                                    <span class="badge bg-sky-500/15 text-sky-600 border border-sky-500/30">Pembaruan</span>
+                                                @elseif ($h->action === 'bulk_update')
+                                                    <span class="badge bg-purple-500/15 text-purple-600 border border-purple-500/30">Massal</span>
+                                                @elseif ($h->action === 'rollback')
+                                                    <span class="badge bg-amber-500/15 text-amber-600 border border-amber-500/30">Undo/Rollback</span>
+                                                @else
+                                                    <span class="badge bg-secondary">{{ $h->action }}</span>
+                                                @endif
+
+                                                @if ($h->is_reverted)
+                                                    <div class="mt-1">
+                                                        <span class="badge bg-rose-500/10 text-rose-600 border border-rose-500/20 text-[10px]">
+                                                            <i class="bi bi-arrow-counterclockwise"></i> Sudah Di-undo
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <div class="small fw-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                                    {{ $h->description ?? 'Perubahan data' }}
+                                                </div>
+
+                                                @if ($h->old_values && $h->new_values)
+                                                    <div class="d-flex flex-column gap-1 mt-1.5">
+                                                        @foreach ($h->new_values as $field => $newVal)
+                                                            @php
+                                                                $oldVal = $h->old_values[$field] ?? null;
+                                                                $fieldLabel = App\Models\SiswaHistory::formatFieldName($field);
+                                                                $oldFormatted = App\Models\SiswaHistory::formatFieldValue($field, $oldVal);
+                                                                $newFormatted = App\Models\SiswaHistory::formatFieldValue($field, $newVal);
+                                                            @endphp
+                                                            <div class="p-1.5 px-2 rounded-lg bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 text-xs d-flex flex-wrap items-center gap-1.5">
+                                                                <strong class="text-slate-600 dark:text-slate-400">{{ $fieldLabel }}:</strong>
+                                                                <span class="badge bg-rose-500/10 text-rose-600 border border-rose-500/20 font-normal">{!! $oldFormatted !!}</span>
+                                                                <i class="bi bi-arrow-right text-muted small"></i>
+                                                                <span class="badge bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-normal">{!! $newFormatted !!}</span>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @elseif ($h->action === 'create')
+                                                    <span class="text-xs text-muted">Pembuatan entri awal data siswa</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                @if (!$h->is_reverted && $h->action !== 'create' && !empty($h->old_values))
+                                                    <button type="button" 
+                                                            wire:click="undoHistory({{ $h->id }})"
+                                                            wire:confirm="Yakin ingin membatalkan perubahan ini dan mengembalikan nilai ke sebelum perubahan?"
+                                                            class="btn btn-outline-warning btn-sm py-1 px-2 text-xs font-semibold rounded-lg"
+                                                            title="Batalkan perubahan ini">
+                                                        <i class="bi bi-arrow-counterclockwise"></i> Undo
+                                                    </button>
+                                                @elseif ($h->is_reverted)
+                                                    <span class="text-muted text-xs italic">
+                                                        Di-undo {{ $h->reverted_at ? $h->reverted_at->diffForHumans() : '' }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-muted text-xs">-</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     @endif
                 </div>
-                <div class="modal-footer border-top py-2.5">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" wire:click="closeHistory">Tutup</button>
+
+                <div class="p-3 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-xl px-4 py-2 text-xs font-semibold" wire:click="closeHistory">
+                        Tutup
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
-
-    @script
-        <script>
-            $wire.on('close-modal', ({
-                id
-            }) => {
-                bootstrap.Modal.getInstance(document.getElementById(id))?.hide();
-            });
-
-            $wire.on('show-modal-delete', () => {
-                new bootstrap.Modal(document.getElementById('modalBulkDelete')).show();
-            });
-
-            $wire.on('show-modal-siswa', () => {
-                new bootstrap.Modal(document.getElementById('modalSiswaForm')).show();
-            });
-
-            $wire.on('show-modal-history', () => {
-                new bootstrap.Modal(document.getElementById('modalSiswaHistory')).show();
-            });
-        </script>
-    @endscript
+    @endif
+</div>
