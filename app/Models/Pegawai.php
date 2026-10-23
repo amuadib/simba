@@ -66,9 +66,11 @@ class Pegawai extends Model
             $attributes = $pegawai->getAttributes();
             unset($attributes['created_at'], $attributes['updated_at']);
 
+            $userId = (auth()->check() && User::where('id', auth()->id())->exists()) ? auth()->id() : null;
+
             $history = PegawaiHistory::create([
                 'pegawai_id' => $pegawai->id,
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'action' => $pegawai->historyAction ?? 'create',
                 'old_values' => null,
                 'new_values' => $attributes,
@@ -116,9 +118,11 @@ class Pegawai extends Model
                 $description = 'Pembaruan data pegawai (' . implode(', ', $fieldNames) . ')';
             }
 
+            $userId = (auth()->check() && User::where('id', auth()->id())->exists()) ? auth()->id() : null;
+
             $history = PegawaiHistory::create([
                 'pegawai_id' => $pegawai->id,
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'action' => $action,
                 'old_values' => $oldValues,
                 'new_values' => $newValues,
@@ -128,6 +132,42 @@ class Pegawai extends Model
             $pegawai->lastHistory = $history;
             $pegawai->historyAction = null;
             $pegawai->historyDescription = null;
+        });
+
+        static::updated(function (Pegawai $pegawai) {
+            // Sinkronisasi status SK penugasan jika status kepegawaian berubah
+            if ($pegawai->wasChanged('status')) {
+                $newStatus = (int) $pegawai->status;
+
+                // Status non-aktif final: 3 (Non-Aktif), 4 (Mutasi), 5 (Pensiun), 6 (Keluar), 7 (Almarhum)
+                if (in_array($newStatus, [3, 4, 5, 6, 7])) {
+                    $activeSks = $pegawai->skPenugasan()->where('status', '1')->get();
+                    if ($activeSks->isNotEmpty()) {
+                        $statusLabel = $pegawai->status_label;
+                        foreach ($activeSks as $sk) {
+                            $sk->update([
+                                'status' => '0',
+                                'tmt_selesai' => $sk->tmt_selesai ?: now()->toDateString(),
+                                'keterangan' => $sk->keterangan
+                                    ? ($sk->keterangan . " (Selesai otomatis: status {$statusLabel})")
+                                    : "Penugasan selesai otomatis karena status pegawai: {$statusLabel}",
+                            ]);
+                        }
+                    }
+                } elseif ($newStatus === 1) {
+                    // Jika diaktifkan kembali dan belum ada SK aktif, aktifkan kembali penugasan induk/terakhir
+                    $hasActiveSk = $pegawai->skPenugasan()->where('status', '1')->exists();
+                    if (!$hasActiveSk) {
+                        $induk = $pegawai->penugasanInduk ?: $pegawai->skPenugasan()->orderByDesc('created_at')->first();
+                        if ($induk) {
+                            $induk->update([
+                                'status' => '1',
+                                'tmt_selesai' => null,
+                            ]);
+                        }
+                    }
+                }
+            }
         });
     }
 

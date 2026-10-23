@@ -435,20 +435,22 @@ new class extends \Livewire\Volt\Component {
         }
 
         if (!empty($this->bulkLembagaId)) {
+            $isNonAktif = !empty($this->bulkStatus) && in_array((int) $this->bulkStatus, [3, 4, 5, 6, 7]);
+            $skStatus = $isNonAktif ? '0' : '1';
             foreach ($this->checkedPegawai as $pId) {
                 $p = Pegawai::find($pId);
                 if ($p) {
                     $existing = $p->skPenugasan()->where('lembaga_id', $this->bulkLembagaId)->first();
                     if ($existing) {
                         $p->skPenugasan()->where('id', '!=', $existing->id)->update(['is_induk' => false]);
-                        $existing->update(['is_induk' => true, 'status' => '1']);
+                        $existing->update(['is_induk' => true, 'status' => $skStatus]);
                     } else {
                         $p->skPenugasan()->update(['is_induk' => false]);
                         $p->skPenugasan()->create([
                             'lembaga_id' => $this->bulkLembagaId,
                             'jabatan' => null,
                             'is_induk' => true,
-                            'status' => '1',
+                            'status' => $skStatus,
                         ]);
                     }
                 }
@@ -1504,13 +1506,14 @@ new class extends \Livewire\Volt\Component {
                         </div>
 
                         <div class="md:col-span-4">
-                            <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Status Pegawai <span class="text-rose-500">*</span></label>
+                            <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Status Kepegawaian (Yayasan) <span class="text-rose-500">*</span></label>
                             <select wire:model="form_status" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                 <option value="">-- Pilih Status --</option>
                                 @foreach ($statusOptions as $k => $v)
                                     <option value="{{ $k }}">{{ $v }}</option>
                                 @endforeach
                             </select>
+                            <span class="text-[11px] text-slate-400 mt-0.5 block">Status non-aktif/pensiun/keluar otomatis menyelesaikan penugasan SK aktif.</span>
                             @error('form_status') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
                     </div>
@@ -2032,11 +2035,12 @@ new class extends \Livewire\Volt\Component {
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Status Penugasan <span class="text-rose-500">*</span></label>
+                                <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Masa Berlaku SK <span class="text-rose-500">*</span></label>
                                 <select wire:model="sk_status" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
-                                    <option value="1">Aktif</option>
-                                    <option value="0">Non-Aktif / Selesai</option>
+                                    <option value="1">Aktif / Berlaku</option>
+                                    <option value="0">Selesai / Kedaluwarsa</option>
                                 </select>
+                                <span class="text-[11px] text-slate-400 mt-0.5 block">Jika aktif, otomatis menyelaraskan status aktif pegawai.</span>
                                 @error('sk_status') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
@@ -2120,13 +2124,14 @@ new class extends \Livewire\Volt\Component {
                         </select>
                     </div>
                     <div class="mb-5">
-                        <label class="form-label text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">Pilih Status Baru</label>
+                        <label class="form-label text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">Pilih Status Kepegawaian Baru</label>
                         <select wire:model="bulkStatus" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
                             <option value="">-- Tetap (Tidak Berubah) --</option>
                             @foreach ($statusOptions as $k => $v)
                                 <option value="{{ $k }}">{{ $v }}</option>
                             @endforeach
                         </select>
+                        <span class="text-[11px] text-slate-400 mt-1 block">Status non-aktif/pensiun/keluar otomatis menyelesaikan penugasan SK aktif.</span>
                     </div>
                     <div class="flex items-center justify-end gap-2">
                         <button type="button" wire:click="closeBulkUpdate" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">

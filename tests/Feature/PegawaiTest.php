@@ -525,5 +525,68 @@ class PegawaiTest extends TestCase
             ->assertSee('Ibu Guru Kelas Tiga')
             ->assertDontSee('Pak Kepala Sekolah');
     }
+
+    public function test_pegawai_status_change_auto_syncs_with_sk_penugasan(): void
+    {
+        $pegawai = Pegawai::create([
+            'nama' => 'Ahmad Dahlan',
+            'jenis_kelamin' => 'l',
+            'lembaga_id' => 1,
+            'status' => '1',
+        ]);
+
+        $sk1 = $pegawai->skPenugasan()->create([
+            'lembaga_id' => 1,
+            'is_induk' => true,
+            'status' => '1',
+        ]);
+
+        $sk2 = $pegawai->skPenugasan()->create([
+            'lembaga_id' => 2,
+            'is_induk' => false,
+            'status' => '1',
+        ]);
+
+        $this->assertEquals('1', $sk1->fresh()->status);
+        $this->assertEquals('1', $sk2->fresh()->status);
+
+        // Ubah status pegawai menjadi Pensiun (5)
+        $pegawai->update(['status' => '5']);
+
+        // Kedua SK harus otomatis selesai ('0') dan tmt_selesai terisi tanggal hari ini
+        $this->assertEquals('0', $sk1->fresh()->status);
+        $this->assertEquals('0', $sk2->fresh()->status);
+        $this->assertEquals(now()->toDateString(), $sk1->fresh()->tmt_selesai->toDateString());
+        $this->assertEquals(now()->toDateString(), $sk2->fresh()->tmt_selesai->toDateString());
+
+        // Jika pegawai diaktifkan kembali ('1'), SK induk harus otomatis aktif kembali
+        $pegawai->update(['status' => '1']);
+        $this->assertEquals('1', $sk1->fresh()->status);
+        $this->assertNull($sk1->fresh()->tmt_selesai);
+    }
+
+    public function test_activating_sk_auto_activates_inactive_pegawai(): void
+    {
+        $pegawai = Pegawai::create([
+            'nama' => 'K.H. Hasyim Asyari',
+            'jenis_kelamin' => 'l',
+            'lembaga_id' => 1,
+            'status' => '3', // Non-Aktif
+        ]);
+
+        $sk = $pegawai->skPenugasan()->create([
+            'lembaga_id' => 1,
+            'is_induk' => true,
+            'status' => '0',
+        ]);
+
+        $this->assertEquals('3', $pegawai->fresh()->status);
+
+        // Saat admin mengaktifkan SK penugasan
+        $sk->update(['status' => '1']);
+
+        // Pegawai harus otomatis aktif ('1')
+        $this->assertEquals('1', $pegawai->fresh()->status);
+    }
 }
 

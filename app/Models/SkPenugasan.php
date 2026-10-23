@@ -42,6 +42,41 @@ class SkPenugasan extends Model
 
     protected static function booted(): void
     {
+        static::saving(function (SkPenugasan $sk) {
+            // Jika status penugasan diset 0 (selesai) dan tmt_selesai belum diisi, isi otomatis tanggal hari ini
+            if ((string) $sk->status === '0' && empty($sk->tmt_selesai)) {
+                $sk->tmt_selesai = now()->toDateString();
+            }
+        });
+
+        static::saved(function (SkPenugasan $sk) {
+            if (empty($sk->pegawai_id)) {
+                return;
+            }
+
+            // Jika dijadikan penugasan induk, selaraskan is_induk SK lain dan lembaga_id pegawai
+            if ($sk->is_induk) {
+                static::withoutEvents(function () use ($sk) {
+                    static::where('pegawai_id', $sk->pegawai_id)
+                        ->where('id', '!=', $sk->id)
+                        ->where('is_induk', true)
+                        ->update(['is_induk' => false]);
+                });
+
+                Pegawai::where('id', $sk->pegawai_id)
+                    ->where('lembaga_id', '!=', $sk->lembaga_id)
+                    ->update(['lembaga_id' => $sk->lembaga_id]);
+            }
+
+            // Jika SK penugasan diubah menjadi aktif (1) dan status pegawai saat ini Non-Aktif (3), otomatis aktifkan pegawai
+            if ($sk->wasChanged('status') && (string) $sk->status === '1') {
+                $pegawai = Pegawai::find($sk->pegawai_id);
+                if ($pegawai && (int) $pegawai->status === 3) {
+                    $pegawai->update(['status' => '1']);
+                }
+            }
+        });
+
         static::created(function (SkPenugasan $sk) {
             if (static::$suppressHistory || empty($sk->pegawai_id)) {
                 return;
@@ -53,9 +88,11 @@ class SkPenugasan extends Model
             $lembaga = function_exists('nama_lembaga') ? nama_lembaga($sk->lembaga_id, true) : 'Lembaga #' . $sk->lembaga_id;
             $noSk = $sk->nomor_sk ? ' (No: ' . $sk->nomor_sk . ')' : '';
 
+            $userId = (auth()->check() && \App\Models\User::where('id', auth()->id())->exists()) ? auth()->id() : null;
+
             PegawaiHistory::create([
                 'pegawai_id' => $sk->pegawai_id,
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'action' => 'sk_create',
                 'old_values' => null,
                 'new_values' => $attributes,
@@ -99,9 +136,11 @@ class SkPenugasan extends Model
             $lembaga = function_exists('nama_lembaga') ? nama_lembaga($sk->lembaga_id, true) : 'Lembaga #' . $sk->lembaga_id;
             $fieldLabels = array_map(fn($f) => PegawaiHistory::formatFieldName($f), $changedFields);
 
+            $userId = (auth()->check() && \App\Models\User::where('id', auth()->id())->exists()) ? auth()->id() : null;
+
             PegawaiHistory::create([
                 'pegawai_id' => $sk->pegawai_id,
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'action' => 'sk_update',
                 'old_values' => $oldValues,
                 'new_values' => $newValues,
@@ -111,6 +150,14 @@ class SkPenugasan extends Model
         });
 
         static::deleted(function (SkPenugasan $sk) {
+            if (!empty($sk->pegawai_id) && $sk->is_induk) {
+                $another = static::where('pegawai_id', $sk->pegawai_id)->first();
+                if ($another) {
+                    $another->update(['is_induk' => true]);
+                    Pegawai::where('id', $sk->pegawai_id)->update(['lembaga_id' => $another->lembaga_id]);
+                }
+            }
+
             if (static::$suppressHistory || empty($sk->pegawai_id)) {
                 return;
             }
@@ -126,9 +173,11 @@ class SkPenugasan extends Model
             $lembaga = function_exists('nama_lembaga') ? nama_lembaga($sk->lembaga_id, true) : 'Lembaga #' . $sk->lembaga_id;
             $noSk = $sk->nomor_sk ? ' (No: ' . $sk->nomor_sk . ')' : '';
 
+            $userId = (auth()->check() && \App\Models\User::where('id', auth()->id())->exists()) ? auth()->id() : null;
+
             PegawaiHistory::create([
                 'pegawai_id' => $sk->pegawai_id,
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'action' => 'sk_delete',
                 'old_values' => $attributes,
                 'new_values' => null,
