@@ -3,6 +3,7 @@
 <?php
 
 use App\Models\Siswa;
+use App\Models\SiswaLembaga;
 use App\Models\SiswaHistory;
 use App\Models\Rombel;
 use App\Models\Tag;
@@ -11,6 +12,7 @@ use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SiswaImport;
 use App\Exports\SiswaExport;
+use Illuminate\Support\Facades\DB;
 
 new class extends \Livewire\Volt\Component {
     use WithPagination, WithFileUploads;
@@ -20,6 +22,19 @@ new class extends \Livewire\Volt\Component {
     public $rombel_id = '';
     public $status = '';
     public $tag_id = '';
+    public $lembaga_id_filter = '';
+
+    // Keanggotaan Lembaga State
+    public $sl_id = null;
+    public $sl_lembaga_id = '';
+    public $sl_rombel_id = '';
+    public $sl_nis_lokal = '';
+    public $sl_is_induk = false;
+    public $sl_status = 1;
+    public $sl_tmt_masuk = '';
+    public $sl_tmt_keluar = '';
+    public $sl_keterangan = '';
+    public $isEditingSl = false;
 
     // Action State
     public $action = ''; // '', 'edit', 'show'
@@ -58,7 +73,7 @@ new class extends \Livewire\Volt\Component {
 
     public function updated($property)
     {
-        if (in_array($property, ['q', 'rombel_id', 'status', 'tag_id'])) {
+        if (in_array($property, ['q', 'rombel_id', 'status', 'tag_id', 'lembaga_id_filter'])) {
             $this->resetPage();
             $this->checkedSiswa = [];
             $this->selectAll = false;
@@ -69,6 +84,10 @@ new class extends \Livewire\Volt\Component {
     {
         if ($value) {
             $this->checkedSiswa = Siswa::query()
+                ->when($this->lembaga_id_filter, function($q, $lid) {
+                    $q->whereHas('keanggotaanLembaga', fn($sub) => $sub->where('lembaga_id', $lid)->where('status', 1))
+                      ->orWhere('lembaga_id', $lid);
+                })
                 ->when($this->rombel_id, fn($q, $id) => $q->where('rombel_id', $id))
                 ->when($this->tag_id, fn($q, $id) => $q->whereHas('tags', fn($q) => $q->where('tag_id', $id)))
                 ->when($this->status, fn($q, $s) => $q->where('status', $s))
@@ -184,6 +203,7 @@ new class extends \Livewire\Volt\Component {
         $this->editingId = null;
         $this->showId = $id;
         $this->action = 'show';
+        $this->resetSlForm();
     }
 
     public function edit($id)
@@ -276,6 +296,155 @@ new class extends \Livewire\Volt\Component {
     public function resetForm()
     {
         $this->reset(['nama', 'panggilan', 'jenis_kelamin', 'nisn', 'form_rombel_id', 'form_status', 'selectedTags', 'action', 'editingId', 'showId', 'nik', 'nis', 'no_akte', 'no_kk', 'tempat_lahir', 'tanggal_lahir', 'lembaga_id', 'alamat', 'telepon', 'ayah', 'ibu', 'foto', 'existing_foto']);
+        $this->resetSlForm();
+    }
+
+    // --- KEANGGOTAAN LEMBAGA ACTIONS ---
+
+    public function resetSlForm()
+    {
+        $this->reset([
+            'sl_id',
+            'sl_lembaga_id',
+            'sl_rombel_id',
+            'sl_nis_lokal',
+            'sl_is_induk',
+            'sl_status',
+            'sl_tmt_masuk',
+            'sl_tmt_keluar',
+            'sl_keterangan',
+            'isEditingSl',
+        ]);
+        $this->sl_status = 1;
+        $this->sl_is_induk = false;
+    }
+
+    public function editSl($slId)
+    {
+        $sl = SiswaLembaga::findOrFail($slId);
+        $this->sl_id = $sl->id;
+        $this->sl_lembaga_id = $sl->lembaga_id;
+        $this->sl_rombel_id = $sl->rombel_id ?? '';
+        $this->sl_nis_lokal = $sl->nis_lokal ?? '';
+        $this->sl_is_induk = (bool) $sl->is_induk;
+        $this->sl_status = (int) $sl->status;
+        $this->sl_tmt_masuk = $sl->tmt_masuk ? $sl->tmt_masuk->format('Y-m-d') : '';
+        $this->sl_tmt_keluar = $sl->tmt_keluar ? $sl->tmt_keluar->format('Y-m-d') : '';
+        $this->sl_keterangan = $sl->keterangan ?? '';
+        $this->isEditingSl = true;
+    }
+
+    public function cancelEditSl()
+    {
+        $this->resetSlForm();
+    }
+
+    public function saveSl()
+    {
+        $this->validate([
+            'sl_lembaga_id' => 'required',
+            'sl_status' => 'required|in:1,2,3,4,5,6',
+            'sl_nis_lokal' => 'nullable|string|max:50',
+            'sl_rombel_id' => 'nullable|string',
+            'sl_tmt_masuk' => 'nullable|date',
+            'sl_tmt_keluar' => 'nullable|date',
+            'sl_keterangan' => 'nullable|string|max:500',
+        ]);
+
+        $siswa = Siswa::findOrFail($this->showId);
+
+        $existingCount = $siswa->keanggotaanLembaga()->count();
+        $isInduk = $this->sl_is_induk || $existingCount === 0;
+
+        if ($isInduk) {
+            SiswaLembaga::where('siswa_id', $siswa->id)
+                ->where('id', '!=', $this->sl_id)
+                ->where('is_induk', true)
+                ->update(['is_induk' => false]);
+
+            $updateData = ['lembaga_id' => (int) $this->sl_lembaga_id];
+            if ($this->sl_rombel_id) {
+                $updateData['rombel_id'] = $this->sl_rombel_id;
+            }
+            $siswa->update($updateData);
+        }
+
+        if ($this->isEditingSl && $this->sl_id) {
+            $sl = SiswaLembaga::findOrFail($this->sl_id);
+            $sl->update([
+                'lembaga_id' => (int) $this->sl_lembaga_id,
+                'rombel_id' => $this->sl_rombel_id ?: null,
+                'nis_lokal' => $this->sl_nis_lokal ?: null,
+                'is_induk' => $isInduk,
+                'status' => (int) $this->sl_status,
+                'tmt_masuk' => $this->sl_tmt_masuk ?: null,
+                'tmt_keluar' => $this->sl_tmt_keluar ?: null,
+                'keterangan' => $this->sl_keterangan ?: null,
+            ]);
+            $message = 'Keanggotaan lembaga berhasil diperbarui';
+        } else {
+            $siswa->keanggotaanLembaga()->create([
+                'lembaga_id' => (int) $this->sl_lembaga_id,
+                'rombel_id' => $this->sl_rombel_id ?: null,
+                'nis_lokal' => $this->sl_nis_lokal ?: null,
+                'is_induk' => $isInduk,
+                'status' => (int) $this->sl_status,
+                'tmt_masuk' => $this->sl_tmt_masuk ?: null,
+                'tmt_keluar' => $this->sl_tmt_keluar ?: null,
+                'keterangan' => $this->sl_keterangan ?: null,
+            ]);
+            $message = 'Keanggotaan lembaga berhasil ditambahkan';
+        }
+
+        $this->resetSlForm();
+        $this->dispatch('toast', message: $message, type: 'success');
+    }
+
+    public function deleteSl($slId)
+    {
+        $sl = SiswaLembaga::findOrFail($slId);
+        $siswaId = $sl->siswa_id;
+        $wasInduk = $sl->is_induk;
+
+        $sl->delete();
+
+        if ($wasInduk) {
+            $another = SiswaLembaga::where('siswa_id', $siswaId)->first();
+            if ($another) {
+                $another->update(['is_induk' => true]);
+                Siswa::where('id', $siswaId)->update([
+                    'lembaga_id' => $another->lembaga_id,
+                    'rombel_id' => $another->rombel_id ?: DB::raw('rombel_id'),
+                ]);
+            }
+        }
+
+        if ($this->sl_id === $slId) {
+            $this->resetSlForm();
+        }
+
+        $this->dispatch('toast', message: 'Keanggotaan lembaga berhasil dihapus', type: 'success');
+    }
+
+    public function setIndukSl($slId)
+    {
+        $sl = SiswaLembaga::findOrFail($slId);
+        $siswa = Siswa::findOrFail($sl->siswa_id);
+
+        SiswaLembaga::where('siswa_id', $siswa->id)
+            ->where('id', '!=', $sl->id)
+            ->where('is_induk', true)
+            ->update(['is_induk' => false]);
+
+        $sl->update(['is_induk' => true]);
+
+        $updateData = ['lembaga_id' => $sl->lembaga_id];
+        if ($sl->rombel_id) {
+            $updateData['rombel_id'] = $sl->rombel_id;
+        }
+        $siswa->update($updateData);
+
+        $this->dispatch('toast', message: 'Lembaga Induk berhasil diubah menjadi ' . nama_lembaga($sl->lembaga_id), type: 'success');
     }
 
     public function openBulkUpdate()
@@ -428,8 +597,12 @@ new class extends \Livewire\Volt\Component {
 
     public function with()
     {
-        $siswa = Siswa::with('rombel', 'tags')
+        $siswa = Siswa::with(['rombel', 'tags', 'keanggotaanLembaga.rombel'])
             ->orderBy('nama')
+            ->when($this->lembaga_id_filter, function($q, $lid) {
+                $q->whereHas('keanggotaanLembaga', fn($sub) => $sub->where('lembaga_id', $lid)->where('status', 1))
+                  ->orWhere('lembaga_id', $lid);
+            })
             ->when($this->rombel_id, fn($q, $id) => $q->where('rombel_id', $id))
             ->when($this->tag_id, fn($q, $id) => $q->whereHas('tags', fn($q) => $q->where('tag_id', $id)))
             ->when($this->status, fn($q, $s) => $q->where('status', $s))
@@ -441,7 +614,12 @@ new class extends \Livewire\Volt\Component {
 
         return [
             'siswaList' => $siswa,
-            'rombels' => Rombel::where('tahun_ajaran_id', session('tahun_ajaran_id'))->orderBy('tingkat')->get(),
+            'daftarLembaga' => daftar_lembaga(),
+            'rombels' => Rombel::where('tahun_ajaran_id', session('tahun_ajaran_id'))
+                ->when($this->lembaga_id_filter, fn($q, $lid) => $q->where('lembaga_id', $lid))
+                ->orderBy('tingkat')
+                ->get(),
+            'allRombels' => Rombel::orderBy('tingkat')->get(),
             'tags' => Tag::orderBy('nama')->get(),
             'statusOptions' => config('local.status_siswa'),
             'allTags' => Tag::orderBy('nama')->pluck('nama')->toArray(),
@@ -747,7 +925,7 @@ new class extends \Livewire\Volt\Component {
                     <div x-show="activeTab === 'filter'">
                         <div class="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/90 dark:border-cyan-500/20 shadow-xs">
                             <form wire:submit.prevent class="row g-2.5 items-center">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="input-group input-group-sm shadow-xs rounded-xl overflow-hidden">
                                         <span class="input-group-text border-end-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sky-500 ps-3">
                                             <i class="bi bi-search"></i>
@@ -755,6 +933,14 @@ new class extends \Livewire\Volt\Component {
                                         <input type="text" wire:model.live.debounce.300ms="q"
                                             class="form-control form-control-sm border-start-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 text-xs py-2" placeholder="Cari nama siswa, NISN...">
                                     </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <select wire:model.live="lembaga_id_filter" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-2 shadow-xs font-medium">
+                                        <option value="">-- Semua Lembaga --</option>
+                                        @foreach ($daftarLembaga as $k => $v)
+                                            <option value="{{ $k }}">{{ $v }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div class="col-md-2">
                                     <select wire:model.live="rombel_id" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-2 shadow-xs font-medium">
@@ -780,10 +966,10 @@ new class extends \Livewire\Volt\Component {
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-2">
-                                    <button type="button" wire:click="resetPage" class="w-100 py-2 px-2.5 rounded-xl bg-white hover:bg-rose-50 dark:bg-slate-900 dark:hover:bg-rose-950/40 text-slate-600 hover:text-rose-600 dark:text-slate-300 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs" title="Reset Filter">
+                                <div class="col-md-1">
+                                    <button type="button" wire:click="resetPage" class="w-100 py-2 px-1 rounded-xl bg-white hover:bg-rose-50 dark:bg-slate-900 dark:hover:bg-rose-950/40 text-slate-600 hover:text-rose-600 dark:text-slate-300 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 text-xs font-semibold flex items-center justify-center gap-1 transition-all shadow-xs" title="Reset Filter">
                                         <i class="bi bi-arrow-counterclockwise text-sm"></i>
-                                        <span>Reset Filter</span>
+                                        <span class="d-none d-lg-inline">Reset</span>
                                     </button>
                                 </div>
                             </form>
@@ -991,7 +1177,7 @@ new class extends \Livewire\Volt\Component {
                             <th class="py-3">No</th>
                             <th class="py-3">Nama</th>
                             <th class="py-3">NISN</th>
-                            <th class="py-3">Rombel</th>
+                            <th class="py-3">Lembaga & Rombel</th>
                             <th class="py-3">Status</th>
                             <th class="py-3">Tag</th>
                             <th class="text-center py-3">Aksi</th>
@@ -1010,7 +1196,33 @@ new class extends \Livewire\Volt\Component {
                                     {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
                                 </td>
                                 <td>{{ $s->nisn ?: '-' }}</td>
-                                <td><span class="badge bg-secondary opacity-75">{{ $s->rombel->nama??'' }}</span></td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1 align-items-center mb-1">
+                                        @forelse ($s->keanggotaanLembaga as $kl)
+                                            @if ($kl->is_induk)
+                                                <span class="badge bg-primary d-inline-flex align-items-center gap-1 shadow-2xs"
+                                                      title="[Lembaga Induk] {{ nama_lembaga($kl->lembaga_id) }}{{ $kl->rombel ? ' - ' . $kl->rombel->nama : '' }}"
+                                                      style="font-size: 0.7rem; cursor: pointer;"
+                                                      wire:click="show('{{ $s->id }}')">
+                                                    <i class="bi bi-star-fill text-warning" style="font-size: 0.6rem;" title="Lembaga Induk"></i>
+                                                    {{ nama_lembaga($kl->lembaga_id, true) }}
+                                                </span>
+                                            @else
+                                                <span class="badge bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 d-inline-flex align-items-center gap-1"
+                                                      title="{{ nama_lembaga($kl->lembaga_id) }}{{ $kl->rombel ? ' - ' . $kl->rombel->nama : '' }}"
+                                                      style="font-size: 0.7rem; cursor: pointer;"
+                                                      wire:click="show('{{ $s->id }}')">
+                                                    {{ nama_lembaga($kl->lembaga_id, true) }}
+                                                </span>
+                                            @endif
+                                        @empty
+                                            <span class="badge bg-primary-subtle text-primary">{{ nama_lembaga($s->lembaga_id, true) }}</span>
+                                        @endforelse
+                                    </div>
+                                    @if ($s->rombel)
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size: 0.72rem;">{{ $s->rombel->nama }}</span>
+                                    @endif
+                                </td>
                                 <td>
                                     @php
                                         $badges = [
@@ -1386,7 +1598,7 @@ new class extends \Livewire\Volt\Component {
     {{-- SPA DETAIL VIEW FOR SISWA --}}
     @elseif ($action === 'show')
         @php
-            $sData = App\Models\Siswa::with(['rombel', 'tags', 'histories.user'])->find($showId);
+            $sData = App\Models\Siswa::with(['rombel', 'tags', 'keanggotaanLembaga.rombel', 'histories.user'])->find($showId);
         @endphp
         @if ($sData)
             <div class="glass-panel rounded-3xl p-6 md:p-8 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl" x-transition>
@@ -1550,6 +1762,211 @@ new class extends \Livewire\Volt\Component {
                             @empty
                                 <span class="text-xs text-slate-400 dark:text-slate-500 italic">Belum ada tag untuk siswa ini.</span>
                             @endforelse
+                        </div>
+                    </div>
+
+                    {{-- Card 4: Keanggotaan Lembaga (Multi-Lembaga) --}}
+                    <div class="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs md:col-span-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                            <div>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-cyan-400 m-0 flex items-center gap-2 font-display">
+                                    <i class="bi bi-buildings-fill text-sky-500 dark:text-cyan-400 text-sm"></i> Keanggotaan Lembaga ({{ $sData->keanggotaanLembaga->count() }})
+                                </h4>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 m-0 mt-0.5">
+                                    Daftar unit / lembaga yang diikuti siswa ini (formal sekolah, pondok pesantren, madin, dll)
+                                </p>
+                            </div>
+                            @if (!$isEditingSl)
+                                <button type="button" wire:click="resetSlForm" class="px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 self-start sm:self-auto">
+                                    <i class="bi bi-plus-circle"></i> Tambah Keanggotaan Lembaga
+                                </button>
+                            @endif
+                        </div>
+
+                        {{-- Tabel Daftar Keanggotaan Lembaga --}}
+                        <div class="table-responsive rounded-xl border border-slate-200 dark:border-slate-700/80 mb-5 overflow-hidden">
+                            <table class="table table-sm table-hover align-middle mb-0 text-xs">
+                                <thead class="bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-display">
+                                    <tr>
+                                        <th class="py-2.5 ps-3">Lembaga</th>
+                                        <th class="py-2.5">Rombel / Kelas</th>
+                                        <th class="py-2.5">NIS Lokal</th>
+                                        <th class="py-2.5">Masa Berlaku (TMT)</th>
+                                        <th class="py-2.5 text-center">Status</th>
+                                        <th class="py-2.5 text-center">Induk</th>
+                                        <th class="py-2.5 text-center pe-3" style="width: 110px;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200/70 dark:divide-slate-700/60">
+                                    @forelse ($sData->keanggotaanLembaga as $klItem)
+                                        <tr class="{{ $sl_id === $klItem->id ? 'bg-amber-50/70 dark:bg-amber-950/20' : '' }}">
+                                            <td class="ps-3">
+                                                <span class="font-bold text-slate-800 dark:text-slate-200">{{ nama_lembaga($klItem->lembaga_id) }}</span>
+                                                <span class="block text-[10px] text-slate-400">{{ nama_lembaga($klItem->lembaga_id, true) }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="font-medium text-slate-700 dark:text-slate-300">{{ $klItem->rombel->nama ?? '-' }}</span>
+                                                @if ($klItem->keterangan)
+                                                    <span class="block text-[10px] text-slate-400 truncate max-w-[180px]">{{ $klItem->keterangan }}</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <span class="font-mono text-slate-700 dark:text-slate-300">{{ $klItem->nis_lokal ?: '-' }}</span>
+                                            </td>
+                                            <td>
+                                                <div class="text-slate-700 dark:text-slate-300">
+                                                    Masuk: {{ $klItem->tmt_masuk ? $klItem->tmt_masuk->format('d/m/Y') : '-' }}
+                                                </div>
+                                                @if ($klItem->tmt_keluar)
+                                                    <div class="text-[10px] text-slate-400">s/d {{ $klItem->tmt_keluar->format('d/m/Y') }}</div>
+                                                @else
+                                                    <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">s/d Sekarang</div>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $klItem->status == 1 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30' : 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30' }}">
+                                                    {{ status_siswa($klItem->status) }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                @if ($klItem->is_induk)
+                                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-cyan-300 border border-sky-300 dark:border-sky-800 inline-flex items-center gap-1">
+                                                        <i class="bi bi-star-fill text-amber-400"></i> Lembaga Induk
+                                                    </span>
+                                                @else
+                                                    <button type="button" wire:click="setIndukSl('{{ $klItem->id }}')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-semibold border border-slate-300 dark:border-slate-700 transition-all" title="Jadikan sebagai Lembaga Induk">
+                                                        <i class="bi bi-star me-0.5"></i> Jadikan Induk
+                                                    </button>
+                                                @endif
+                                            </td>
+                                            <td class="text-center pe-3">
+                                                <div class="flex items-center justify-center gap-1.5">
+                                                    <button type="button" wire:click="editSl('{{ $klItem->id }}')" class="p-1 px-2 rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800" title="Edit Keanggotaan">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button type="button" wire:click="deleteSl('{{ $klItem->id }}')" wire:confirm="Hapus keanggotaan siswa di lembaga ini?" class="p-1 px-2 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800" title="Hapus Keanggotaan">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-center text-slate-400 py-4 italic">
+                                                Belum ada data keanggotaan lembaga untuk siswa ini.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {{-- Form Input / Edit Keanggotaan Lembaga --}}
+                        <div class="p-4 rounded-xl {{ $isEditingSl ? 'bg-amber-50/60 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700' : 'bg-white/70 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-700/60' }}">
+                            <div class="flex items-center justify-between mb-3">
+                                <h5 class="text-xs font-bold uppercase tracking-wider {{ $isEditingSl ? 'text-amber-700 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300' }} m-0 flex items-center gap-2">
+                                    <i class="bi {{ $isEditingSl ? 'bi-pencil-square' : 'bi-plus-circle-fill text-sky-500' }}"></i>
+                                    {{ $isEditingSl ? 'Edit Data Keanggotaan Lembaga' : 'Tambah Keanggotaan di Lembaga Lain' }}
+                                </h5>
+                                @if ($isEditingSl)
+                                    <button type="button" wire:click="cancelEditSl" class="px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-[11px] font-semibold transition-all">
+                                        Batal Edit (Tambah Baru)
+                                    </button>
+                                @endif
+                            </div>
+
+                            <form wire:submit.prevent="saveSl" class="space-y-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div>
+                                        <label class="form-label text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+                                            Lembaga <span class="text-rose-500">*</span>
+                                        </label>
+                                        <select wire:model.live="sl_lembaga_id" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-1.5" required>
+                                            <option value="">-- Pilih Lembaga --</option>
+                                            @foreach ($daftarLembaga as $lid => $lname)
+                                                <option value="{{ $lid }}">{{ $lname }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('sl_lembaga_id') <span class="text-rose-500 text-[10px] mt-0.5 block">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+                                            Rombel / Kelas
+                                        </label>
+                                        <select wire:model="sl_rombel_id" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-1.5">
+                                            <option value="">-- Tanpa Rombel --</option>
+                                            @php
+                                                $filteredRombels = $sl_lembaga_id
+                                                    ? $allRombels->where('lembaga_id', $sl_lembaga_id)
+                                                    : $allRombels;
+                                            @endphp
+                                            @foreach ($filteredRombels as $rb)
+                                                <option value="{{ $rb->id }}">{{ $rb->nama }} (Tingkat {{ $rb->tingkat }})</option>
+                                            @endforeach
+                                        </select>
+                                        @error('sl_rombel_id') <span class="text-rose-500 text-[10px] mt-0.5 block">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+                                            NIS Lokal (No. Induk Santri/Siswa)
+                                        </label>
+                                        <input type="text" wire:model="sl_nis_lokal" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-1.5 font-mono" placeholder="misal: P-2024-001">
+                                        @error('sl_nis_lokal') <span class="text-rose-500 text-[10px] mt-0.5 block">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+                                            Status di Lembaga Ini <span class="text-rose-500">*</span>
+                                        </label>
+                                        <select wire:model="sl_status" class="form-select form-select-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-1.5" required>
+                                            @foreach ($statusOptions as $k => $v)
+                                                <option value="{{ $k }}">{{ $v }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('sl_status') <span class="text-rose-500 text-[10px] mt-0.5 block">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+                                            Tanggal Masuk
+                                        </label>
+                                        <input type="date" wire:model="sl_tmt_masuk" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-1.5">
+                                        @error('sl_tmt_masuk') <span class="text-rose-500 text-[10px] mt-0.5 block">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+                                            Tanggal Keluar / Boyong / Lulus
+                                        </label>
+                                        <input type="date" wire:model="sl_tmt_keluar" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-1.5">
+                                        @error('sl_tmt_keluar') <span class="text-rose-500 text-[10px] mt-0.5 block">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div class="sm:col-span-2">
+                                        <label class="form-label text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+                                            Keterangan / Catatan Tambahan
+                                        </label>
+                                        <input type="text" wire:model="sl_keterangan" class="form-control form-control-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-xs py-1.5" placeholder="misal: Santri Mukim Asrama Putra, Rayon A">
+                                        @error('sl_keterangan') <span class="text-rose-500 text-[10px] mt-0.5 block">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                                    <div class="form-check m-0">
+                                        <input class="form-check-input" type="checkbox" wire:model="sl_is_induk" id="sl_is_induk_checkbox">
+                                        <label class="form-check-label text-xs font-semibold text-slate-700 dark:text-slate-300 ms-1 cursor-pointer" for="sl_is_induk_checkbox">
+                                            Jadikan sebagai Lembaga Induk (Utama/Formal)
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5">
+                                        <i class="bi bi-check2"></i>
+                                        <span>{{ $isEditingSl ? 'Simpan Perubahan' : 'Tambahkan Keanggotaan' }}</span>
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

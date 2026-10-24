@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\SiswaLembaga;
+use App\Models\User;
 
 class Siswa extends Model
 {
@@ -50,6 +54,23 @@ class Siswa extends Model
     protected static function booted()
     {
         static::created(function (Siswa $siswa) {
+            // Auto-create initial keanggotaan lembaga if lembaga_id is set
+            if (!empty($siswa->lembaga_id)) {
+                SiswaLembaga::withoutEvents(function () use ($siswa) {
+                    SiswaLembaga::firstOrCreate([
+                        'siswa_id' => $siswa->id,
+                        'lembaga_id' => (int) $siswa->lembaga_id,
+                    ], [
+                        'rombel_id' => $siswa->rombel_id,
+                        'nis_lokal' => $siswa->nis,
+                        'is_induk' => true,
+                        'status' => (int) ($siswa->status ?? 1),
+                        'tmt_masuk' => now()->toDateString(),
+                        'keterangan' => 'Keanggotaan awal saat pendaftaran siswa',
+                    ]);
+                });
+            }
+
             if ($siswa->suppressHistory) {
                 return;
             }
@@ -57,9 +78,11 @@ class Siswa extends Model
             $attributes = $siswa->getAttributes();
             unset($attributes['created_at'], $attributes['updated_at']);
 
+            $userId = (auth()->check() && User::where('id', auth()->id())->exists()) ? auth()->id() : null;
+
             $history = SiswaHistory::create([
                 'siswa_id' => $siswa->id,
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'action' => $siswa->historyAction ?? 'create',
                 'old_values' => null,
                 'new_values' => $attributes,
@@ -107,9 +130,11 @@ class Siswa extends Model
                 $description = 'Pembaruan data siswa (' . implode(', ', $fieldNames) . ')';
             }
 
+            $userId = (auth()->check() && User::where('id', auth()->id())->exists()) ? auth()->id() : null;
+
             $history = SiswaHistory::create([
                 'siswa_id' => $siswa->id,
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'action' => $action,
                 'old_values' => $oldValues,
                 'new_values' => $newValues,
@@ -119,6 +144,38 @@ class Siswa extends Model
             $siswa->lastHistory = $history;
             $siswa->historyAction = null;
             $siswa->historyDescription = null;
+        });
+
+        static::saved(function (Siswa $siswa) {
+            if ($siswa->wasChanged('lembaga_id') && !empty($siswa->lembaga_id)) {
+                SiswaLembaga::withoutEvents(function () use ($siswa) {
+                    $membership = SiswaLembaga::where('siswa_id', $siswa->id)
+                        ->where('lembaga_id', (int) $siswa->lembaga_id)
+                        ->first();
+
+                    if ($membership) {
+                        SiswaLembaga::where('siswa_id', $siswa->id)
+                            ->where('id', '!=', $membership->id)
+                            ->update(['is_induk' => false]);
+
+                        $membership->update([
+                            'is_induk' => true,
+                            'rombel_id' => $siswa->rombel_id ?: $membership->rombel_id,
+                        ]);
+                    } else {
+                        SiswaLembaga::where('siswa_id', $siswa->id)->update(['is_induk' => false]);
+                        SiswaLembaga::create([
+                            'siswa_id' => $siswa->id,
+                            'lembaga_id' => (int) $siswa->lembaga_id,
+                            'rombel_id' => $siswa->rombel_id,
+                            'nis_lokal' => $siswa->nis,
+                            'is_induk' => true,
+                            'status' => (int) ($siswa->status ?? 1),
+                            'tmt_masuk' => now()->toDateString(),
+                        ]);
+                    }
+                });
+            }
         });
     }
 
@@ -315,6 +372,21 @@ class Siswa extends Model
     public function presensi()
     {
         return $this->hasMany(Presensi::class);
+    }
+
+    public function keanggotaanLembaga(): HasMany
+    {
+        return $this->hasMany(SiswaLembaga::class, 'siswa_id');
+    }
+
+    public function lembagaInduk(): HasOne
+    {
+        return $this->hasOne(SiswaLembaga::class, 'siswa_id')->where('is_induk', true);
+    }
+
+    public function lembagaAktif(): HasMany
+    {
+        return $this->keanggotaanLembaga()->where('status', 1);
     }
 
     /**
