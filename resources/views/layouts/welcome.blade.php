@@ -593,8 +593,7 @@
                 </div>
                 <div>
                     <div class="navbar-brand-title d-flex align-items-center gap-2">
-                        <span>{{ setting('nama_aplikasi') ?? config('local.app.nama') ?? 'SIMBA' }}</span>
-                        <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-0 fs-6 fw-semibold d-none d-sm-inline" style="font-size: 0.7rem !important;">Portal Resmi</span>
+                        <span>{{ config('local.app.nama') ?? 'SIMBA' }}</span>
                     </div>
                     <div class="navbar-brand-subtitle d-none d-md-block">
                         {{ config('local.app.keterangan') ?? 'Sistem Informasi Lembaga Pendidikan Miftahul Ulum' }}
