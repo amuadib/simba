@@ -175,8 +175,8 @@ new class extends \Livewire\Volt\Component {
         ]);
 
         $siswa = Siswa::create([
-            'nama' => $this->nama,
-            'panggilan' => $this->panggilan,
+            'nama' => strtoupper($this->nama),
+            'panggilan' => strtoupper($this->panggilan),
             'jenis_kelamin' => $this->jenis_kelamin,
             'nisn' => $this->nisn,
             'status' => $this->form_status,
@@ -185,13 +185,13 @@ new class extends \Livewire\Volt\Component {
             'nis' => $this->nis,
             'no_akte' => $this->no_akte,
             'no_kk' => $this->no_kk,
-            'tempat_lahir' => $this->tempat_lahir,
+            'tempat_lahir' => strtoupper($this->tempat_lahir),
             'tanggal_lahir' => $this->tanggal_lahir,
             'lembaga_id' => $this->lembaga_id ?: 99,
             'alamat' => $this->alamat,
             'telepon' => $this->telepon,
-            'ayah' => $this->ayah,
-            'ibu' => $this->ibu,
+            'ayah' => strtoupper($this->ayah),
+            'ibu' => strtoupper($this->ibu),
             'foto' => $this->foto ? $this->foto->store('siswa', 'public') : null,
         ]);
 
