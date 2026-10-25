@@ -73,6 +73,10 @@ new class extends \Livewire\Volt\Component {
 
     public function updated($property)
     {
+        if ($property === 'lembaga_id_filter') {
+            $this->rombel_id = '';
+        }
+
         if (in_array($property, ['q', 'rombel_id', 'status', 'tag_id', 'lembaga_id_filter'])) {
             $this->resetPage();
             $this->checkedSiswa = [];
@@ -85,10 +89,17 @@ new class extends \Livewire\Volt\Component {
         if ($value) {
             $this->checkedSiswa = Siswa::query()
                 ->when($this->lembaga_id_filter, function($q, $lid) {
-                    $q->whereHas('keanggotaanLembaga', fn($sub) => $sub->where('lembaga_id', $lid)->where('status', 1))
-                      ->orWhere('lembaga_id', $lid);
+                    $q->where(function($subQ) use ($lid) {
+                        $subQ->whereHas('keanggotaanLembaga', fn($sub) => $sub->where('lembaga_id', $lid)->where('status', 1))
+                             ->orWhere('lembaga_id', $lid);
+                    });
                 })
-                ->when($this->rombel_id, fn($q, $id) => $q->where('rombel_id', $id))
+                ->when($this->rombel_id, function($q, $rid) {
+                    $q->where(function($subQ) use ($rid) {
+                        $subQ->where('rombel_id', $rid)
+                             ->orWhereHas('keanggotaanLembaga', fn($sub) => $sub->where('rombel_id', $rid)->where('status', 1));
+                    });
+                })
                 ->when($this->tag_id, fn($q, $id) => $q->whereHas('tags', fn($q) => $q->where('tag_id', $id)))
                 ->when($this->status, fn($q, $s) => $q->where('status', $s))
                 ->when($this->q, fn($q, $search) => $q->where(function($q) use ($search) {
@@ -597,13 +608,22 @@ new class extends \Livewire\Volt\Component {
 
     public function with()
     {
+        $activeTaId = session('tahun_ajaran_id') ?? \App\Models\TahunAjaran::where('aktif', 'y')->value('id');
+
         $siswa = Siswa::with(['rombel', 'tags', 'keanggotaanLembaga.rombel'])
             ->orderBy('nama')
             ->when($this->lembaga_id_filter, function($q, $lid) {
-                $q->whereHas('keanggotaanLembaga', fn($sub) => $sub->where('lembaga_id', $lid)->where('status', 1))
-                  ->orWhere('lembaga_id', $lid);
+                $q->where(function($subQ) use ($lid) {
+                    $subQ->whereHas('keanggotaanLembaga', fn($sub) => $sub->where('lembaga_id', $lid)->where('status', 1))
+                         ->orWhere('lembaga_id', $lid);
+                });
             })
-            ->when($this->rombel_id, fn($q, $id) => $q->where('rombel_id', $id))
+            ->when($this->rombel_id, function($q, $rid) {
+                $q->where(function($subQ) use ($rid) {
+                    $subQ->where('rombel_id', $rid)
+                         ->orWhereHas('keanggotaanLembaga', fn($sub) => $sub->where('rombel_id', $rid)->where('status', 1));
+                });
+            })
             ->when($this->tag_id, fn($q, $id) => $q->whereHas('tags', fn($q) => $q->where('tag_id', $id)))
             ->when($this->status, fn($q, $s) => $q->where('status', $s))
             ->when($this->q, fn($q, $search) => $q->where(function($q) use ($search) {
@@ -615,7 +635,7 @@ new class extends \Livewire\Volt\Component {
         return [
             'siswaList' => $siswa,
             'daftarLembaga' => daftar_lembaga(),
-            'rombels' => Rombel::where('tahun_ajaran_id', session('tahun_ajaran_id'))
+            'rombels' => Rombel::when($activeTaId, fn($q, $ta) => $q->where('tahun_ajaran_id', $ta))
                 ->when($this->lembaga_id_filter, fn($q, $lid) => $q->where('lembaga_id', $lid))
                 ->orderBy('tingkat')
                 ->get(),

@@ -146,4 +146,40 @@ class SiswaLembagaTest extends TestCase
         $this->assertEquals(1, $siswa->lembaga_id);
         $this->assertEquals($rombel2->id, $siswa->rombel_id);
     }
+
+    public function test_filtering_by_lembaga_and_rombel_together_works_correctly(): void
+    {
+        $user = \App\Models\User::factory()->make([
+            'id' => (string) \Illuminate\Support\Str::uuid(),
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+            'role' => 'admin',
+        ]);
+
+        $rombelA = Rombel::create(['nama' => 'Kelas 7A', 'tingkat' => 7, 'lembaga_id' => 2]);
+        $rombelB = Rombel::create(['nama' => 'Kelas 7B', 'tingkat' => 7, 'lembaga_id' => 2]);
+
+        $siswaA = Siswa::create([
+            'nama' => 'Siswa Kelas Tujuh A',
+            'status' => 1,
+            'rombel_id' => $rombelA->id,
+            'lembaga_id' => 2,
+        ]);
+
+        $siswaB = Siswa::create([
+            'nama' => 'Siswa Kelas Tujuh B',
+            'status' => 1,
+            'rombel_id' => $rombelB->id,
+            'lembaga_id' => 2,
+        ]);
+
+        $component = \Livewire\Volt\Volt::actingAs($user)
+            ->test('siswa.index')
+            ->set('lembaga_id_filter', 2)
+            ->set('rombel_id', $rombelA->id);
+
+        $siswaList = $component->viewData('siswaList');
+        $this->assertEquals(1, $siswaList->total());
+        $this->assertEquals($siswaA->id, $siswaList->first()->id);
+    }
 }
