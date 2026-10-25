@@ -1195,8 +1195,8 @@ new class extends \Livewire\Volt\Component {
                                 </div>
                             </th>
                             <th class="py-3">No</th>
-                            <th class="py-3">Nama</th>
                             <th class="py-3">NISN</th>
+                            <th class="py-3">Nama</th>
                             <th class="py-3">Lembaga & Rombel</th>
                             <th class="py-3">Status</th>
                             <th class="py-3">Tag</th>
@@ -1212,10 +1212,26 @@ new class extends \Livewire\Volt\Component {
                                     </div>
                                 </td>
                                 <td>{{ $loop->iteration + ($siswaList->currentPage() - 1) * $siswaList->perPage() }}</td>
-                                <td>
-                                    {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
-                                </td>
                                 <td>{{ $s->nisn ?: '-' }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if ($s->foto && Storage::disk('public')->exists($s->foto))
+                                            <img src="{{ asset('storage/' . $s->foto) }}" alt="Foto" class="rounded-circle object-fit-cover shadow-sm flex-shrink-0" style="width: 36px; height: 36px;">
+                                        @else
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center text-secondary bg-light border flex-shrink-0" style="width: 36px; height: 36px; font-size: 0.85rem;">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <div>
+                                                {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
+                                            </div>
+                                            @if ($s->nik)
+                                                <div class="small text-muted" style="font-size: 0.75rem;"><i class="bi bi-card-text me-1"></i>NIK: {{ $s->nik }}</div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
                                 <td>
                                     <div class="d-flex flex-wrap gap-1 align-items-center mb-1">
                                         @forelse ($s->keanggotaanLembaga as $kl)
@@ -1654,7 +1670,7 @@ new class extends \Livewire\Volt\Component {
                 {{-- Profile Hero Card --}}
                 <div class="p-6 rounded-2xl bg-gradient-to-r from-sky-600/10 via-cyan-500/10 to-emerald-500/10 border border-sky-500/20 dark:border-cyan-500/30 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                     <div class="flex items-center gap-4">
-                        @if ($sData->foto)
+                        @if ($sData->foto && Storage::disk('public')->exists($sData->foto))
                             <img src="{{ asset('storage/' . $sData->foto) }}" class="w-20 h-20 rounded-2xl object-cover shadow-md border-2 border-slate-200 dark:border-slate-700">
                         @else
                             <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-400 text-white flex items-center justify-center font-bold text-2xl shadow-md border-2 border-slate-200 dark:border-slate-700">
