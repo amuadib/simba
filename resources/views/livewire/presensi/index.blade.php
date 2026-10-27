@@ -299,46 +299,14 @@ new class extends Component {
     </div>
 
     {{-- SCREEN HEADER --}}
-    <div class="d-print-none d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div class="d-print-none flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-            <div class="d-flex align-items-center gap-2">
-                <span class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-cyan-500 text-white d-flex align-items-center justify-content-center shadow-md shadow-sky-500/25">
-                    <i class="bi bi-clock-history fs-5"></i>
-                </span>
-                <div>
-                    <h4 class="mb-0 font-extrabold text-slate-800 dark:text-slate-100 font-display">Rekap Presensi Kehadiran</h4>
-                    <small class="text-slate-500 dark:text-slate-400">Monitoring rekapitulasi kehadiran siswa bulanan</small>
-                </div>
-            </div>
+            <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Rekap Presensi Kehadiran</h1>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Monitoring dan rekapitulasi kehadiran siswa bulanan</p>
         </div>
 
-        <div class="d-flex align-items-center flex-wrap gap-2">
-            @if ($pembelajaran_id)
-                <a href="{{ route('pembelajaran.presensi.create', $pembelajaran_id) }}?tanggal={{ date('Y-m-d') }}"
-                   wire:navigate
-                   class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1.5 shadow-xs">
-                    <i class="bi bi-calendar-check"></i>
-                    <span>Input Presensi Hari Ini</span>
-                </a>
-
-                @if (count($rekap) > 0)
-                    <a href="{{ route('pembelajaran.presensi.export', ['pembelajaran_id' => $pembelajaran_id, 'bulan' => $bulan]) }}"
-                       class="btn btn-sm btn-success d-inline-flex align-items-center gap-1.5 shadow-xs">
-                        <i class="bi bi-file-earmark-excel"></i>
-                        <span>Ekspor Excel</span>
-                    </a>
-
-                    <button type="button" onclick="window.print()"
-                            class="btn btn-sm btn-secondary d-inline-flex align-items-center gap-1.5 shadow-xs">
-                        <i class="bi bi-printer"></i>
-                        <span>Cetak / PDF</span>
-                    </button>
-                @endif
-            @endif
-
-            <div wire:key="breadcrumb-wrapper" wire:ignore>
-                <x-breadcrumb />
-            </div>
+        <div wire:key="breadcrumb-wrapper" wire:ignore>
+            <x-breadcrumb />
         </div>
     </div>
 
@@ -401,6 +369,40 @@ new class extends Component {
                 </div>
             </div>
         </div>
+
+        {{-- Action Buttons & Filter Chips Bar --}}
+        @if ($pembelajaran_id)
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 mt-3 border-t border-slate-200/60 dark:border-slate-700/60">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-sky-50 dark:bg-sky-950/30 text-sky-700 dark:text-cyan-400 border border-sky-200/70 dark:border-cyan-500/30">
+                        <i class="bi bi-calendar3"></i> Periode: {{ \Carbon\Carbon::parse($bulan . '-01')->translatedFormat('F Y') }}
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-2 flex-wrap">
+                    <a href="{{ route('pembelajaran.presensi.create', $pembelajaran_id) }}?tanggal={{ date('Y-m-d') }}"
+                       wire:navigate
+                       class="btn-logo-gradient inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>Input Presensi Hari Ini</span>
+                    </a>
+
+                    @if (count($rekap) > 0)
+                        <a href="{{ route('pembelajaran.presensi.export', ['pembelajaran_id' => $pembelajaran_id, 'bulan' => $bulan]) }}"
+                           class="btn btn-outline-success btn-sm rounded-xl px-3 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
+                            <i class="bi bi-file-earmark-excel"></i>
+                            <span>Ekspor Excel</span>
+                        </a>
+
+                        <button type="button" onclick="window.print()"
+                                class="btn btn-outline-secondary btn-sm rounded-xl px-3 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
+                            <i class="bi bi-printer"></i>
+                            <span>Cetak / PDF</span>
+                        </button>
+                    @endif
+                </div>
+            </div>
+        @endif
 
         {{-- Filter Chips Bar --}}
         @if (count($rekap) > 0)

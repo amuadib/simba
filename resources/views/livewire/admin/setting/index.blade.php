@@ -300,10 +300,10 @@ new class extends Component {
 
 <div>
     {{-- Header Halaman --}}
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-            <h4 class="mb-0 fw-bold text-gradient-logo font-display">Pengaturan Sistem (Master)</h4>
-            <small class="text-muted">Kelola data master aplikasi dan multi-lembaga yayasan</small>
+            <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Pengaturan Sistem</h1>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Kelola data master aplikasi dan konfigurasi multi-lembaga yayasan</p>
         </div>
         <div wire:key="breadcrumb-wrapper" wire:ignore>
             <x-breadcrumb />
@@ -343,48 +343,51 @@ new class extends Component {
 
     {{-- KONTEN TAB 1: INFORMASI APLIKASI --}}
     @if ($activeTab === 'app')
-        <div class="card shadow-sm border border-slate-200/90 dark:border-cyan-500/20 mb-4 rounded-2xl overflow-hidden">
-            <div class="card-header bg-slate-50/90 dark:bg-slate-800/90 border-b border-slate-200/90 dark:border-cyan-500/20 py-3.5 px-4">
-                <h6 class="mb-0 fw-bold text-sky-600 dark:text-cyan-400 d-flex align-items-center gap-2">
-                    <i class="bi bi-sliders"></i> Informasi Master Aplikasi
-                </h6>
+        <div class="glass-panel rounded-3xl p-5 md:p-6 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">
+            <div class="flex items-center gap-3 pb-4 mb-5 border-b border-slate-200/80 dark:border-slate-800">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500/15 to-cyan-500/15 text-sky-600 dark:text-cyan-400 flex items-center justify-center text-lg shadow-xs border border-sky-500/20">
+                    <i class="bi bi-sliders"></i>
+                </div>
+                <div>
+                    <h6 class="text-base font-bold font-display text-slate-800 dark:text-slate-100 m-0">Informasi Master Aplikasi</h6>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 m-0 mt-0.5">Konfigurasi nama utama, singkatan, dan identitas aplikasi</p>
+                </div>
             </div>
-            <div class="card-body p-4">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Nama Aplikasi <span class="text-danger">*</span></label>
-                        <input type="text"
-                               wire:model="app_nama"
-                               class="form-control @error('app_nama') is-invalid @enderror"
-                               placeholder="Contoh: Sistem Informasi Lembaga">
-                        @error('app_nama')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="text-muted">Nama utama aplikasi yang tampil di dashboard dan judul tab.</small>
-                    </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Singkatan Aplikasi <span class="text-danger">*</span></label>
-                        <input type="text"
-                               wire:model="app_singkatan"
-                               class="form-control @error('app_singkatan') is-invalid @enderror"
-                               placeholder="Contoh: SIMBA">
-                        @error('app_singkatan')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="text-muted">Singkatan atau akronim aplikasi.</small>
-                    </div>
+            <div class="row g-3.5">
+                <div class="col-md-6">
+                    <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Nama Aplikasi <span class="text-rose-500">*</span></label>
+                    <input type="text"
+                           wire:model="app_nama"
+                           class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('app_nama') is-invalid @enderror"
+                           placeholder="Contoh: Sistem Informasi Lembaga">
+                    @error('app_nama')
+                        <div class="invalid-feedback text-xs">{{ $message }}</div>
+                    @enderror
+                    <small class="text-slate-400 text-[11px] mt-1 block">Nama utama aplikasi yang tampil di dashboard dan judul tab.</small>
+                </div>
 
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Keterangan / Deskripsi Aplikasi</label>
-                        <textarea wire:model="app_keterangan"
-                                  rows="3"
-                                  class="form-control @error('app_keterangan') is-invalid @enderror"
-                                  placeholder="Deskripsi singkat mengenai sistem ini..."></textarea>
-                        @error('app_keterangan')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                <div class="col-md-6">
+                    <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Singkatan Aplikasi <span class="text-rose-500">*</span></label>
+                    <input type="text"
+                           wire:model="app_singkatan"
+                           class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('app_singkatan') is-invalid @enderror"
+                           placeholder="Contoh: SIMBA">
+                    @error('app_singkatan')
+                        <div class="invalid-feedback text-xs">{{ $message }}</div>
+                    @enderror
+                    <small class="text-slate-400 text-[11px] mt-1 block">Singkatan atau akronim aplikasi.</small>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Keterangan / Deskripsi Aplikasi</label>
+                    <textarea wire:model="app_keterangan"
+                              rows="3"
+                              class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('app_keterangan') is-invalid @enderror"
+                              placeholder="Deskripsi singkat mengenai sistem ini..."></textarea>
+                    @error('app_keterangan')
+                        <div class="invalid-feedback text-xs">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
         </div>
@@ -438,12 +441,12 @@ new class extends Component {
 
             <div class="space-y-3">
                 @forelse ($lembaga_items as $id => $lembaga)
-                    <div class="card shadow-sm border border-slate-200/90 dark:border-cyan-500/20 mb-3 rounded-2xl overflow-hidden transition-all duration-200"
+                    <div class="glass-panel shadow-sm border border-slate-200/90 dark:border-cyan-500/20 mb-3 rounded-2xl overflow-hidden transition-all duration-200"
                          :class="isOpen({{ $id }}) ? 'ring-1 ring-sky-500/30 dark:ring-cyan-500/30' : ''"
                          wire:key="lembaga-card-{{ $id }}">
                         
                         {{-- Header Accordion --}}
-                        <div class="card-header bg-slate-50/90 dark:bg-slate-800/90 border-b border-slate-200/90 dark:border-cyan-500/20 py-3.5 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2 select-none"
+                        <div class="bg-slate-50/90 dark:bg-slate-800/90 border-b border-slate-200/90 dark:border-cyan-500/20 py-3.5 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2 select-none rounded-t-2xl"
                              role="button"
                              tabindex="0"
                              @click="toggle({{ $id }})"
@@ -716,8 +719,8 @@ new class extends Component {
 
                                     {{-- Live Preview Embed Map --}}
                                     <div class="col-12">
-                                        <div class="card border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-none">
-                                            <div class="card-header bg-slate-50 dark:bg-slate-800/90 py-2.5 px-3 border-b border-slate-200 dark:border-slate-700 d-flex align-items-center justify-content-between">
+                                        <div class="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-none">
+                                            <div class="bg-slate-50 dark:bg-slate-800/90 py-2.5 px-3 border-b border-slate-200 dark:border-slate-700 d-flex align-items-center justify-content-between">
                                                 <span class="small fw-bold text-slate-700 dark:text-slate-300 d-flex align-items-center gap-1.5">
                                                     <i class="bi bi-map me-1 text-sky-500 dark:text-cyan-400"></i>Pratinjau Map Embed di Website
                                                 </span>
@@ -731,7 +734,7 @@ new class extends Component {
                                                     </span>
                                                 @endif
                                             </div>
-                                            <div class="card-body p-0 position-relative bg-slate-100/50 dark:bg-slate-900/60" style="min-height: 220px;">
+                                            <div class="p-0 position-relative bg-slate-100/50 dark:bg-slate-900/60" style="min-height: 220px;">
                                                 @if ($mapEmbedUrl)
                                                     <iframe src="{{ $mapEmbedUrl }}"
                                                             width="100%"
@@ -902,7 +905,7 @@ new class extends Component {
                     </div>
                 </div>
             @empty
-                <div class="card shadow-sm border border-slate-200/90 dark:border-cyan-500/20 p-5 text-center rounded-2xl">
+                <div class="glass-panel shadow-sm border border-slate-200/90 dark:border-cyan-500/20 p-5 text-center rounded-2xl">
                     <i class="bi bi-building-exclamation text-muted display-4 mb-3"></i>
                     <h5 class="text-muted">Belum ada data lembaga terdaftar.</h5>
                     <p class="text-muted small">Klik tombol di bawah untuk menambahkan lembaga pertama.</p>
@@ -919,59 +922,62 @@ new class extends Component {
 
     {{-- KONTEN TAB 3: INTEGRASI CLIENT (SAKU-v2) --}}
     @if ($activeTab === 'api')
-        <div class="card shadow-sm border border-slate-200/90 dark:border-cyan-500/20 mb-4 rounded-2xl overflow-hidden">
-            <div class="card-header bg-slate-50/90 dark:bg-slate-800/90 border-b border-slate-200/90 dark:border-cyan-500/20 py-3.5 px-4">
-                <h6 class="mb-0 fw-bold text-sky-600 dark:text-cyan-400 d-flex align-items-center gap-2">
-                    <i class="bi bi-hdd-network"></i> Konfigurasi Simba Master & API Client (SAKU-v2)
-                </h6>
+        <div class="glass-panel rounded-3xl p-5 md:p-6 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">
+            <div class="flex items-center gap-3 pb-4 mb-5 border-b border-slate-200/80 dark:border-slate-800">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500/15 to-cyan-500/15 text-sky-600 dark:text-cyan-400 flex items-center justify-center text-lg shadow-xs border border-sky-500/20">
+                    <i class="bi bi-hdd-network"></i>
+                </div>
+                <div>
+                    <h6 class="text-base font-bold font-display text-slate-800 dark:text-slate-100 m-0">Konfigurasi Simba Master & API Client (SAKU-v2)</h6>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 m-0 mt-0.5">Pengaturan kredensial integrasi dan endpoint API multi-client</p>
+                </div>
             </div>
-            <div class="card-body p-4">
-                <div class="alert alert-info d-flex align-items-start gap-3 rounded-2xl border-0 shadow-xs">
-                    <i class="bi bi-info-circle-fill fs-4 mt-1"></i>
-                    <div>
-                        <h6 class="fw-bold mb-1">SIMBA sebagai Sistem Master</h6>
-                        <p class="mb-0 small">
-                            Aplikasi <strong>SAKU-v2</strong> (dan aplikasi yayasan lainnya) akan mengambil master data lembaga (nama, tingkat, kontak, logo, kop, ttd kepala, stempel) dari SIMBA melalui API berikut.
-                        </p>
+
+            <div class="p-4 rounded-2xl bg-sky-50/80 dark:bg-sky-950/20 border border-sky-200/80 dark:border-sky-500/20 d-flex align-items-start gap-3 shadow-xs mb-5">
+                <i class="bi bi-info-circle-fill text-sky-600 dark:text-cyan-400 fs-4 mt-0.5"></i>
+                <div>
+                    <h6 class="font-bold text-sm text-sky-900 dark:text-cyan-200 mb-1">SIMBA sebagai Sistem Master</h6>
+                    <p class="mb-0 text-xs text-sky-800/90 dark:text-slate-300">
+                        Aplikasi <strong>SAKU-v2</strong> (dan aplikasi yayasan lainnya) akan mengambil master data lembaga (nama, tingkat, kontak, logo, kop, ttd kepala, stempel) dari SIMBA melalui API berikut.
+                    </p>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Endpoint Sync Lembaga</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-cyan-400 font-bold text-xs border-slate-200 dark:border-slate-700 rounded-l-xl">GET</span>
+                        <input type="text"
+                               readonly
+                               class="form-control font-monospace bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 rounded-r-xl text-xs py-2 shadow-xs"
+                               value="{{ url('/api/lembaga/sync') }}">
                     </div>
+                    <small class="text-slate-400 text-[11px] mt-1 block">Gunakan header <code>Authorization: Bearer &lt;Token&gt;</code> saat memanggil API ini.</small>
                 </div>
 
-                <div class="row g-4 mt-1">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Endpoint Sync Lembaga</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-cyan-400 fw-bold border-slate-200 dark:border-slate-700">GET</span>
-                            <input type="text"
-                                   readonly
-                                   class="form-control font-monospace bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700"
-                                   value="{{ url('/api/lembaga/sync') }}">
-                        </div>
-                        <small class="text-muted">Gunakan header <code>Authorization: Bearer &lt;Token&gt;</code> saat memanggil API ini.</small>
+                <div class="col-md-6">
+                    <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Endpoint Sync Siswa & Rombel</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-cyan-400 font-bold text-xs border-slate-200 dark:border-slate-700 rounded-l-xl">GET</span>
+                        <input type="text"
+                               readonly
+                               class="form-control font-monospace bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 rounded-r-xl text-xs py-2 shadow-xs"
+                               value="{{ url('/api/siswa/sync') }}">
                     </div>
+                    <small class="text-slate-400 text-[11px] mt-1 block">API sinkronisasi siswa aktif ke SAKU-v2.</small>
+                </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Endpoint Sync Siswa & Rombel</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-cyan-400 fw-bold border-slate-200 dark:border-slate-700">GET</span>
-                            <input type="text"
-                                   readonly
-                                   class="form-control font-monospace bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700"
-                                   value="{{ url('/api/siswa/sync') }}">
-                        </div>
-                        <small class="text-muted">API sinkronisasi siswa aktif ke SAKU-v2.</small>
+                <div class="col-md-12">
+                    <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Secret Key / Bearer Token SAKU</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-l-xl text-amber-500"><i class="bi bi-key-fill"></i></span>
+                        <input type="text"
+                               readonly
+                               class="form-control font-monospace bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 rounded-r-xl text-xs py-2 shadow-xs"
+                               value="{{ config('local.saku.key', env('SAKU_KEY', 'secret-token-123')) }}">
                     </div>
-
-                    <div class="col-md-12">
-                        <label class="form-label fw-semibold">Secret Key / Bearer Token SAKU</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"><i class="bi bi-key-fill text-warning"></i></span>
-                            <input type="text"
-                                   readonly
-                                   class="form-control font-monospace bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700"
-                                   value="{{ config('local.saku.key', env('SAKU_KEY', 'secret-token-123')) }}">
-                        </div>
-                        <small class="text-muted">Dikonfigurasi di file <code>.env</code> dengan variabel <code>SAKU_KEY</code> atau <code>config/local.php</code>.</small>
-                    </div>
+                    <small class="text-slate-400 text-[11px] mt-1 block">Dikonfigurasi di file <code>.env</code> dengan variabel <code>SAKU_KEY</code> atau <code>config/local.php</code>.</small>
                 </div>
             </div>
         </div>

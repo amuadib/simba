@@ -183,182 +183,212 @@ new class extends \Livewire\Volt\Component {
 ?>
 
 <div>
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-            <h4 class="mb-0">Data Pembelajaran</h4>
-            <small class="text-muted">Kelola mata pelajaran dan pengampu</small>
+            <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Data Pembelajaran</h1>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Kelola kelas pembelajaran, mata pelajaran, dan guru pengampu</p>
         </div>
 
-        <div class="d-flex align-items-center gap-2">
-            <a href="{{ route('pembelajaran.presensi.index') }}" wire:navigate class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1.5 shadow-xs">
-                <i class="bi bi-clock-history"></i>
-                <span>Rekap Presensi</span>
-            </a>
-            <div wire:key="breadcrumb-wrapper" wire:ignore>
-                <x-breadcrumb />
-            </div>
+        <div wire:key="breadcrumb-wrapper" wire:ignore>
+            <x-breadcrumb />
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-
-            @if ($action == 'edit')
-                <form wire:submit="update" class="row g-2 align-items-end mb-3">
+    <div class="glass-panel rounded-3xl p-4 md:p-6 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">
+        @if ($action == 'edit')
+            <div class="p-4 md:p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/90 dark:border-cyan-500/20 shadow-xs mb-6">
+                <h6 class="font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                    <i class="bi bi-pencil-square text-amber-500"></i>
+                    <span>Edit Pembelajaran</span>
+                </h6>
+                <form wire:submit="update" class="row g-2.5 items-end">
                     <div class="col-md-3">
-                        <label class="form-label small fw-bold">Tahun Ajaran</label>
-                        <span class="form-control small fw-bold">{{ session('tahun_ajaran_nama') }}</span>
+                        <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Tahun Ajaran</label>
+                        <div class="form-control rounded-xl bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs py-2 shadow-xs font-semibold">
+                            {{ session('tahun_ajaran_nama') }}
+                        </div>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small fw-bold">Pelajaran</label>
+                        <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Pelajaran</label>
                         <select wire:model="pelajaran_id"
-                            class="form-select @error('pelajaran_id') is-invalid @enderror" required>
-                            <option value="">--Pilih Pelajaran--</option>
+                            class="form-select rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('pelajaran_id') is-invalid @enderror" required>
+                            <option value="">-- Pilih Pelajaran --</option>
                             @foreach ($pelajarans as $p)
                                 <option value="{{ $p->id }}">{{ $p->nama }}</option>
                             @endforeach
                         </select>
+                        @error('pelajaran_id')
+                            <div class="invalid-feedback text-xs">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label small fw-bold">Keterangan</label>
-                        <input wire:model="keterangan" class="form-control" placeholder="Keterangan">
+                        <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Keterangan</label>
+                        <input wire:model="keterangan" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs" placeholder="Keterangan">
                     </div>
-                    <div class="col-md-2 d-flex gap-2">
-                        <button type="submit" class="btn btn-warning w-100"><i class="bi bi-save me-1"></i> SIMPAN</button>
-                        <button type="button" wire:click="cancelEdit"
-                            class="btn btn-secondary w-100">BATAL</button>
+                    <div class="col-md-2 flex items-center gap-2">
+                        <button type="submit" class="btn-logo-gradient inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md w-100">
+                            <i class="bi bi-check2-circle text-sm"></i> SIMPAN
+                        </button>
+                        <button type="button" wire:click="cancelEdit" class="btn btn-outline-secondary btn-sm rounded-xl px-4 py-2 text-xs font-semibold">BATAL</button>
                     </div>
                 </form>
-            @else
-                <form wire:submit="store" class="row g-2 align-items-end mb-3">
+            </div>
+        @else
+            <div class="p-4 md:p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/90 dark:border-cyan-500/20 shadow-xs mb-6">
+                <h6 class="font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                    <i class="bi bi-plus-circle-fill text-sky-500"></i>
+                    <span>Tambah Pembelajaran Baru</span>
+                </h6>
+                <form wire:submit="store" class="row g-2.5 items-end">
                     <div class="col-md-3">
-                        <label class="form-label small fw-bold">Tahun Ajaran</label>
-                        <span class="form-control small fw-bold">{{ session('tahun_ajaran_nama') }}</span>
+                        <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Tahun Ajaran</label>
+                        <div class="form-control rounded-xl bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs py-2 shadow-xs font-semibold">
+                            {{ session('tahun_ajaran_nama') }}
+                        </div>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small fw-bold">Pelajaran</label>
+                        <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Pelajaran</label>
                         <select wire:model="pelajaran_id"
-                            class="form-select @error('pelajaran_id') is-invalid @enderror" required>
-                            <option value="">--Pilih--</option>
+                            class="form-select rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('pelajaran_id') is-invalid @enderror" required>
+                            <option value="">-- Pilih Pelajaran --</option>
                             @foreach ($pelajarans as $p)
                                 <option value="{{ $p->id }}">{{ $p->nama }}</option>
                             @endforeach
                         </select>
+                        @error('pelajaran_id')
+                            <div class="invalid-feedback text-xs">{{ $message }}</div>
+                        @enderror
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">Kelas (Otomatis)</label>
-                        <select wire:model="kelas_id" class="form-select">
-                            <option value="">--Pilih Kelas--</option>
+                    <div class="col-md-3">
+                        <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Kelas (Otomatis)</label>
+                        <select wire:model="kelas_id" class="form-select rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs">
+                            <option value="">-- Pilih Kelas --</option>
                             @foreach ($rombels as $k)
                                 <option value="{{ $k->id }}">{{ $k->nama }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">Keterangan Pembelajaran</label>
-                        <input wire:model="keterangan" class="form-control" placeholder="Keterangan">
+                    <div class="col-md-3">
+                        <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Keterangan Pembelajaran</label>
+                        <input wire:model="keterangan" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs" placeholder="Keterangan">
                     </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-circle"></i>
-                            TAMBAH</button>
-                    </div>
-                    <div class="col-12 mt-1">
-                        <small class="text-muted">Pilih <strong>Kelas</strong> untuk menambahkan Anggota otomatis dari
-                            Rombel.</small>
+                    <div class="col-12 flex items-center justify-between mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                        <small class="text-slate-500 dark:text-slate-400 text-xs">Pilih <strong>Kelas</strong> untuk menambahkan Anggota otomatis dari Rombel.</small>
+                        <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                            <i class="bi bi-plus-circle text-sm"></i> TAMBAH
+                        </button>
                     </div>
                 </form>
-            @endif
+            </div>
+        @endif
 
-            @php
-                $hariColors = [
-                    1 => 'bg-primary',
-                    2 => 'bg-dark',
-                    3 => 'bg-info text-dark',
-                    4 => 'bg-warning text-dark',
-                    5 => 'bg-success',
-                    6 => 'bg-secondary',
-                    7 => 'bg-danger',
-                ];
-            @endphp
+        @php
+            $hariColors = [
+                1 => 'bg-primary',
+                2 => 'bg-dark',
+                3 => 'bg-info text-dark',
+                4 => 'bg-warning text-dark',
+                5 => 'bg-success',
+                6 => 'bg-secondary',
+                7 => 'bg-danger',
+            ];
+        @endphp
 
-            <div class="table-responsive mt-3">
-                <table class="table-bordered table-hover table">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Pelajaran</th>
-                            <th class="text-center">Anggota</th>
-                            <th>Jadwal</th>
-                            <th class="text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($pembelajarans as $pb)
-                            <tr wire:key="row-{{ $pb->id }}">
-                                <td class="fw-bold">{{ $pb->keterangan }}</td>
-                                <td class="text-center">
-                                    @if($pb->anggota->count() > 0)
-                                        <span class="badge bg-info text-white">{{ $pb->anggota->count() }}</span>
-                                    @else
-                                        <span class="badge bg-danger">Belum ada anggota</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($pb->jadwal->count() > 0)
-                                        <div class="d-flex flex-column gap-1">
-                                            @foreach ($pb->jadwal->sortBy('hari') as $j)
-                                                <div class="d-flex align-items-center gap-2 bg-light border rounded px-2 py-1 shadow-sm" style="font-size: 0.75rem;">
-                                                    <span class="badge {{ $hariColors[$j->hari] ?? 'bg-primary' }} rounded-pill text-uppercase" style="min-width: 60px;">{{ $j->hari_text }}</span>
-                                                    <span class="text-secondary fw-bold">
-                                                        <i class="bi bi-clock me-1"></i>{{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}
-                                                    </span>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @else
-                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle px-2 py-1">
-                                            <i class="bi bi-calendar-x me-1"></i>Belum ada jadwal
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group">
-                                        <button wire:click="openJadwalModal('{{ $pb->id }}')"
-                                            class="btn btn-sm btn-outline-primary" title="Jadwal"><i class="bi bi-calendar-week"></i></button>
-                                        <a href="{{ route('pembelajaran.jurnal.nilai.index', $pb->id) }}" wire:navigate
-                                            class="btn btn-sm btn-outline-danger" title="Nilai"><i
-                                                class="bi bi-star"></i></a>
-                                        <a href="{{ route('pembelajaran.jurnal.index', $pb->id) }}" wire:navigate
-                                            class="btn btn-sm btn-outline-warning" title="Jurnal"><i
-                                                class="bi bi-book"></i></a>
-                                        <a href="{{ route('pembelajaran.presensi.create', $pb->id) }}?tanggal={{ date('Y-m-d') }}"
-                                            wire:navigate class="btn btn-sm btn-outline-primary" title="Input Presensi Hari Ini"><i
-                                                class="bi bi-calendar-check"></i></a>
-                                        <a href="{{ route('pembelajaran.presensi.index', ['pembelajaran_id' => $pb->id]) }}"
-                                            wire:navigate class="btn btn-sm btn-outline-info" title="Rekap Presensi"><i
-                                                class="bi bi-clock-history"></i></a>
-                                        <a href="{{ route('pembelajaran.anggota.index', $pb->id) }}" wire:navigate
-                                            class="btn btn-sm btn-outline-success" title="Anggota"><i
-                                                class="bi bi-people"></i></a>
-                                        <button wire:click="edit('{{ $pb->id }}')"
-                                            class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
-                                        <button wire:click="delete('{{ $pb->id }}')"
-                                            wire:confirm="Hapus data ini beserta seluruh jurnal dan nilainya?"
-                                            class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+        {{-- TOOLBAR: KELAS & REKAP PRESENSI --}}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200/80 dark:border-slate-800">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-600 dark:text-cyan-400 flex items-center justify-center text-sm border border-sky-500/20 shadow-2xs">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+                <div>
+                    <h6 class="text-xs font-bold text-slate-800 dark:text-slate-100 font-display m-0">Daftar Kelas Pembelajaran</h6>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Total {{ $pembelajarans->count() }} kelas aktif semester ini</span>
+                </div>
+            </div>
+
+            <a href="{{ route('pembelajaran.presensi.index') }}" wire:navigate class="btn btn-sm btn-outline-primary rounded-xl px-3.5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
+                <i class="bi bi-clock-history"></i>
+                <span>Rekap Presensi</span>
+            </a>
+        </div>
+
+        <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 overflow-hidden shadow-sm">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
+                    <tr>
+                        <th class="py-3 px-4">Pelajaran</th>
+                        <th class="py-3 px-4 text-center">Anggota</th>
+                        <th class="py-3 px-4">Jadwal</th>
+                        <th class="py-3 px-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($pembelajarans as $pb)
+                        <tr wire:key="row-{{ $pb->id }}">
+                            <td class="px-4 font-bold text-slate-800 dark:text-slate-100">{{ $pb->keterangan }}</td>
+                            <td class="px-4 text-center">
+                                @if($pb->anggota->count() > 0)
+                                    <span class="badge bg-sky-500/15 text-sky-600 border border-sky-500/30">{{ $pb->anggota->count() }} Siswa</span>
+                                @else
+                                    <span class="badge bg-rose-500/15 text-rose-600 border border-rose-500/30">Belum ada anggota</span>
+                                @endif
+                            </td>
+                            <td class="px-4">
+                                @if($pb->jadwal->count() > 0)
+                                    <div class="d-flex flex-column gap-1">
+                                        @foreach ($pb->jadwal->sortBy('hari') as $j)
+                                            <div class="d-flex align-items-center gap-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl px-2.5 py-1 shadow-xs" style="font-size: 0.75rem;">
+                                                <span class="badge {{ $hariColors[$j->hari] ?? 'bg-primary' }} rounded-pill text-uppercase" style="min-width: 60px;">{{ $j->hari_text }}</span>
+                                                <span class="text-slate-600 dark:text-slate-300 font-semibold">
+                                                    <i class="bi bi-clock me-1 text-sky-500"></i>{{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}
+                                                </span>
+                                            </div>
+                                        @endforeach
                                     </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-muted py-4 text-center">Belum ada data pembelajaran</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                                @else
+                                    <span class="badge bg-rose-500/10 text-rose-600 border border-rose-500/20 px-2 py-1">
+                                        <i class="bi bi-calendar-x me-1"></i>Belum ada jadwal
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-4 text-center">
+                                <div class="btn-group">
+                                    <button wire:click="openJadwalModal('{{ $pb->id }}')"
+                                        class="btn btn-sm btn-outline-primary rounded-s-lg" title="Jadwal"><i class="bi bi-calendar-week"></i></button>
+                                    <a href="{{ route('pembelajaran.jurnal.nilai.index', $pb->id) }}" wire:navigate
+                                        class="btn btn-sm btn-outline-danger" title="Nilai"><i
+                                            class="bi bi-star"></i></a>
+                                    <a href="{{ route('pembelajaran.jurnal.index', $pb->id) }}" wire:navigate
+                                        class="btn btn-sm btn-outline-warning" title="Jurnal"><i
+                                            class="bi bi-book"></i></a>
+                                    <a href="{{ route('pembelajaran.presensi.create', $pb->id) }}?tanggal={{ date('Y-m-d') }}"
+                                        wire:navigate class="btn btn-sm btn-outline-primary" title="Input Presensi Hari Ini"><i
+                                            class="bi bi-calendar-check"></i></a>
+                                    <a href="{{ route('pembelajaran.presensi.index', ['pembelajaran_id' => $pb->id]) }}"
+                                        wire:navigate class="btn btn-sm btn-outline-info" title="Rekap Presensi"><i
+                                            class="bi bi-clock-history"></i></a>
+                                    <a href="{{ route('pembelajaran.anggota.index', $pb->id) }}" wire:navigate
+                                        class="btn btn-sm btn-outline-success" title="Anggota"><i
+                                            class="bi bi-people"></i></a>
+                                    <button wire:click="edit('{{ $pb->id }}')"
+                                        class="btn btn-sm btn-outline-warning" title="Edit"><i class="bi bi-pencil"></i></button>
+                                    <button wire:click="delete('{{ $pb->id }}')"
+                                        wire:confirm="Hapus data ini beserta seluruh jurnal dan nilainya?"
+                                        class="btn btn-sm btn-outline-danger rounded-e-lg" title="Hapus"><i class="bi bi-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-slate-500 dark:text-slate-400 py-6 text-center">Belum ada data pembelajaran</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
-            <div class="mt-3">
-                {{ $pembelajarans->links() }}
-            </div>
+        <div class="mt-4">
+            {{ $pembelajarans->links() }}
         </div>
     </div>
 

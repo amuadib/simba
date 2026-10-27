@@ -3,17 +3,16 @@
 @section('title', 'Pengaturan')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-            <h4 class="mb-0">Pengaturan Aplikasi</h4>
-            <small class="text-muted">Pengaturan Aplikasi</small>
+            <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Pengaturan Aplikasi</h1>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Konfigurasi informasi umum aplikasi</p>
         </div>
         <x-breadcrumb />
     </div>
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <form method="POST" action="{{ route('settings.update') }}" enctype="multipart/form-data">
-                @csrf
+    <div class="glass-panel rounded-3xl p-4 md:p-6 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">
+        <form method="POST" action="{{ route('settings.update') }}" enctype="multipart/form-data">
+            @csrf
 
                 <div class="mb-3">
                     <label>Nama Aplikasi</label>
@@ -116,9 +115,10 @@
                     </div>
                 @endif
 
-                <button class="btn btn-primary">Simpan</button>
+                <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold shadow-md">
+                    <i class="bi bi-save2"></i>
+                    <span>Simpan Pengaturan</span>
+                </button>
             </form>
-
-        </div>
     </div>
 @endsection

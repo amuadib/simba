@@ -846,40 +846,14 @@ x-init="
 ">
 
     {{-- HEADER / BREADCRUMB --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-            <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 mb-1">
-                <i class="bi bi-envelope-paper-fill"></i>
-                <span>Administrasi Persuratan</span>
-            </div>
-            <h1 class="text-2xl font-black text-slate-800 dark:text-slate-100 font-display flex items-center gap-2">
-                Pengelolaan Surat
-            </h1>
+            <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Pengelolaan Surat</h1>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Kelola arsip surat resmi, format nomor otomatis, dan template dokumen</p>
         </div>
 
-        {{-- ACTION BUTTONS --}}
-        <div class="flex items-center flex-wrap gap-2">
-            <button type="button" 
-                    wire:click="openCreateSurat('template')"
-                    class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-sky-500 via-cyan-500 to-emerald-500 hover:from-sky-600 hover:to-emerald-600 text-white font-semibold text-xs shadow-lg shadow-cyan-500/30 flex items-center gap-2 transition-all transform active:scale-95">
-                <i class="bi bi-file-earmark-plus-fill text-sm"></i>
-                <span>Buat Surat (Template)</span>
-            </button>
-
-            <button type="button" 
-                    wire:click="openCreateSurat('upload')"
-                    class="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-xs shadow-sm flex items-center gap-2 transition-all border border-slate-700/50">
-                <i class="bi bi-cloud-arrow-up-fill text-sm text-cyan-400"></i>
-                <span>Upload Arsip Fisik</span>
-            </button>
-
-            <button type="button" 
-                    wire:click="$set('activeTab', 'template')"
-                    :class="$wire.activeTab === 'template' ? 'bg-cyan-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'"
-                    class="px-3.5 py-2.5 rounded-2xl font-semibold text-xs flex items-center gap-2 transition-all border border-slate-200 dark:border-slate-700">
-                <i class="bi bi-layout-text-window-reverse text-sm"></i>
-                <span>Editor Template</span>
-            </button>
+        <div wire:key="breadcrumb-wrapper" wire:ignore>
+            <x-breadcrumb />
         </div>
     </div>
 
@@ -928,23 +902,41 @@ x-init="
         </div>
     </div>
 
-    {{-- TABS NAVIGATION --}}
-    <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
-        <button type="button" 
-                wire:click="$set('activeTab', 'surat')"
-                class="px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 {{ $activeTab === 'surat' ? 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300' }}">
-            <i class="bi bi-collection"></i>
-            <span>Daftar Arsip Surat Keluar</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-slate-800 font-extrabold">{{ $totalSurat }}</span>
-        </button>
+    {{-- TABS NAVIGATION & ACTION BUTTONS --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+        <div class="inline-flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex-wrap">
+            <button type="button" 
+                    wire:click="$set('activeTab', 'surat')"
+                    class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 {{ $activeTab === 'surat' ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-cyan-400 shadow-xs border border-slate-200/80 dark:border-cyan-500/30' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60' }}">
+                <i class="bi bi-collection"></i>
+                <span>Daftar Arsip Surat Keluar</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] {{ $activeTab === 'surat' ? 'bg-sky-100 text-sky-700 dark:bg-cyan-500/20 dark:text-cyan-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' }} font-extrabold">{{ $totalSurat }}</span>
+            </button>
 
-        <button type="button" 
-                wire:click="$set('activeTab', 'template')"
-                class="px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 {{ $activeTab === 'template' ? 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300' }}">
-            <i class="bi bi-layout-text-window"></i>
-            <span>Kelola Template WYSIWYG</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-200 dark:bg-slate-800 font-extrabold">{{ count($templates) }}</span>
-        </button>
+            <button type="button" 
+                    wire:click="$set('activeTab', 'template')"
+                    class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 {{ $activeTab === 'template' ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-cyan-400 shadow-xs border border-slate-200/80 dark:border-cyan-500/30' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60' }}">
+                <i class="bi bi-layout-text-window"></i>
+                <span>Kelola Template WYSIWYG</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] {{ $activeTab === 'template' ? 'bg-sky-100 text-sky-700 dark:bg-cyan-500/20 dark:text-cyan-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' }} font-extrabold">{{ count($templates) }}</span>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+            <button type="button" 
+                    wire:click="openCreateSurat('template')"
+                    class="btn-logo-gradient inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all">
+                <i class="bi bi-file-earmark-plus-fill text-sm"></i>
+                <span>Buat Surat (Template)</span>
+            </button>
+
+            <button type="button" 
+                    wire:click="openCreateSurat('upload')"
+                    class="btn btn-outline-secondary btn-sm rounded-xl px-3 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
+                <i class="bi bi-cloud-arrow-up-fill text-sm text-sky-500"></i>
+                <span>Upload Arsip Fisik</span>
+            </button>
+        </div>
     </div>
 
     {{-- TAB 1: DAFTAR ARSIP SURAT --}}

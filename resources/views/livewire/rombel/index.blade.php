@@ -172,151 +172,185 @@ new class extends \Livewire\Volt\Component {
 ?>
 
 <div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-            <h4 class="mb-0">Data Rombel</h4>
-            <small class="text-muted">Daftar seluruh Rombel</small>
+            <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Data Rombel</h1>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Kelola data rombongan belajar dan tingkatan kelas</p>
         </div>
         <div wire:key="breadcrumb-wrapper" wire:ignore>
             <x-breadcrumb />
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-
+    <div class="glass-panel rounded-3xl p-4 md:p-6 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">
+        <div>
+            {{-- FORM AREA --}}
             @if ($editingId)
-                <form wire:submit="update" class="row g-2 mb-3">
-                    <div class="col">
-                        <input wire:model="nama" class="form-control @error('nama') is-invalid @enderror"
-                            placeholder="Nama Rombel" required>
-                        @error('nama')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col">
-                        <select wire:model="tingkat" class="form-control @error('tingkat') is-invalid @enderror">
-                            <option value="0">--Pilih Tingkat--</option>
-                            @foreach (range(1, 12) as $t)
-                                <option value="{{ $t }}">{{ $t }}</option>
-                            @endforeach
-                        </select>
-                        @error('tingkat')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col">
-                        <select wire:model="tahun_ajaran_id" class="form-control @error('tahun_ajaran_id') is-invalid @enderror">
-                            <option value="">--Pilih Tahun Ajaran--</option>
-                            @foreach ($tahunAjarans as $ta)
-                                <option value="{{ $ta->id }}">{{ $ta->nama }}</option>
-                            @endforeach
-                        </select>
-                        @error('tahun_ajaran_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col">
-                        <select wire:model="lembaga_id" class="form-control @error('lembaga_id') is-invalid @enderror">
-                            <option value="">--Pilih Lembaga--</option>
-                            @foreach (daftar_lembaga() as $id => $namaLembaga)
-                                <option value="{{ $id }}">{{ $namaLembaga }}</option>
-                            @endforeach
-                        </select>
-                        @error('lembaga_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-auto">
-                        <button type="submit" class="btn btn-warning"><i class="bi bi-check-circle"></i>
-                            Update</button>
-                        <button type="button" wire:click="cancelEdit" class="btn btn-secondary">Batal</button>
-                    </div>
-                </form>
+                <div class="p-4 md:p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/90 dark:border-cyan-500/20 shadow-xs mb-6">
+                    <h6 class="font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                        <i class="bi bi-pencil-square text-amber-500"></i>
+                        <span>Edit Data Rombel</span>
+                    </h6>
+                    <form wire:submit="update" class="row g-2.5 items-end">
+                        <div class="col-md-3">
+                            <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Nama Rombel</label>
+                            <input wire:model="nama" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('nama') is-invalid @enderror"
+                                placeholder="Nama Rombel" required>
+                            @error('nama')
+                                <div class="invalid-feedback text-xs">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Tingkat</label>
+                            <select wire:model="tingkat" class="form-select rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('tingkat') is-invalid @enderror">
+                                <option value="0">-- Tingkat --</option>
+                                @foreach (range(1, 12) as $t)
+                                    <option value="{{ $t }}">{{ $t }}</option>
+                                @endforeach
+                            </select>
+                            @error('tingkat')
+                                <div class="invalid-feedback text-xs">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Tahun Ajaran</label>
+                            <select wire:model="tahun_ajaran_id" class="form-select rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('tahun_ajaran_id') is-invalid @enderror">
+                                <option value="">-- Pilih Tahun Ajaran --</option>
+                                @foreach ($tahunAjarans as $ta)
+                                    <option value="{{ $ta->id }}">{{ $ta->nama }}</option>
+                                @endforeach
+                            </select>
+                            @error('tahun_ajaran_id')
+                                <div class="invalid-feedback text-xs">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Lembaga</label>
+                            <select wire:model="lembaga_id" class="form-select rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('lembaga_id') is-invalid @enderror">
+                                <option value="">-- Pilih Lembaga --</option>
+                                @foreach (daftar_lembaga() as $id => $namaLembaga)
+                                    <option value="{{ $id }}">{{ $namaLembaga }}</option>
+                                @endforeach
+                            </select>
+                            @error('lembaga_id')
+                                <div class="invalid-feedback text-xs">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-2 flex items-center gap-2">
+                            <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                                <i class="bi bi-check2-circle text-sm"></i> Update
+                            </button>
+                            <button type="button" wire:click="cancelEdit" class="btn btn-outline-secondary btn-sm rounded-xl px-4 py-2 text-xs font-semibold">Batal</button>
+                        </div>
+                    </form>
+                </div>
             @else
-                <form wire:submit="store" class="row g-2 mb-3">
-                    <div class="col">
-                        <input wire:model="nama" class="form-control @error('nama') is-invalid @enderror"
-                            placeholder="Nama Rombel Baru" required>
-                        @error('nama')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col">
-                        <select wire:model="tingkat" class="form-control @error('tingkat') is-invalid @enderror">
-                            <option value="0">--Pilih Tingkat--</option>
-                            @foreach (range(1, 12) as $t)
-                                <option value="{{ $t }}">{{ $t }}</option>
-                            @endforeach
-                        </select>
-                        @error('tingkat')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col">
-                        <select wire:model="tahun_ajaran_id" class="form-control @error('tahun_ajaran_id') is-invalid @enderror">
-                            <option value="">--Pilih Tahun Ajaran--</option>
-                            @foreach ($tahunAjarans as $ta)
-                                <option value="{{ $ta->id }}">{{ $ta->nama }}</option>
-                            @endforeach
-                        </select>
-                        @error('tahun_ajaran_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col">
-                        <select wire:model="lembaga_id" class="form-control @error('lembaga_id') is-invalid @enderror">
-                            <option value="">--Pilih Lembaga--</option>
-                            @foreach (daftar_lembaga() as $id => $namaLembaga)
-                                <option value="{{ $id }}">{{ $namaLembaga }}</option>
-                            @endforeach
-                        </select>
-                        @error('lembaga_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-auto">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Tambah</button>
-                    </div>
-                </form>
+                <div class="p-4 md:p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/90 dark:border-cyan-500/20 shadow-xs mb-6">
+                    <h6 class="font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
+                        <i class="bi bi-plus-circle-fill text-sky-500"></i>
+                        <span>Tambah Rombel Baru</span>
+                    </h6>
+                    <form wire:submit="store" class="row g-2.5 items-end">
+                        <div class="col-md-3">
+                            <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Nama Rombel</label>
+                            <input wire:model="nama" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('nama') is-invalid @enderror"
+                                placeholder="Cth: VII-A, X-IPA" required>
+                            @error('nama')
+                                <div class="invalid-feedback text-xs">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Tingkat</label>
+                            <select wire:model="tingkat" class="form-select rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('tingkat') is-invalid @enderror">
+                                <option value="0">-- Tingkat --</option>
+                                @foreach (range(1, 12) as $t)
+                                    <option value="{{ $t }}">{{ $t }}</option>
+                                @endforeach
+                            </select>
+                            @error('tingkat')
+                                <div class="invalid-feedback text-xs">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Tahun Ajaran</label>
+                            <select wire:model="tahun_ajaran_id" class="form-select rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('tahun_ajaran_id') is-invalid @enderror">
+                                <option value="">-- Pilih Tahun Ajaran --</option>
+                                @foreach ($tahunAjarans as $ta)
+                                    <option value="{{ $ta->id }}">{{ $ta->nama }}</option>
+                                @endforeach
+                            </select>
+                            @error('tahun_ajaran_id')
+                                <div class="invalid-feedback text-xs">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Lembaga</label>
+                            <select wire:model="lembaga_id" class="form-select rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('lembaga_id') is-invalid @enderror">
+                                <option value="">-- Pilih Lembaga --</option>
+                                @foreach (daftar_lembaga() as $id => $namaLembaga)
+                                    <option value="{{ $id }}">{{ $namaLembaga }}</option>
+                                @endforeach
+                            </select>
+                            @error('lembaga_id')
+                                <div class="invalid-feedback text-xs">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md w-full justify-center">
+                                <i class="bi bi-plus-circle text-sm"></i> Tambah
+                            </button>
+                        </div>
+                    </form>
+                </div>
             @endif
 
-            <div class="table-responsive">
-                <table class="table-bordered table">
-                    <thead class="table-light">
+            <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 overflow-hidden shadow-sm">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                    <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
                         <tr>
-                            <th>Nama</th>
-                            <th>Tingkat</th>
-                            <th>Tahun Ajaran</th>
-                            <th>Lembaga</th>
-                            <th width="150">Aksi</th>
+                            <th class="py-3 px-3">Nama Rombel</th>
+                            <th class="py-3 px-3">Tingkat</th>
+                            <th class="py-3 px-3">Tahun Ajaran</th>
+                            <th class="py-3 px-3">Lembaga</th>
+                            <th class="text-center py-3 px-3" width="130">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($rombels as $r)
                             <tr wire:key="{{ $r->id }}">
-                                <td>{{ $r->nama }}</td>
-                                <td>{{ $r->tingkat }}</td>
-                                <td>{{ $r->tahunAjaran->nama ?? '-' }}</td>
-                                <td>{{ nama_lembaga($r->lembaga_id) }}</td>
-                                <td>
-                                    <button wire:click="edit('{{ $r->id }}')"
-                                        class="btn btn-sm btn-outline-warning">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button wire:click="delete('{{ $r->id }}')" wire:confirm="Hapus data ini?"
-                                        class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                <td class="py-3 px-3 font-bold text-slate-800 dark:text-slate-100">{{ $r->nama }}</td>
+                                <td class="py-3 px-3">
+                                    <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                        Kelas {{ $r->tingkat }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-3 text-slate-600 dark:text-slate-300">{{ $r->tahunAjaran->nama ?? '-' }}</td>
+                                <td class="py-3 px-3">
+                                    <span class="px-2 py-0.5 rounded-lg text-xs font-semibold bg-sky-500/10 text-sky-600 dark:text-cyan-400 border border-sky-500/20">
+                                        {{ nama_lembaga($r->lembaga_id) }}
+                                    </span>
+                                </td>
+                                <td class="text-center py-3 px-3">
+                                    <div class="btn-group btn-group-sm">
+                                        <button wire:click="edit('{{ $r->id }}')"
+                                            class="btn btn-sm btn-outline-warning rounded-lg" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button wire:click="delete('{{ $r->id }}')" wire:confirm="Hapus data ini?"
+                                            class="btn btn-sm btn-outline-danger rounded-lg ms-1" title="Hapus">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center">
-                                    Tidak ada data
-                                    <div class="mt-2">
-                                        <button wire:click="naikkanTingkat" class="btn btn-sm btn-primary">
-                                            Proses Kenaikan Kelas Otomatis
+                                <td colspan="5" class="text-center text-slate-400 py-5">
+                                    <i class="bi bi-diagram-3 text-4xl block mb-2 opacity-50"></i>
+                                    Tidak ada data rombel
+                                    <div class="mt-3">
+                                        <button wire:click="naikkanTingkat" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                                            <i class="bi bi-arrow-up-right-circle text-sm"></i> Proses Kenaikan Kelas Otomatis
                                         </button>
                                     </div>
                                 </td>
@@ -326,9 +360,11 @@ new class extends \Livewire\Volt\Component {
                 </table>
             </div>
 
-            <div class="mt-3">
-                {{ $rombels->links() }}
-            </div>
+            @if ($rombels->hasPages())
+                <div class="mt-4">
+                    {{ $rombels->links() }}
+                </div>
+            @endif
         </div>
     </div>
 </div>

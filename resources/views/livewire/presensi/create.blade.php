@@ -82,81 +82,86 @@ new class extends Component {
 ?>
 
 <div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-            <h4 class="mb-0">Presensi</h4>
-            <small class="text-muted">Input Presensi {{ $pembelajaran->keterangan }}</small>
+            <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Presensi Kelas</h1>
+            <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Input presensi kehadiran siswa: <strong class="text-slate-700 dark:text-slate-200">{{ $pembelajaran->keterangan }}</strong></p>
         </div>
 
-        <div wire:key="breadcrumb-wrapper" wire:ignore>
-            <x-breadcrumb />
+        <div class="flex items-center gap-2">
+            <a href="{{ route('pembelajaran.index') }}" wire:navigate class="btn btn-outline-secondary btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
+                <i class="bi bi-arrow-left"></i>
+                <span>Kembali</span>
+            </a>
+            <div wire:key="breadcrumb-wrapper" wire:ignore>
+                <x-breadcrumb />
+            </div>
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="row g-2 mb-4">
+    <div class="glass-panel rounded-3xl p-4 md:p-6 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">
+        <div class="p-4 md:p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/90 dark:border-cyan-500/20 shadow-xs mb-6">
+            <div class="row g-2.5 items-center">
                 <div class="col-md-3">
-                    <label class="form-label small fw-bold">Tanggal</label>
-                    <input type="date" wire:model.live="tanggal" class="form-control" required>
+                    <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300">Tanggal Pertemuan</label>
+                    <input type="date" wire:model.live="tanggal" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs" required>
                 </div>
             </div>
-
-            <form wire:submit="submit">
-                <div class="table-responsive">
-                    <table class="table-hover table border align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="300">Nama Siswa</th>
-                                <th class="text-center">Status</th>
-                                <th class="d-none d-md-table-cell">Keterangan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($listSiswa as $siswa)
-                                <tr wire:key="siswa-{{ $siswa->id }}">
-                                    <td>
-                                        <div class="fw-bold">{{ $siswa->nama }}</div>
-                                        <small class="text-muted">{{ $siswa->panggilan }}</small>
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="d-flex justify-content-center gap-2">
-                                            @foreach (['H', 'I', 'S', 'A'] as $stat)
-                                                <div class="form-check form-check-inline m-0">
-                                                    <input type="radio"
-                                                        wire:model="inputData.{{ $siswa->id }}.status"
-                                                        id="status-{{ $siswa->id }}-{{ $stat }}"
-                                                        value="{{ $stat }}" class="form-check-input">
-                                                    <label class="form-check-label small"
-                                                        for="status-{{ $siswa->id }}-{{ $stat }}">{{ $stat }}</label>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </td>
-                                    <td class="d-none d-md-table-cell">
-                                        <input type="text" wire:model="inputData.{{ $siswa->id }}.keterangan"
-                                            class="form-control form-control-sm" placeholder="...">
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="text-muted py-4 text-center">Tidak ada anggota siswa dalam
-                                        pembelajaran ini.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                @if (!empty($listSiswa))
-                    <div class="d-flex justify-content-end mt-4 gap-2">
-                        <a href="{{ route('pembelajaran.index') }}" wire:navigate class="btn btn-secondary">KEMBALI</a>
-                        <button type="submit" class="btn btn-success px-4" wire:loading.attr="disabled">
-                            <i class="bi bi-save me-1"></i> SIMPAN PRESENSI
-                        </button>
-                    </div>
-                @endif
-            </form>
         </div>
+
+        <form wire:submit="submit">
+            <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 overflow-hidden shadow-sm">
+                <table class="table-hover mb-0 table align-middle" style="font-size: 0.85rem;">
+                    <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
+                        <tr>
+                            <th class="py-3 px-4" width="300">Nama Siswa</th>
+                            <th class="py-3 px-4 text-center" width="220">Status</th>
+                            <th class="py-3 px-4 d-none d-md-table-cell">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($listSiswa as $siswa)
+                            <tr wire:key="siswa-{{ $siswa->id }}">
+                                <td class="px-4">
+                                    <div class="font-bold text-slate-800 dark:text-slate-100">{{ $siswa->nama }}</div>
+                                    <small class="text-slate-400 text-xs">{{ $siswa->panggilan }}</small>
+                                </td>
+                                <td class="px-4 text-center">
+                                    <div class="flex items-center justify-center gap-3">
+                                        @foreach (['H' => 'success', 'I' => 'primary', 'S' => 'warning', 'A' => 'danger'] as $stat => $c)
+                                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300 m-0">
+                                                <input type="radio"
+                                                    wire:model="inputData.{{ $siswa->id }}.status"
+                                                    id="status-{{ $siswa->id }}-{{ $stat }}"
+                                                    value="{{ $stat }}" class="form-check-input m-0">
+                                                <span>{{ $stat }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </td>
+                                <td class="px-4 d-none d-md-table-cell">
+                                    <input type="text" wire:model="inputData.{{ $siswa->id }}.keterangan"
+                                        class="form-control form-control-sm rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-1.5 shadow-xs" placeholder="Keterangan (opsional)...">
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="text-slate-400 py-6 text-center">Tidak ada anggota siswa dalam pembelajaran ini.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!empty($listSiswa))
+                <div class="flex items-center justify-end mt-4 gap-2">
+                    <a href="{{ route('pembelajaran.index') }}" wire:navigate class="btn btn-outline-secondary btn-sm rounded-xl px-4 py-2.5 text-xs font-semibold">KEMBALI</a>
+                    <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold shadow-md" wire:loading.attr="disabled">
+                        <i class="bi bi-save"></i>
+                        <span>SIMPAN PRESENSI</span>
+                    </button>
+                </div>
+            @endif
+        </form>
     </div>
 </div>
