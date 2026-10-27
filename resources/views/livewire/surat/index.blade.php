@@ -853,14 +853,8 @@ x-init="
                 <span>Administrasi Persuratan</span>
             </div>
             <h1 class="text-2xl font-black text-slate-800 dark:text-slate-100 font-display flex items-center gap-2">
-                Pengelolaan Surat Resmi
-                <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
-                    Format Standar & Arsip
-                </span>
+                Pengelolaan Surat
             </h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Format nomor: <code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400 font-mono text-[11px]">&lt;urut&gt;/&lt;kode&gt;/&lt;lembaga&gt;/&lt;romawi&gt;/&lt;tahun&gt;</code>
-            </p>
         </div>
 
         {{-- ACTION BUTTONS --}}
@@ -1068,17 +1062,11 @@ x-init="
                                         <div class="font-medium text-slate-700 dark:text-slate-200">
                                             {{ $surat->tanggal_surat ? $surat->tanggal_surat->isoFormat('D MMM Y') : '-' }}
                                         </div>
-                                        <div class="text-[10px] text-slate-400">
-                                            Bulan Romawi: {{ $surat->bulan_romawi }}
-                                        </div>
                                     </td>
 
                                     {{-- Lembaga --}}
-                                    <td class="py-3.5 px-4 whitespace-nowrap">
-                                        <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                                            {{ $surat->singkatan_lembaga }}
-                                        </span>
-                                        <div class="text-[10px] text-slate-400 mt-0.5 truncate max-w-[140px]" title="{{ $surat->nama_lembaga }}">
+                                    <td class="py-3.5 px-4">
+                                        <div class="font-medium text-slate-700 dark:text-slate-200 mt-0.5">
                                             {{ $surat->nama_lembaga }}
                                         </div>
                                     </td>
