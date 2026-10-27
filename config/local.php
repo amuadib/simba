@@ -141,6 +141,18 @@ return [
         6 => 'Keluar',
         7 => 'Almarhum',
     ],
+    'kode_surat' => [
+        'SK' => 'Surat Keputusan',
+        'SKet' => 'Surat Keterangan',
+        'SPm' => 'Surat Permohonan',
+        'SPb' => 'Surat Pemberitahuan',
+        'SPn' => 'Surat Pernyataan',
+        'SPg' => 'Surat Pengantar',
+        'STgs' => 'Surat Tugas',
+        'U' => 'Surat Undangan',
+        'SRek' => 'Surat Rekomendasi',
+        'SPTJM' => 'Surat Pernyataan Tanggung Jawab Mutlak',
+    ],
     'saku' => [
         'key' => env('SAKU_KEY', 'secret-token-123'),
         'url' => env('SAKU_URL', 'https://saku-v2.lol'),

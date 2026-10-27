@@ -40,6 +40,14 @@
                 'label' => 'Data Pegawai',
             ],
         ],
+        'Administrasi' => [
+            [
+                'route' => 'surat.*',
+                'url' => 'surat.index',
+                'icon' => 'bi-envelope-paper-fill',
+                'label' => 'Pengelolaan Surat',
+            ],
+        ],
         'Master' => [
             [
                 'route' => 'tahun_ajaran.*',

@@ -10,6 +10,9 @@ use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\PegawaiImport;
 use App\Exports\PegawaiExport;
+use App\Models\User;
+use App\Models\Siswa;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -66,6 +69,16 @@ new class extends \Livewire\Volt\Component {
     public $bulkLembagaId = '';
     public $showBulkUpdateModal = false;
     public $showBulkDeleteModal = false;
+
+    // Akun State
+    public $showAccountModal = false;
+    public $accountPegawaiId = null;
+    public $account_type = 'new'; // 'new' or 'existing'
+    public $account_name = '';
+    public $account_email = '';
+    public $account_role = 'guru';
+    public $account_password = 'password';
+    public $existing_user_id = '';
 
     // Import
     public $importFile;
@@ -698,10 +711,115 @@ new class extends \Livewire\Volt\Component {
         $this->dispatch('toast', message: 'Lembaga induk berhasil diatur ke ' . nama_lembaga($sk->lembaga_id), type: 'success');
     }
 
+    // --- MANAJEMEN AKUN PEGAWAI ---
+
+    public function openBuatAkun($pegawaiId)
+    {
+        if (!auth()->check() || !auth()->user()->isAdmin()) {
+            $this->dispatch('toast', message: 'Hanya Admin yang dapat membuat atau menyambungkan akun.', type: 'error');
+            return;
+        }
+
+        $pegawai = Pegawai::with('user')->findOrFail($pegawaiId);
+        if ($pegawai->user_id) {
+            $this->dispatch('toast', message: 'Pegawai ini sudah memiliki akun (' . $pegawai->user->email . ').', type: 'warning');
+            return;
+        }
+
+        $this->accountPegawaiId = $pegawai->id;
+        $this->account_type = 'new';
+        $this->account_name = $pegawai->nama;
+
+        // Buat saran email berdasarkan NIY atau nama
+        $cleanBase = $pegawai->niy ?: Str::slug($pegawai->nama, '');
+        $suggestedEmail = strtolower($cleanBase) . '@simba.id';
+        $counter = 1;
+        while (User::where('email', $suggestedEmail)->exists()) {
+            $suggestedEmail = strtolower($cleanBase) . $counter . '@simba.id';
+            $counter++;
+        }
+
+        $this->account_email = $suggestedEmail;
+        $this->account_role = 'guru';
+        $this->account_password = 'password';
+        $this->existing_user_id = '';
+        $this->showAccountModal = true;
+    }
+
+    public function closeAccountModal()
+    {
+        $this->showAccountModal = false;
+        $this->accountPegawaiId = null;
+        $this->reset(['account_name', 'account_email', 'account_role', 'account_password', 'existing_user_id']);
+    }
+
+    public function saveAkun()
+    {
+        if (!auth()->check() || !auth()->user()->isAdmin()) {
+            $this->dispatch('toast', message: 'Akses ditolak.', type: 'error');
+            return;
+        }
+
+        $pegawai = Pegawai::findOrFail($this->accountPegawaiId);
+
+        if ($this->account_type === 'existing') {
+            $this->validate([
+                'existing_user_id' => 'required|exists:users,id',
+            ], [
+                'existing_user_id.required' => 'Pilih akun yang ingin disambungkan.',
+            ]);
+
+            $alreadyLinked = Pegawai::where('user_id', $this->existing_user_id)->where('id', '!=', $pegawai->id)->exists()
+                || Siswa::where('user_id', $this->existing_user_id)->exists();
+
+            if ($alreadyLinked) {
+                $this->dispatch('toast', message: 'Akun ini sudah terhubung dengan pegawai atau siswa lain.', type: 'error');
+                return;
+            }
+
+            $pegawai->update(['user_id' => $this->existing_user_id]);
+            $this->dispatch('toast', message: 'Akun berhasil disambungkan dengan pegawai!', type: 'success');
+        } else {
+            $this->validate([
+                'account_name' => 'required|string|max:255',
+                'account_email' => 'required|email|unique:users,email',
+                'account_role' => 'required|in:admin,guru',
+                'account_password' => 'required|min:6',
+            ], [
+                'account_email.unique' => 'Email ini sudah digunakan oleh akun lain.',
+                'account_password.min' => 'Password minimal 6 karakter.',
+            ]);
+
+            $user = User::create([
+                'name' => $this->account_name,
+                'email' => $this->account_email,
+                'role' => $this->account_role,
+                'password' => Hash::make($this->account_password),
+            ]);
+
+            $pegawai->update(['user_id' => $user->id]);
+            $this->dispatch('toast', message: 'Akun baru berhasil dibuat dan disambungkan ke pegawai!', type: 'success');
+        }
+
+        $this->closeAccountModal();
+    }
+
+    public function putusAkun($pegawaiId)
+    {
+        if (!auth()->check() || !auth()->user()->isAdmin()) {
+            $this->dispatch('toast', message: 'Akses ditolak.', type: 'error');
+            return;
+        }
+
+        $pegawai = Pegawai::findOrFail($pegawaiId);
+        $pegawai->update(['user_id' => null]);
+        $this->dispatch('toast', message: 'Sambungan akun pegawai berhasil diputus.', type: 'success');
+    }
+
     public function with()
     {
         $pegawai = Pegawai::query()
-            ->with('skPenugasan')
+            ->with(['skPenugasan', 'user'])
             ->orderBy('niy')
             ->when($this->status, fn($q, $s) => $q->where('status', $s))
             ->when($this->jenis_kelamin, fn($q, $jk) => $q->where('jenis_kelamin', strtolower($jk)))
@@ -729,7 +847,7 @@ new class extends \Livewire\Volt\Component {
             ->paginate(25);
 
         $selectedPegawai = $this->selectedPegawaiId
-            ? Pegawai::with('skPenugasan')->find($this->selectedPegawaiId)
+            ? Pegawai::with(['skPenugasan', 'user'])->find($this->selectedPegawaiId)
             : null;
 
         $counts = [
@@ -753,6 +871,7 @@ new class extends \Livewire\Volt\Component {
                 5 => 'Pensiun',
                 6 => 'Keluar',
             ]),
+            'availableUsers' => User::whereDoesntHave('pegawai')->whereDoesntHave('siswa')->orderBy('name')->get(),
             'historyPegawai' => $this->historyPegawaiId ? Pegawai::with(['histories.user', 'histories.reverter'])->find($this->historyPegawaiId) : null,
             'globalHistories' => PegawaiHistory::with(['pegawai', 'user', 'reverter'])
                 ->when($this->historyActionFilter, fn($q, $a) => $q->where('action', $a))
@@ -1244,6 +1363,13 @@ new class extends \Livewire\Volt\Component {
                                             @if ($p->nik)
                                                 <div class="small text-muted" style="font-size: 0.75rem;"><i class="bi bi-card-text me-1"></i>NIK: {{ $p->nik }}</div>
                                             @endif
+                                            @if ($p->user)
+                                                <div class="mt-0.5">
+                                                    <span class="badge bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800" style="font-size: 0.68rem;" title="Akun: {{ $p->user->email }} ({{ strtoupper($p->user->role) }})">
+                                                        <i class="bi bi-person-check me-1"></i>{{ $p->user->email }}
+                                                    </span>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
@@ -1325,6 +1451,11 @@ new class extends \Livewire\Volt\Component {
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm">
+                                        @if (!$p->user && auth()->check() && auth()->user()->isAdmin())
+                                            <button wire:click="openBuatAkun('{{ $p->id }}')" class="btn btn-outline-success" title="Buat Akun Pegawai">
+                                                <i class="bi bi-person-plus"></i>
+                                            </button>
+                                        @endif
                                         <button wire:click="show('{{ $p->id }}')" class="btn btn-outline-info" title="Lihat Detail">
                                             <i class="bi bi-eye"></i>
                                         </button>
@@ -1587,7 +1718,7 @@ new class extends \Livewire\Volt\Component {
     @elseif ($action === 'show')
         {{-- SPA IN-PAGE DETAIL VIEW --}}
         @php
-            $pData = App\Models\Pegawai::with('skPenugasan')->find($showId);
+            $pData = App\Models\Pegawai::with(['skPenugasan', 'user'])->find($showId);
         @endphp
         @if ($pData)
             <div class="glass-panel rounded-3xl p-5 md:p-8 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl transition-all">
@@ -1627,6 +1758,11 @@ new class extends \Livewire\Volt\Component {
                         </div>
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
+                        @if (!$pData->user && auth()->check() && auth()->user()->isAdmin())
+                            <button type="button" wire:click="openBuatAkun('{{ $pData->id }}')" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                                <i class="bi bi-person-plus"></i> Buat Akun
+                            </button>
+                        @endif
                         <button type="button" wire:click="openHistory('{{ $pData->id }}')" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 border border-slate-200 dark:border-slate-700">
                             <i class="bi bi-clock-history text-cyan-500"></i> Riwayat
                         </button>
@@ -1714,12 +1850,51 @@ new class extends \Livewire\Volt\Component {
                         </div>
                     </div>
 
-                    <div class="md:col-span-2 lg:col-span-3 p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                    <div class="md:col-span-2 lg:col-span-2 p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
                         <div class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 flex items-center gap-1.5">
                             <i class="bi bi-geo-alt text-rose-500"></i> Alamat Domisili
                         </div>
                         <div class="font-semibold text-slate-800 dark:text-slate-200 text-sm">
                             {{ $pData->alamat ?: '-' }}
+                        </div>
+                    </div>
+
+                    {{-- Akun Card --}}
+                    <div class="p-4 rounded-2xl {{ $pData->user ? 'bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-200/80 dark:border-emerald-800/60' : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/60' }} border shadow-xs flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs {{ $pData->user ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400' }} font-semibold mb-1 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="bi {{ $pData->user ? 'bi-person-check text-emerald-500' : 'bi-person-x text-slate-400' }}"></i> Akun SIMBA
+                                </span>
+                                @if ($pData->user)
+                                    <span class="badge bg-emerald-600 text-white font-mono uppercase" style="font-size: 0.65rem;">{{ $pData->user->role }}</span>
+                                @endif
+                            </div>
+                            <div class="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                                {{ $pData->user ? $pData->user->email : 'Belum Memiliki Akun' }}
+                            </div>
+                            @if ($pData->user)
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                    Nama User: <span class="font-medium text-slate-700 dark:text-slate-300">{{ $pData->user->name }}</span>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+                            @if ($pData->user)
+                                <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold"><i class="bi bi-shield-check me-1"></i>Terhubung</span>
+                                @if (auth()->check() && auth()->user()->isAdmin())
+                                    <button type="button" wire:click="putusAkun('{{ $pData->id }}')" wire:confirm="Putus sambungan akun ini dari pegawai?" class="text-xs text-rose-600 hover:text-rose-700 font-semibold hover:underline">
+                                        Putus Akun
+                                    </button>
+                                @endif
+                            @else
+                                <span class="text-[11px] text-slate-400">Tidak ada akses login</span>
+                                @if (auth()->check() && auth()->user()->isAdmin())
+                                    <button type="button" wire:click="openBuatAkun('{{ $pData->id }}')" class="btn btn-xs btn-outline-success rounded-lg font-bold">
+                                        <i class="bi bi-person-plus me-1"></i>Buat Akun
+                                    </button>
+                                @endif
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -2376,6 +2551,108 @@ new class extends \Livewire\Volt\Component {
                     <button type="button" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold" wire:click="closeHistory">
                         Tutup
                     </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- MODAL BUAT / SAMBUNGKAN AKUN PEGAWAI --}}
+    @if ($showAccountModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+            <div class="w-full max-w-md rounded-3xl border border-slate-200 dark:border-emerald-500/20 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden">
+                <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4 flex items-center justify-between">
+                    <h5 class="font-display font-bold text-white flex items-center gap-2 text-sm m-0">
+                        <i class="bi bi-person-plus text-emerald-200"></i> Akun Login SIMBA Pegawai
+                    </h5>
+                    <button type="button" wire:click="closeAccountModal" class="text-white hover:text-slate-200">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div class="p-5">
+                    @php
+                        $targetPegawai = App\Models\Pegawai::find($accountPegawaiId);
+                    @endphp
+                    @if ($targetPegawai)
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 mb-4 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white bg-gradient-to-tr from-emerald-500 to-teal-400 font-bold shadow-xs">
+                                <i class="bi bi-person"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 dark:text-slate-100 text-xs">
+                                    {{ $targetPegawai->nama_lengkap ?: $targetPegawai->nama }}
+                                </div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                                    NIY: {{ $targetPegawai->niy ?: '-' }} &bull; Lembaga: {{ nama_lembaga($targetPegawai->lembaga_id, true) }}
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Mode Tab --}}
+                    <div class="flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 mb-4 text-xs font-semibold">
+                        <button type="button" wire:click="$set('account_type', 'new')" class="flex-1 py-1.5 rounded-lg transition-all {{ $account_type === 'new' ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300' }}">
+                            <i class="bi bi-plus-circle me-1"></i>Buat Akun Baru
+                        </button>
+                        <button type="button" wire:click="$set('account_type', 'existing')" class="flex-1 py-1.5 rounded-lg transition-all {{ $account_type === 'existing' ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300' }}">
+                            <i class="bi bi-link-45deg me-1"></i>Pilih Akun Ada
+                        </button>
+                    </div>
+
+                    @if ($account_type === 'new')
+                        <div class="space-y-3">
+                            <div>
+                                <label class="form-label text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">Nama Pengguna</label>
+                                <input type="text" wire:model="account_name" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl @error('account_name') is-invalid @enderror">
+                                @error('account_name') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="form-label text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">Alamat Email / Login</label>
+                                <input type="email" wire:model="account_email" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl @error('account_email') is-invalid @enderror">
+                                @error('account_email') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="form-label text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">Role Akun</label>
+                                    <select wire:model="account_role" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl @error('account_role') is-invalid @enderror">
+                                        <option value="guru">Guru</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                    @error('account_role') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="form-label text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">Password</label>
+                                    <input type="text" wire:model="account_password" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl @error('account_password') is-invalid @enderror">
+                                    @error('account_password') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="mb-3">
+                            <label class="form-label text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-display">Pilih Akun yang Belum Terhubung</label>
+                            <select wire:model="existing_user_id" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl @error('existing_user_id') is-invalid @enderror">
+                                <option value="">-- Pilih Akun User --</option>
+                                @foreach ($availableUsers as $u)
+                                    <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }}) - {{ strtoupper($u->role) }}</option>
+                                @endforeach
+                            </select>
+                            @error('existing_user_id') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            @if ($availableUsers->isEmpty())
+                                <span class="text-[11px] text-amber-500 mt-1 block">Tidak ada akun bebas yang belum terhubung. Silakan gunakan tab "Buat Akun Baru".</span>
+                            @endif
+                        </div>
+                    @endif
+
+                    <div class="flex items-center justify-end gap-2 mt-5 pt-3 border-t border-slate-200 dark:border-slate-800">
+                        <button type="button" wire:click="closeAccountModal" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
+                            Batal
+                        </button>
+                        <button type="button" wire:click="saveAkun" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-md flex items-center gap-1.5" wire:loading.attr="disabled">
+                            <i class="bi bi-check-circle"></i> {{ $account_type === 'new' ? 'Buat & Sambungkan Akun' : 'Sambungkan Akun' }}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

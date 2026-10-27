@@ -33,6 +33,11 @@ class Siswa extends Model
         'ayah',
         'ibu',
         'foto',
+        'user_id',
+    ];
+
+    protected $casts = [
+        'tanggal_lahir' => 'date',
     ];
 
     /**
@@ -406,6 +411,14 @@ class Siswa extends Model
         if ($jk === 'L') return 'Laki-laki';
         if ($jk === 'P') return 'Perempuan';
         return '-';
+    }
+
+    /**
+     * Relasi ke akun User pengguna.
+     */
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
 

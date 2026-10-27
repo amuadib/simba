@@ -331,3 +331,50 @@ if (! function_exists('status_pegawai')) {
     }
 }
 
+if (! function_exists('kop_url')) {
+    function kop_url($lembagaId = null)
+    {
+        if ($lembagaId) {
+            $items = Setting::getValue('lembaga') ?? config('local.lembaga') ?? config('custom.lembaga') ?? [];
+            if (isset($items[$lembagaId]['kop']) && ! empty($items[$lembagaId]['kop'])) {
+                $kop = $items[$lembagaId]['kop'];
+
+                return str_starts_with($kop, 'http') ? $kop : asset($kop);
+            }
+        }
+
+        return null;
+    }
+}
+
+if (! function_exists('bulan_romawi')) {
+    function bulan_romawi($month = null)
+    {
+        $m = (int) ($month ?: date('n'));
+        $romawi = [
+            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+            7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+        ];
+
+        return $romawi[$m] ?? 'I';
+    }
+}
+
+if (! function_exists('daftar_kode_surat')) {
+    function daftar_kode_surat()
+    {
+        return config('local.kode_surat', [
+            'KET'  => 'Surat Keterangan',
+            'TGS'  => 'Surat Tugas',
+            'SK'   => 'Surat Keputusan',
+            'UND'  => 'Surat Undangan',
+            'REK'  => 'Surat Rekomendasi',
+            'PND'  => 'Surat Pindah',
+            'PGL'  => 'Surat Panggilan',
+            'NOT'  => 'Nota Dinas',
+            'SP'   => 'Surat Peringatan',
+            'IZN'  => 'Surat Izin',
+            'EDR'  => 'Surat Edaran',
+        ]);
+    }
+}

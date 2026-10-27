@@ -27,6 +27,7 @@ class Pegawai extends Model
         'foto',
         'lembaga_id',
         'status',
+        'user_id',
     ];
 
     protected $casts = [
@@ -470,5 +471,13 @@ class Pegawai extends Model
     public function setJenisKelaminAttribute($value): void
     {
         $this->attributes['jenis_kelamin'] = strtolower($value ?? 'l');
+    }
+
+    /**
+     * Relasi ke akun User pengguna.
+     */
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

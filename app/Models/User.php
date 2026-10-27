@@ -51,4 +51,72 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    public function isGuru(): bool
+    {
+        return $this->role === 'guru';
+    }
+
+    public function isSiswa(): bool
+    {
+        return $this->role === 'siswa';
+    }
+
+    public function pegawai(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Pegawai::class, 'user_id');
+    }
+
+    public function siswa(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Siswa::class, 'user_id');
+    }
+
+    public function getProfilAttribute()
+    {
+        return $this->pegawai ?? $this->siswa;
+    }
+
+    public function getLembagaIds(): array
+    {
+        if ($this->isAdmin()) {
+            return array_map('intval', array_keys(daftar_lembaga()));
+        }
+
+        $ids = [];
+        if ($this->pegawai) {
+            if ($this->pegawai->lembaga_id) {
+                $ids[] = (int) $this->pegawai->lembaga_id;
+            }
+            if (method_exists($this->pegawai, 'skPenugasan')) {
+                $skLembagas = $this->pegawai->skPenugasan()
+                    ->where(function ($q) {
+                        $q->whereNull('status')->orWhere('status', '1');
+                    })
+                    ->pluck('lembaga_id')
+                    ->map(fn($id) => (int) $id)
+                    ->toArray();
+                $ids = array_merge($ids, $skLembagas);
+            }
+        } elseif ($this->siswa) {
+            if ($this->siswa->lembaga_id) {
+                $ids[] = (int) $this->siswa->lembaga_id;
+            }
+            if (method_exists($this->siswa, 'lembagaTambahan')) {
+                $tambahan = $this->siswa->lembagaTambahan()->pluck('lembaga_id')->map(fn($id) => (int) $id)->toArray();
+                $ids = array_merge($ids, $tambahan);
+            }
+        }
+
+        return array_values(array_unique(array_filter($ids)));
+    }
+
+    public function canAccessLembaga($lembagaId): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return in_array((int) $lembagaId, $this->getLembagaIds(), true);
+    }
 }

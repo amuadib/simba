@@ -25,8 +25,9 @@
     <link href="{{ asset('bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('bootstrap-icons.css') }}" rel="stylesheet">
 
-    {{-- Chart.js (Loaded once and persistent across Livewire SPA transitions) --}}
+    {{-- Chart.js & Mammoth.js (Word document converter) --}}
     <script src="{{ asset('chart.js') }}" data-navigate-once></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js" data-navigate-once></script>
 
     {{-- Tailwind CSS v4 via Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])

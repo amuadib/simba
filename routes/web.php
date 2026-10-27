@@ -67,4 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/jadwal/print', [JadwalController::class, 'print'])->name('jadwal.print');
     Volt::route('/tahun-ajaran', 'tahun-ajaran.index')->name('tahun_ajaran.index');
     Volt::route('/pengguna', 'pengguna.index')->name('pengguna.index');
+    Volt::route('/surat', 'surat.index')->name('surat.index');
+    Route::get('/surat/{surat}/print', [\App\Http\Controllers\SuratController::class, 'print'])->name('surat.print');
+    Route::get('/surat/{surat}/download', [\App\Http\Controllers\SuratController::class, 'download'])->name('surat.download');
 });

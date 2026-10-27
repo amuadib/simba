@@ -35,7 +35,7 @@ new class extends Component {
         return [
             'name'     => 'required|string|max:255',
             'email'    => $emailRule,
-            'role'     => 'required|in:admin,guru',
+            'role'     => 'required|in:admin,guru,siswa',
             'password' => $passwordRule,
         ];
     }
@@ -119,7 +119,7 @@ new class extends Component {
     public function with(): array
     {
         return [
-            'users' => User::orderBy('name')->get(),
+            'users' => User::with(['pegawai', 'siswa'])->orderBy('name')->get(),
         ];
     }
 };
@@ -173,6 +173,7 @@ new class extends Component {
                                 class="form-select @error('role') is-invalid @enderror">
                                 <option value="guru">Guru</option>
                                 <option value="admin">Admin</option>
+                                <option value="siswa">Siswa</option>
                             </select>
                             @error('role')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -240,6 +241,11 @@ new class extends Component {
                                     @if($u->id === auth()->id())
                                         <span style="font-size:.72rem;color:#6366f1;">(Anda)</span>
                                     @endif
+                                    @if($u->pegawai)
+                                        <div style="font-size:.72rem;" class="text-muted"><i class="bi bi-person-badge text-primary me-1"></i>Pegawai: {{ $u->pegawai->nama }}</div>
+                                    @elseif($u->siswa)
+                                        <div style="font-size:.72rem;" class="text-muted"><i class="bi bi-mortarboard text-info me-1"></i>Siswa: {{ $u->siswa->nama }}</div>
+                                    @endif
                                 </td>
                                 <td style="font-size:.875rem;">{{ $u->email }}</td>
                                 <td class="text-center">
@@ -247,6 +253,11 @@ new class extends Component {
                                         <span class="badge"
                                             style="background:rgba(99,102,241,.15);color:#6366f1;font-size:.75rem;">
                                             <i class="bi bi-shield-check me-1"></i>Admin
+                                        </span>
+                                    @elseif($u->role === 'siswa')
+                                        <span class="badge"
+                                            style="background:rgba(14,165,233,.12);color:#0284c7;font-size:.75rem;">
+                                            <i class="bi bi-mortarboard me-1"></i>Siswa
                                         </span>
                                     @else
                                         <span class="badge"
