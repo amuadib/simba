@@ -234,7 +234,7 @@ new class extends \Livewire\Volt\Component {
             </div>
         @endif
 
-        {{-- TOOLBAR: RIWAYAT & DAFTAR NILAI --}}
+        {{-- TOOLBAR: RIWAYAT, PRESENSI & DAFTAR NILAI --}}
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200/80 dark:border-slate-800">
             <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-600 dark:text-cyan-400 flex items-center justify-center text-sm border border-sky-500/20 shadow-2xs">
@@ -246,11 +246,18 @@ new class extends \Livewire\Volt\Component {
                 </div>
             </div>
 
-            <a href="{{ route('pembelajaran.jurnal.nilai.index', $pembelajaran) }}" wire:navigate
-                class="btn btn-outline-danger btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
-                <i class="bi bi-star"></i>
-                <span>Daftar Nilai Siswa</span>
-            </a>
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="{{ route('pembelajaran.presensi.create', $pembelajaran) }}?tanggal={{ date('Y-m-d') }}" wire:navigate
+                    class="btn btn-outline-success btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>Presensi Hari Ini</span>
+                </a>
+                <a href="{{ route('pembelajaran.jurnal.nilai.index', $pembelajaran) }}" wire:navigate
+                    class="btn btn-outline-danger btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
+                    <i class="bi bi-star"></i>
+                    <span>Daftar Nilai Siswa</span>
+                </a>
+            </div>
         </div>
 
         <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 overflow-hidden shadow-sm">
@@ -276,12 +283,17 @@ new class extends \Livewire\Volt\Component {
                                 <div class="flex items-center justify-center gap-1.5">
                                     <button wire:click="salinJurnal('{{ $j->id }}')"
                                         class="btn btn-sm btn-outline-info rounded-lg text-xs" title="Salin Jurnal">
-                                        <i class="bi bi-copy me-1"></i> Salin
+                                        <i class="bi bi-copy me-1"></i>
                                     </button>
+                                    <a href="{{ route('pembelajaran.presensi.create', $pembelajaran->id) }}?tanggal={{ $j->tanggal }}"
+                                        wire:navigate class="btn btn-sm btn-outline-success rounded-lg text-xs"
+                                        title="Input Presensi Pertemuan">
+                                        <i class="bi bi-calendar-check me-1"></i>
+                                    </a>
                                     <a href="{{ route('pembelajaran.jurnal.nilai.create', [$pembelajaran->id, $j->id]) }}"
                                         wire:navigate class="btn btn-sm btn-outline-primary rounded-lg text-xs"
-                                        title="Input Nilai & Presensi">
-                                        <i class="bi bi-pencil-square me-1"></i> Nilai
+                                        title="Input Nilai Pertemuan">
+                                        <i class="bi bi-award me-1"></i>
                                     </a>
                                     <button wire:click="edit('{{ $j->id }}')"
                                         class="btn btn-sm btn-outline-warning rounded-lg" title="Edit">
