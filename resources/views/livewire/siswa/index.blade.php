@@ -786,7 +786,31 @@ new class extends \Livewire\Volt\Component {
 
 ?>
 
-<div>
+<div x-data="{ 
+    fotoPopupOpen: false, 
+    fotoData: {
+        id: '',
+        nama: '',
+        panggilan: '',
+        jk: '',
+        nisn: '',
+        nik: '',
+        nis: '',
+        rombel: '',
+        lembaga: '',
+        status: '',
+        statusBadge: '',
+        ttl: '',
+        usia: '',
+        ayah: '',
+        ibu: '',
+        alamat: '',
+        telepon: '',
+        foto: ''
+    }
+}"
+x-on:open-foto-popup.window="fotoData = $event.detail; fotoPopupOpen = true"
+x-on:keydown.escape.window="fotoPopupOpen = false">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
             @if ($action === 'create')
@@ -1337,7 +1361,43 @@ new class extends \Livewire\Volt\Component {
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
                                         @if ($s->foto && Storage::disk('public')->exists($s->foto))
-                                            <img src="{{ asset('storage/' . $s->foto) }}" alt="Foto" class="rounded-circle object-fit-cover shadow-sm flex-shrink-0" style="width: 36px; height: 36px;">
+                                            @php
+                                                $fotoPopupData = [
+                                                    'id' => (string) $s->id,
+                                                    'nama' => (string) $s->nama,
+                                                    'panggilan' => (string) ($s->panggilan ?? ''),
+                                                    'jk' => (string) $s->jenis_kelamin,
+                                                    'nisn' => (string) ($s->nisn ?: '-'),
+                                                    'nik' => (string) ($s->nik ?: '-'),
+                                                    'nis' => (string) ($s->nis ?: '-'),
+                                                    'rombel' => (string) ($s->rombel->nama ?? ($s->keanggotaanLembaga->first()?->rombel?->nama ?? '-')),
+                                                    'lembaga' => (string) nama_lembaga($s->lembaga_id),
+                                                    'status' => (string) ($statusOptions[$s->status] ?? '-'),
+                                                    'statusBadge' => (string) ($badges[$s->status] ?? 'bg-secondary'),
+                                                    'ttl' => (string) (($s->tempat_lahir ? $s->tempat_lahir . ', ' : '') . ($s->tanggal_lahir ? \Carbon\Carbon::parse($s->tanggal_lahir)->translatedFormat('d F Y') : '-')),
+                                                    'usia' => (string) ($s->tanggal_lahir ? \Carbon\Carbon::parse($s->tanggal_lahir)->age . ' tahun' : '-'),
+                                                    'alamat' => (string) ($s->alamat ?: '-'),
+                                                    'ayah' => (string) ($s->ayah ?: '-'),
+                                                    'ibu' => (string) ($s->ibu ?: '-'),
+                                                    'telepon' => (string) ($s->telepon ?: '-'),
+                                                    'foto' => asset('storage/' . $s->foto),
+                                                ];
+                                            @endphp
+                                            <div class="relative flex-shrink-0 group">
+                                                <button type="button"
+                                                        @click="$dispatch('open-foto-popup', @js($fotoPopupData))"
+                                                        class="block relative rounded-circle cursor-pointer border-0 p-0 bg-transparent transition-all transform hover:scale-110 active:scale-95 focus:outline-hidden"
+                                                        title="Klik untuk melihat foto & profil singkat {{ $s->nama }}">
+                                                    <img src="{{ asset('storage/' . $s->foto) }}" 
+                                                         alt="Foto {{ $s->nama }}" 
+                                                         class="rounded-circle object-fit-cover shadow-sm ring-2 ring-sky-500/30 group-hover:ring-sky-500 transition-all" 
+                                                         style="width: 36px; height: 36px;">
+                                                    <span class="position-absolute bottom-0 end-0 bg-sky-500 text-white rounded-circle d-flex align-items-center justify-content-center shadow-xs" 
+                                                          style="width: 14px; height: 14px; font-size: 8px;">
+                                                        <i class="bi bi-search"></i>
+                                                    </span>
+                                                </button>
+                                            </div>
                                         @else
                                             <div class="rounded-circle d-flex align-items-center justify-content-center text-secondary bg-light border flex-shrink-0" style="width: 36px; height: 36px; font-size: 0.85rem;">
                                                 <i class="bi bi-person"></i>
@@ -2609,4 +2669,158 @@ new class extends \Livewire\Volt\Component {
             </div>
         </div>
     @endif
+    {{-- MODAL POPUP DATA SINGKAT & FOTO SISWA --}}
+    <div x-show="fotoPopupOpen" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-250"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+         style="display: none;">
+
+        <div class="fixed inset-0" @click="fotoPopupOpen = false"></div>
+
+        <div x-show="fotoPopupOpen"
+             x-transition:enter="transition ease-out duration-250"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-3"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+             class="relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-cyan-500/30 shadow-2xl w-full max-w-lg overflow-hidden z-10">
+
+            {{-- Modal Header --}}
+            <div class="bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 text-white p-4 sm:p-5 flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-base shadow-2xs">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-display font-bold text-white text-sm m-0">Profil</h5>
+                        <p class="text-[11px] text-cyan-100/90 m-0 mt-0.5">Informasi Singkat Siswa</p>
+                    </div>
+                </div>
+                <button type="button" @click="fotoPopupOpen = false" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all text-xs" title="Tutup (ESC)">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            {{-- Modal Body --}}
+            <div class="p-4 sm:p-6 space-y-4">
+                {{-- Top: Photo & Main Info --}}
+                <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60">
+                    {{-- Photo Frame --}}
+                    <div class="flex flex-col items-center flex-shrink-0">
+                        <div class="relative group">
+                            <img :src="fotoData.foto" 
+                                 :alt="fotoData.nama" 
+                                 class="w-28 h-36 sm:w-32 sm:h-40 object-cover rounded-2xl shadow-md border-2 border-white dark:border-slate-700 ring-2 ring-sky-500/30">
+                            <a :href="fotoData.foto" target="_blank" class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity text-xs font-semibold gap-1.5 shadow-xs" title="Buka foto ukuran asli">
+                                <i class="bi bi-arrows-fullscreen"></i>
+                                <span>Lihat Penuh</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- Main Identity --}}
+                    <div class="flex-1 text-center sm:text-left min-w-0">
+                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 mb-1.5">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold" 
+                                  :class="fotoData.jk === 'L' ? 'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-300 dark:border-sky-800' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-800'">
+                                <i class="bi" :class="fotoData.jk === 'L' ? 'bi-gender-male' : 'bi-gender-female'"></i>
+                                <span x-text="fotoData.jk === 'L' ? 'Laki-laki' : 'Perempuan'"></span>
+                            </span>
+                            <span class="badge" :class="fotoData.statusBadge" x-text="fotoData.status"></span>
+                        </div>
+
+                        <h4 class="text-base sm:text-lg font-bold font-display text-slate-800 dark:text-slate-100 leading-snug mb-1" x-text="fotoData.nama"></h4>
+                        <div x-show="fotoData.panggilan && fotoData.panggilan !== fotoData.nama" class="text-xs text-sky-600 dark:text-cyan-400 font-semibold mb-2">
+                            Panggilan: <span x-text="fotoData.panggilan"></span>
+                        </div>
+
+                        <div class="space-y-1 text-xs text-slate-600 dark:text-slate-300 mt-2">
+                            <div class="flex items-center justify-center sm:justify-start gap-1.5">
+                                <i class="bi bi-card-heading text-sky-500"></i>
+                                <span>NISN:</span>
+                                <strong class="text-slate-800 dark:text-slate-100" x-text="fotoData.nisn"></strong>
+                            </div>
+                            <div class="flex items-center justify-center sm:justify-start gap-1.5" x-show="fotoData.nis && fotoData.nis !== '-'">
+                                <i class="bi bi-hash text-sky-500"></i>
+                                <span>NIS:</span>
+                                <strong class="text-slate-800 dark:text-slate-100" x-text="fotoData.nis"></strong>
+                            </div>
+                            <div class="flex items-center justify-center sm:justify-start gap-1.5">
+                                <i class="bi bi-buildings text-sky-500"></i>
+                                <span>Kelas:</span>
+                                <span class="text-slate-800 dark:text-slate-100 font-bold" x-text="fotoData.rombel"></span>
+                                <span class="truncate" x-text="fotoData.lembaga"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Grid of Detailed Data Singkat --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60">
+                        <div class="text-[11px] text-slate-400 font-medium flex items-center gap-1 mb-0.5">
+                            <i class="bi bi-calendar-event text-sky-500"></i> Tempat, Tanggal Lahir
+                        </div>
+                        <div class="font-semibold text-slate-800 dark:text-slate-100" x-text="fotoData.ttl"></div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" x-show="fotoData.usia && fotoData.usia !== '-'">
+                            Usia: <span class="font-bold text-slate-700 dark:text-slate-200" x-text="fotoData.usia"></span>
+                        </div>
+                    </div>
+
+                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60">
+                        <div class="text-[11px] text-slate-400 font-medium flex items-center gap-1 mb-0.5">
+                            <i class="bi bi-person-vcard text-sky-500"></i> Nomor Induk Kependudukan (NIK)
+                        </div>
+                        <div class="font-semibold text-slate-800 dark:text-slate-100 font-monospace" x-text="fotoData.nik"></div>
+                    </div>
+
+                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60">
+                        <div class="text-[11px] text-slate-400 font-medium flex items-center gap-1 mb-0.5">
+                            <i class="bi bi-people text-sky-500"></i> Orang Tua
+                        </div>
+                        <div class="text-slate-700 dark:text-slate-200 truncate">
+                            Ayah: <strong x-text="fotoData.ayah"></strong>
+                        </div>
+                        <div class="text-slate-700 dark:text-slate-200 truncate mt-0.5">
+                            Ibu: <strong x-text="fotoData.ibu"></strong>
+                        </div>
+                    </div>
+
+                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60">
+                        <div class="text-[11px] text-slate-400 font-medium flex items-center gap-1 mb-0.5">
+                            <i class="bi bi-geo-alt text-sky-500"></i> Alamat & Telepon
+                        </div>
+                        <div class="text-slate-700 dark:text-slate-200 line-clamp-1" x-text="fotoData.alamat"></div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+                            <i class="bi bi-telephone text-[10px]"></i> <span x-text="fotoData.telepon"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="px-5 py-3.5 bg-slate-50 dark:bg-slate-800/70 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+                <button type="button" 
+                        @click="fotoPopupOpen = false; $wire.show(fotoData.id)" 
+                        class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition-all">
+                    <i class="bi bi-person-lines-fill"></i>
+                    <span>Lihat Profil Lengkap</span>
+                </button>
+
+                <button type="button" 
+                        @click="fotoPopupOpen = false" 
+                        class="px-4 py-2 rounded-xl bg-slate-200/80 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
