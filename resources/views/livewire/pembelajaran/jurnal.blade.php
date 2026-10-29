@@ -323,7 +323,7 @@ new class extends \Livewire\Volt\Component {
                         <tr>
                             <th class="py-3 px-4" width="200">Tanggal</th>
                             <th class="py-3 px-4">Materi Pembelajaran</th>
-                            <th class="py-3 px-4 text-center" width="280">Aksi</th>
+                            <th class="py-3 px-4 text-center whitespace-nowrap" width="300">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -336,28 +336,32 @@ new class extends \Livewire\Volt\Component {
                                 <td class="px-4 text-slate-800 dark:text-slate-100">
                                     {!! nl2br(e($j->materi)) !!}
                                 </td>
-                                <td class="px-4 text-center">
-                                    <div class="flex items-center justify-center gap-1.5">
+                                <td class="px-4 text-center whitespace-nowrap">
+                                    <div class="inline-flex items-center justify-center gap-1.5">
                                         <button wire:click="salinJurnal('{{ $j->id }}')"
-                                            class="btn btn-sm btn-outline-info rounded-lg text-xs" title="Salin Jurnal">
-                                            <i class="bi bi-copy me-1"></i>
+                                            class="btn btn-sm btn-outline-info rounded-xl text-xs px-2.5 py-1.5" title="Salin Jurnal">
+                                            <i class="bi bi-copy"></i>
                                         </button>
                                         <a href="{{ route('pembelajaran.presensi.create', $pembelajaran->id) }}?tanggal={{ $j->tanggal }}"
-                                            wire:navigate class="btn btn-sm btn-outline-success rounded-lg text-xs"
+                                            wire:navigate
+                                            class="btn btn-sm btn-outline-success rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1.5 shadow-2xs"
                                             title="Input Presensi Pertemuan">
-                                            <i class="bi bi-calendar-check me-1"></i> Presensi
+                                            <i class="bi bi-calendar-check"></i>
+                                            <span>Presensi</span>
                                         </a>
                                         <a href="{{ route('pembelajaran.jurnal.nilai.create', [$pembelajaran->id, $j->id]) }}"
-                                            wire:navigate class="btn btn-sm btn-outline-primary rounded-lg text-xs"
+                                            wire:navigate
+                                            class="btn btn-sm btn-outline-primary rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1.5 shadow-2xs"
                                             title="Input Nilai Pertemuan">
-                                            <i class="bi bi-award me-1"></i> Nilai
+                                            <i class="bi bi-award"></i>
+                                            <span>Nilai</span>
                                         </a>
                                         <button wire:click="edit('{{ $j->id }}')"
-                                            class="btn btn-sm btn-outline-warning rounded-lg" title="Edit">
+                                            class="btn btn-sm btn-outline-warning rounded-xl text-xs px-2.5 py-1.5" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <button wire:click="delete('{{ $j->id }}')"
-                                            wire:confirm="Hapus jurnal ini?" class="btn btn-sm btn-outline-danger rounded-lg" title="Hapus">
+                                            wire:confirm="Hapus jurnal ini?" class="btn btn-sm btn-outline-danger rounded-xl text-xs px-2.5 py-1.5" title="Hapus">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
