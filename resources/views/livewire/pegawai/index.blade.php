@@ -1314,8 +1314,9 @@ new class extends \Livewire\Volt\Component {
             </div>
 
             {{-- TABLE --}}
-            <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 overflow-hidden shadow-sm">
-                <table class="table table-hover align-middle mb-0">
+            <div class="rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto w-full">
+                    <table class="table table-hover align-middle mb-0" style="min-width: 820px;">
                     <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
                         <tr>
                             <th style="width: 40px;" class="text-center py-3">
@@ -1487,6 +1488,7 @@ new class extends \Livewire\Volt\Component {
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
 
             <div class="mt-4">

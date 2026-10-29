@@ -260,59 +260,115 @@ new class extends \Livewire\Volt\Component {
             </div>
         </div>
 
-        <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 overflow-hidden shadow-sm">
-            <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
-                <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
-                    <tr>
-                        <th class="py-3 px-4" width="200">Tanggal</th>
-                        <th class="py-3 px-4">Materi Pembelajaran</th>
-                        <th class="py-3 px-4 text-center" width="280">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($jurnals as $j)
-                        <tr wire:key="{{ $j->id }}">
-                            <td class="px-4 font-semibold text-slate-700 dark:text-slate-300">
-                                <i class="bi bi-calendar3 me-1 text-sky-500"></i>
-                                {{ \Carbon\Carbon::parse($j->tanggal)->locale('id_ID')->isoFormat('DD MMMM YYYY') }}
-                            </td>
-                            <td class="px-4 text-slate-800 dark:text-slate-100">
-                                {!! nl2br(e($j->materi)) !!}
-                            </td>
-                            <td class="px-4 text-center">
-                                <div class="flex items-center justify-center gap-1.5">
-                                    <button wire:click="salinJurnal('{{ $j->id }}')"
-                                        class="btn btn-sm btn-outline-info rounded-lg text-xs" title="Salin Jurnal">
-                                        <i class="bi bi-copy me-1"></i>
-                                    </button>
-                                    <a href="{{ route('pembelajaran.presensi.create', $pembelajaran->id) }}?tanggal={{ $j->tanggal }}"
-                                        wire:navigate class="btn btn-sm btn-outline-success rounded-lg text-xs"
-                                        title="Input Presensi Pertemuan">
-                                        <i class="bi bi-calendar-check me-1"></i>
-                                    </a>
-                                    <a href="{{ route('pembelajaran.jurnal.nilai.create', [$pembelajaran->id, $j->id]) }}"
-                                        wire:navigate class="btn btn-sm btn-outline-primary rounded-lg text-xs"
-                                        title="Input Nilai Pertemuan">
-                                        <i class="bi bi-award me-1"></i>
-                                    </a>
-                                    <button wire:click="edit('{{ $j->id }}')"
-                                        class="btn btn-sm btn-outline-warning rounded-lg" title="Edit">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button wire:click="delete('{{ $j->id }}')"
-                                        wire:confirm="Hapus jurnal ini?" class="btn btn-sm btn-outline-danger rounded-lg" title="Hapus">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
+        {{-- TAMPILAN MOBILE: KARTU JURNAL (LAYAR < MD) --}}
+        <div class="block md:hidden space-y-3">
+            @forelse ($jurnals as $j)
+                <div wire:key="mobile-jurnal-{{ $j->id }}" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 shadow-xs">
+                    {{-- Header Kartu: Tanggal & Aksi Tambahan (Salin, Edit, Hapus) --}}
+                    <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                        <div class="font-bold text-xs text-slate-700 dark:text-slate-200 flex items-center gap-1.5 font-display">
+                            <i class="bi bi-calendar3 text-sky-500"></i>
+                            <span>{{ \Carbon\Carbon::parse($j->tanggal)->locale('id_ID')->isoFormat('dddd, DD MMMM YYYY') }}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button wire:click="salinJurnal('{{ $j->id }}')"
+                                class="w-7 h-7 rounded-lg text-slate-500 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-slate-800 flex items-center justify-center text-xs transition" title="Salin Jurnal">
+                                <i class="bi bi-copy"></i>
+                            </button>
+                            <button wire:click="edit('{{ $j->id }}')"
+                                class="w-7 h-7 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-slate-800 flex items-center justify-center text-xs transition" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button wire:click="delete('{{ $j->id }}')"
+                                wire:confirm="Hapus jurnal ini?" class="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 flex items-center justify-center text-xs transition" title="Hapus">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Isi Materi Pembelajaran --}}
+                    <div class="py-2.5 text-xs text-slate-800 dark:text-slate-100 leading-relaxed font-medium">
+                        {!! nl2br(e($j->materi)) !!}
+                    </div>
+
+                    {{-- Tombol Aksi Utama: Presensi & Nilai --}}
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <a href="{{ route('pembelajaran.presensi.create', $pembelajaran->id) }}?tanggal={{ $j->tanggal }}"
+                            wire:navigate class="btn btn-outline-success btn-sm rounded-xl py-2 text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs">
+                            <i class="bi bi-calendar-check"></i>
+                            <span>Presensi</span>
+                        </a>
+                        <a href="{{ route('pembelajaran.jurnal.nilai.create', [$pembelajaran->id, $j->id]) }}"
+                            wire:navigate class="btn btn-outline-primary btn-sm rounded-xl py-2 text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs">
+                            <i class="bi bi-award"></i>
+                            <span>Nilai</span>
+                        </a>
+                    </div>
+                </div>
+            @empty
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 text-center text-slate-400 text-xs">
+                    <i class="bi bi-journal-x text-2xl d-block mb-1 text-slate-300"></i>
+                    Belum ada jurnal pembelajaran.
+                </div>
+            @endforelse
+        </div>
+
+        {{-- TAMPILAN DESKTOP/TABLET: TABEL LENGKAP (LAYAR >= MD) --}}
+        <div class="hidden md:block rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto w-full">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem; min-width: 600px;">
+                    <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
                         <tr>
-                            <td colspan="3" class="text-slate-500 dark:text-slate-400 py-6 text-center">Belum ada jurnal pembelajaran.</td>
+                            <th class="py-3 px-4" width="200">Tanggal</th>
+                            <th class="py-3 px-4">Materi Pembelajaran</th>
+                            <th class="py-3 px-4 text-center" width="280">Aksi</th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse ($jurnals as $j)
+                            <tr wire:key="desktop-jurnal-{{ $j->id }}">
+                                <td class="px-4 font-semibold text-slate-700 dark:text-slate-300">
+                                    <i class="bi bi-calendar3 me-1 text-sky-500"></i>
+                                    {{ \Carbon\Carbon::parse($j->tanggal)->locale('id_ID')->isoFormat('DD MMMM YYYY') }}
+                                </td>
+                                <td class="px-4 text-slate-800 dark:text-slate-100">
+                                    {!! nl2br(e($j->materi)) !!}
+                                </td>
+                                <td class="px-4 text-center">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <button wire:click="salinJurnal('{{ $j->id }}')"
+                                            class="btn btn-sm btn-outline-info rounded-lg text-xs" title="Salin Jurnal">
+                                            <i class="bi bi-copy me-1"></i>
+                                        </button>
+                                        <a href="{{ route('pembelajaran.presensi.create', $pembelajaran->id) }}?tanggal={{ $j->tanggal }}"
+                                            wire:navigate class="btn btn-sm btn-outline-success rounded-lg text-xs"
+                                            title="Input Presensi Pertemuan">
+                                            <i class="bi bi-calendar-check me-1"></i> Presensi
+                                        </a>
+                                        <a href="{{ route('pembelajaran.jurnal.nilai.create', [$pembelajaran->id, $j->id]) }}"
+                                            wire:navigate class="btn btn-sm btn-outline-primary rounded-lg text-xs"
+                                            title="Input Nilai Pertemuan">
+                                            <i class="bi bi-award me-1"></i> Nilai
+                                        </a>
+                                        <button wire:click="edit('{{ $j->id }}')"
+                                            class="btn btn-sm btn-outline-warning rounded-lg" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button wire:click="delete('{{ $j->id }}')"
+                                            wire:confirm="Hapus jurnal ini?" class="btn btn-sm btn-outline-danger rounded-lg" title="Hapus">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="text-slate-500 dark:text-slate-400 py-6 text-center">Belum ada jurnal pembelajaran.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="mt-4">

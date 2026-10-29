@@ -90,8 +90,17 @@ new class extends Component {
             </div>
         </div>
 
-        <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 overflow-hidden shadow-sm">
-            <table class="table-bordered mb-0 table text-center align-middle" style="font-size: 0.85rem;">
+        {{-- Petunjuk Geser di Layar HP --}}
+        <div class="md:hidden text-[11px] text-slate-500 dark:text-slate-400 mb-2 flex items-center justify-between px-1">
+            <span class="flex items-center gap-1 font-medium">
+                <i class="bi bi-arrows-expand"></i> Geser tabel ke kanan untuk melihat jadwal 7 hari
+            </span>
+            <span class="text-[10px] text-slate-400">Senin - Ahad</span>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto w-full">
+                <table class="table-bordered mb-0 table text-center align-middle" style="font-size: 0.85rem; min-width: 800px;">
                 <thead class="font-display">
                     <tr class="bg-slate-100/90 dark:bg-slate-800/90 text-xs text-slate-700 dark:text-slate-300">
                         <th rowspan="2" class="align-middle font-bold py-3" style="width: 14%;">WAKTU</th>
@@ -151,6 +160,7 @@ new class extends Component {
                     @endif
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>

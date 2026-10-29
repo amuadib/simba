@@ -312,79 +312,170 @@ new class extends \Livewire\Volt\Component {
             </a>
         </div>
 
-        <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 overflow-hidden shadow-sm">
-            <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
-                <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
-                    <tr>
-                        <th class="py-3 px-4">Pelajaran</th>
-                        <th class="py-3 px-4 text-center">Anggota</th>
-                        <th class="py-3 px-4">Jadwal</th>
-                        <th class="py-3 px-4 text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($pembelajarans as $pb)
-                        <tr wire:key="row-{{ $pb->id }}">
-                            <td class="px-4 font-bold text-slate-800 dark:text-slate-100">{{ $pb->keterangan }}</td>
-                            <td class="px-4 text-center">
+        {{-- TAMPILAN MOBILE: KARTU PEMBELAJARAN (LAYAR < MD) --}}
+        <div class="block md:hidden space-y-3">
+            @forelse ($pembelajarans as $pb)
+                <div wire:key="mobile-pb-{{ $pb->id }}" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 shadow-xs">
+                    {{-- Header Kartu: Judul Mapel & Jumlah Siswa --}}
+                    <div class="flex items-start justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                        <div>
+                            <h5 class="font-extrabold text-sm text-slate-800 dark:text-slate-100 font-display m-0">
+                                {{ $pb->keterangan }}
+                            </h5>
+                            <div class="mt-1">
                                 @if($pb->anggota->count() > 0)
-                                    <span class="badge bg-sky-500/15 text-sky-600 border border-sky-500/30">{{ $pb->anggota->count() }} Siswa</span>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-cyan-300 border border-sky-200/60 dark:border-cyan-500/30">
+                                        <i class="bi bi-people"></i> {{ $pb->anggota->count() }} Siswa
+                                    </span>
                                 @else
-                                    <span class="badge bg-rose-500/15 text-rose-600 border border-rose-500/30">Belum ada anggota</span>
-                                @endif
-                            </td>
-                            <td class="px-4">
-                                @if($pb->jadwal->count() > 0)
-                                    <div class="d-flex flex-column gap-1">
-                                        @foreach ($pb->jadwal->sortBy('hari') as $j)
-                                            <div class="d-flex align-items-center gap-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl px-2.5 py-1 shadow-xs" style="font-size: 0.75rem;">
-                                                <span class="badge {{ $hariColors[$j->hari] ?? 'bg-primary' }} rounded-pill text-uppercase" style="min-width: 60px;">{{ $j->hari_text }}</span>
-                                                <span class="text-slate-600 dark:text-slate-300 font-semibold">
-                                                    <i class="bi bi-clock me-1 text-sky-500"></i>{{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}
-                                                </span>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <span class="badge bg-rose-500/10 text-rose-600 border border-rose-500/20 px-2 py-1">
-                                        <i class="bi bi-calendar-x me-1"></i>Belum ada jadwal
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/60">
+                                        <i class="bi bi-exclamation-circle"></i> Belum ada siswa
                                     </span>
                                 @endif
-                            </td>
-                            <td class="px-4 text-center">
-                                <div class="btn-group">
-                                    <button wire:click="openJadwalModal('{{ $pb->id }}')"
-                                        class="btn btn-sm btn-outline-primary rounded-s-lg" title="Jadwal"><i class="bi bi-calendar-week"></i></button>
-                                    <a href="{{ route('pembelajaran.jurnal.nilai.index', $pb->id) }}" wire:navigate
-                                        class="btn btn-sm btn-outline-danger" title="Nilai"><i
-                                            class="bi bi-star"></i></a>
-                                    <a href="{{ route('pembelajaran.jurnal.index', $pb->id) }}" wire:navigate
-                                        class="btn btn-sm btn-outline-warning" title="Jurnal"><i
-                                            class="bi bi-book"></i></a>
-                                    <a href="{{ route('pembelajaran.presensi.create', $pb->id) }}?tanggal={{ date('Y-m-d') }}"
-                                        wire:navigate class="btn btn-sm btn-outline-primary" title="Input Presensi Hari Ini"><i
-                                            class="bi bi-calendar-check"></i></a>
-                                    <a href="{{ route('pembelajaran.presensi.index', ['pembelajaran_id' => $pb->id]) }}"
-                                        wire:navigate class="btn btn-sm btn-outline-info" title="Rekap Presensi"><i
-                                            class="bi bi-clock-history"></i></a>
-                                    <a href="{{ route('pembelajaran.anggota.index', $pb->id) }}" wire:navigate
-                                        class="btn btn-sm btn-outline-success" title="Anggota"><i
-                                            class="bi bi-people"></i></a>
-                                    <button wire:click="edit('{{ $pb->id }}')"
-                                        class="btn btn-sm btn-outline-warning" title="Edit"><i class="bi bi-pencil"></i></button>
-                                    <button wire:click="delete('{{ $pb->id }}')"
-                                        wire:confirm="Hapus data ini beserta seluruh jurnal dan nilainya?"
-                                        class="btn btn-sm btn-outline-danger rounded-e-lg" title="Hapus"><i class="bi bi-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
+                            </div>
+                        </div>
+
+                        {{-- Aksi Cepat Edit / Hapus --}}
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                            <button wire:click="edit('{{ $pb->id }}')" class="w-7 h-7 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-slate-800 flex items-center justify-center text-xs transition" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button wire:click="delete('{{ $pb->id }}')" wire:confirm="Hapus data ini beserta seluruh jurnal dan nilainya?" class="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 flex items-center justify-center text-xs transition" title="Hapus">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Jadwal Belajar --}}
+                    <div class="py-2.5">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                            <i class="bi bi-calendar-week"></i> Jadwal:
+                        </div>
+                        @if($pb->jadwal->count() > 0)
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach ($pb->jadwal->sortBy('hari') as $j)
+                                    <div class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1 text-[11px] shadow-2xs">
+                                        <span class="badge {{ $hariColors[$j->hari] ?? 'bg-primary' }} rounded-lg px-1.5 py-0.5 text-[10px] font-bold uppercase">{{ $j->hari_text }}</span>
+                                        <span class="font-semibold text-slate-700 dark:text-slate-200">{{ substr($j->jam_mulai, 0, 5) }}-{{ substr($j->jam_selesai, 0, 5) }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <span class="text-xs text-slate-400 italic">Belum ada jadwal yang diatur</span>
+                        @endif
+                    </div>
+
+                    {{-- Tombol Aksi Utama --}}
+                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800 grid grid-cols-4 gap-1.5">
+                        <a href="{{ route('pembelajaran.presensi.create', $pb->id) }}?tanggal={{ date('Y-m-d') }}" wire:navigate
+                            class="btn btn-outline-success btn-sm rounded-xl py-1.5 px-1 text-center font-bold text-xs inline-flex flex-col items-center justify-center gap-0.5 shadow-2xs" title="Presensi Hari Ini">
+                            <i class="bi bi-calendar-check text-sm"></i>
+                            <span class="text-[10px]">Presensi</span>
+                        </a>
+
+                        <a href="{{ route('pembelajaran.jurnal.index', $pb->id) }}" wire:navigate
+                            class="btn btn-outline-warning btn-sm rounded-xl py-1.5 px-1 text-center font-bold text-xs inline-flex flex-col items-center justify-center gap-0.5 shadow-2xs" title="Jurnal Kelas">
+                            <i class="bi bi-book text-sm"></i>
+                            <span class="text-[10px]">Jurnal</span>
+                        </a>
+
+                        <a href="{{ route('pembelajaran.jurnal.nilai.index', $pb->id) }}" wire:navigate
+                            class="btn btn-outline-danger btn-sm rounded-xl py-1.5 px-1 text-center font-bold text-xs inline-flex flex-col items-center justify-center gap-0.5 shadow-2xs" title="Nilai">
+                            <i class="bi bi-star text-sm"></i>
+                            <span class="text-[10px]">Nilai</span>
+                        </a>
+
+                        <a href="{{ route('pembelajaran.anggota.index', $pb->id) }}" wire:navigate
+                            class="btn btn-outline-info btn-sm rounded-xl py-1.5 px-1 text-center font-bold text-xs inline-flex flex-col items-center justify-center gap-0.5 shadow-2xs" title="Daftar Siswa">
+                            <i class="bi bi-people text-sm"></i>
+                            <span class="text-[10px]">Anggota</span>
+                        </a>
+                    </div>
+                </div>
+            @empty
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 text-center text-slate-400 text-xs">
+                    <i class="bi bi-book text-2xl d-block mb-1 text-slate-300"></i>
+                    Belum ada data pembelajaran.
+                </div>
+            @endforelse
+        </div>
+
+        {{-- TAMPILAN DESKTOP/TABLET: TABEL LENGKAP (LAYAR >= MD) --}}
+        <div class="hidden md:block rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto w-full">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem; min-width: 720px;">
+                    <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
                         <tr>
-                            <td colspan="4" class="text-slate-500 dark:text-slate-400 py-6 text-center">Belum ada data pembelajaran</td>
+                            <th class="py-3 px-4">Pelajaran</th>
+                            <th class="py-3 px-4 text-center">Anggota</th>
+                            <th class="py-3 px-4">Jadwal</th>
+                            <th class="py-3 px-4 text-center">Aksi</th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse ($pembelajarans as $pb)
+                            <tr wire:key="row-{{ $pb->id }}">
+                                <td class="px-4 font-bold text-slate-800 dark:text-slate-100">{{ $pb->keterangan }}</td>
+                                <td class="px-4 text-center">
+                                    @if($pb->anggota->count() > 0)
+                                        <span class="badge bg-sky-500/15 text-sky-600 border border-sky-500/30">{{ $pb->anggota->count() }} Siswa</span>
+                                    @else
+                                        <span class="badge bg-rose-500/15 text-rose-600 border border-rose-500/30">Belum ada anggota</span>
+                                    @endif
+                                </td>
+                                <td class="px-4">
+                                    @if($pb->jadwal->count() > 0)
+                                        <div class="d-flex flex-column gap-1">
+                                            @foreach ($pb->jadwal->sortBy('hari') as $j)
+                                                <div class="d-flex align-items-center gap-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl px-2.5 py-1 shadow-xs" style="font-size: 0.75rem;">
+                                                    <span class="badge {{ $hariColors[$j->hari] ?? 'bg-primary' }} rounded-pill text-uppercase" style="min-width: 60px;">{{ $j->hari_text }}</span>
+                                                    <span class="text-slate-600 dark:text-slate-300 font-semibold">
+                                                        <i class="bi bi-clock me-1 text-sky-500"></i>{{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}
+                                                    </span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span class="badge bg-rose-500/10 text-rose-600 border border-rose-500/20 px-2 py-1">
+                                            <i class="bi bi-calendar-x me-1"></i>Belum ada jadwal
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-4 text-center">
+                                    <div class="btn-group">
+                                        <button wire:click="openJadwalModal('{{ $pb->id }}')"
+                                            class="btn btn-sm btn-outline-primary rounded-s-lg" title="Jadwal"><i class="bi bi-calendar-week"></i></button>
+                                        <a href="{{ route('pembelajaran.jurnal.nilai.index', $pb->id) }}" wire:navigate
+                                            class="btn btn-sm btn-outline-danger" title="Nilai"><i
+                                                class="bi bi-star"></i></a>
+                                        <a href="{{ route('pembelajaran.jurnal.index', $pb->id) }}" wire:navigate
+                                            class="btn btn-sm btn-outline-warning" title="Jurnal"><i
+                                                class="bi bi-book"></i></a>
+                                        <a href="{{ route('pembelajaran.presensi.create', $pb->id) }}?tanggal={{ date('Y-m-d') }}"
+                                            wire:navigate class="btn btn-sm btn-outline-primary" title="Input Presensi Hari Ini"><i
+                                                class="bi bi-calendar-check"></i></a>
+                                        <a href="{{ route('pembelajaran.presensi.index', ['pembelajaran_id' => $pb->id]) }}"
+                                            wire:navigate class="btn btn-sm btn-outline-info" title="Rekap Presensi"><i
+                                                class="bi bi-clock-history"></i></a>
+                                        <a href="{{ route('pembelajaran.anggota.index', $pb->id) }}" wire:navigate
+                                            class="btn btn-sm btn-outline-success" title="Anggota"><i
+                                                class="bi bi-people"></i></a>
+                                        <button wire:click="edit('{{ $pb->id }}')"
+                                            class="btn btn-sm btn-outline-warning" title="Edit"><i class="bi bi-pencil"></i></button>
+                                        <button wire:click="delete('{{ $pb->id }}')"
+                                            wire:confirm="Hapus data ini beserta seluruh jurnal dan nilainya?"
+                                            class="btn btn-sm btn-outline-danger rounded-e-lg" title="Hapus"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="text-slate-500 dark:text-slate-400 py-6 text-center">Belum ada data pembelajaran</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="mt-4">

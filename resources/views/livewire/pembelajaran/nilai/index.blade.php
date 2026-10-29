@@ -95,8 +95,17 @@ new class extends Component {
             </button>
         </div>
 
-        <div class="table-responsive rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 overflow-hidden shadow-sm">
-            <table class="table-bordered table-hover mb-0 table align-middle" style="font-size: 0.85rem;">
+        {{-- Petunjuk Geser di Layar HP --}}
+        <div class="md:hidden text-[11px] text-slate-500 dark:text-slate-400 mb-2 flex items-center justify-between px-1">
+            <span class="flex items-center gap-1 font-medium">
+                <i class="bi bi-arrows-expand"></i> Geser tabel ke kanan untuk melihat seluruh pertemuan
+            </span>
+            <span class="text-[10px] text-slate-400">{{ $jurnals->count() }} Pertemuan</span>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto w-full">
+                <table class="table-bordered table-hover mb-0 table align-middle" style="font-size: 0.85rem; min-width: 650px;">
                 <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300 text-center">
                     <tr>
                         <th rowspan="2" class="align-middle py-3 px-2 font-bold" width="50">No</th>
@@ -183,6 +192,7 @@ new class extends Component {
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
         @if ($anggotaList->isEmpty())
             <div class="text-slate-400 py-10 text-center">

@@ -668,6 +668,30 @@
                 transform: none !important;
             }
         }
+
+        /* ========================================================
+           RESPONSIVE TABLE ENHANCEMENTS FOR MOBILE
+        ======================================================== */
+        .table-responsive,
+        [class*="table-responsive"] {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            width: 100%;
+            position: relative;
+            scrollbar-width: thin;
+        }
+
+        .table-responsive.overflow-hidden,
+        .overflow-hidden.table-responsive {
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+        }
+
+        @media (max-width: 768px) {
+            .table-responsive > table:not(.matrix-table) {
+                min-width: 540px;
+            }
+        }
     </style>
 
     @livewireStyles
@@ -695,7 +719,7 @@
         <div class="px-4 w-full flex items-center justify-between gap-4">
             
             {{-- Brand & Mobile Toggle --}}
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
                 <button type="button" @click="sidebarOpen = !sidebarOpen" 
                         class="lg:hidden p-2 rounded-xl text-slate-500 hover:text-cyan-500 hover:bg-cyan-500/10 transition-colors" 
                         aria-label="Buka Menu">
@@ -703,10 +727,11 @@
                 </button>
 
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 text-decoration-none group">
-                    <div class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500/20 via-cyan-500/15 to-emerald-500/20 p-1.5 ring-1 ring-cyan-500/30 shadow-sm group-hover:scale-105 transition-transform">
+                    <div class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500/20 via-cyan-500/15 to-emerald-500/20 p-1.5 ring-1 ring-cyan-500/30 shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
                         <img src="{{ logo_url() }}" alt="SIMBA Logo" class="w-full h-full object-contain">
                     </div>
-                    <div>
+                    {{-- DI HP HANYA TAMPIL LOGO, TEKS NAMA APLIKASI TAMPIL DARI LAYAR SM KE ATAS --}}
+                    <div class="hidden sm:block">
                         <div class="flex items-center gap-2">
                             <span class="font-extrabold text-base md:text-lg tracking-tight font-display text-gradient-logo">
                                 {{ config('local.app.nama', 'SIMBA') }}
@@ -715,9 +740,14 @@
                                 {{ session('tahun_ajaran_nama') ?? 'Aktif' }}
                             </span>
                         </div>
-                        <p class="text-[11px] text-muted-foreground m-0 leading-none hidden sm:block">{{ config('local.app.keterangan', 'Sistem Informasi Manajemen Lembaga') }}</p>
+                        <p class="text-[11px] text-muted-foreground m-0 leading-none hidden md:block">{{ config('local.app.keterangan', 'Sistem Informasi Manajemen Lembaga') }}</p>
                     </div>
                 </a>
+
+                {{-- TAHUN AJARAN DI HP (SEBELAH LOGO) --}}
+                <span class="sm:hidden inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex-shrink-0">
+                    {{ session('tahun_ajaran_nama') ?? 'Aktif' }}
+                </span>
             </div>
 
             {{-- Right Actions: Live Date Clock, Theme Toggle, User Profile --}}
