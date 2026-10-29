@@ -288,12 +288,19 @@ new class extends Component {
             </p>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap">
-            <a href="{{ route('pembelajaran.index') }}" wire:navigate class="btn btn-outline-secondary btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
-                <i class="bi bi-arrow-left"></i>
-                <span>Kembali</span>
-            </a>
+        <div wire:key="breadcrumb-wrapper" wire:ignore>
+            <x-breadcrumb />
+        </div>
+    </div>
 
+    {{-- ACTION BAR NAVIGASI --}}
+    <div class="flex items-center justify-between gap-2.5 flex-wrap mb-4">
+        <a href="{{ route('pembelajaran.index') }}" wire:navigate class="btn btn-outline-secondary btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
+            <i class="bi bi-arrow-left"></i>
+            <span>Kembali ke Pembelajaran</span>
+        </a>
+
+        <div class="flex items-center gap-2 flex-wrap">
             <a href="{{ route('pembelajaran.jurnal.index', $pembelajaran->id) }}" wire:navigate class="btn btn-outline-primary btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
                 <i class="bi bi-journal-text"></i>
                 <span>Jurnal Kelas</span>
@@ -303,10 +310,6 @@ new class extends Component {
                 <i class="bi bi-clock-history"></i>
                 <span>Rekap Presensi</span>
             </a>
-
-            <div wire:key="breadcrumb-wrapper" wire:ignore>
-                <x-breadcrumb />
-            </div>
         </div>
     </div>
 
@@ -316,12 +319,12 @@ new class extends Component {
 
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             {{-- Info Tanggal & Pembelajaran --}}
-            <div class="flex items-center gap-3.5 min-w-0">
-                <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-2xl flex-shrink-0 shadow-inner border border-white/20">
+            <div class="flex items-start sm:items-center gap-3.5 min-w-0">
+                <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-2xl flex-shrink-0 shadow-inner border border-white/20 mt-0.5 sm:mt-0">
                     <i class="bi bi-calendar-event"></i>
                 </div>
                 <div class="min-w-0">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-xs font-black uppercase tracking-wider text-blue-100 font-display">
                             {{ strtoupper(\Carbon\Carbon::parse($tanggal)->locale('id_ID')->isoFormat('dddd, DD MMMM YYYY')) }}
                         </span>
@@ -341,6 +344,16 @@ new class extends Component {
                         <div class="text-[11px] text-blue-200/90 font-medium flex items-center gap-1.5 mt-0.5">
                             <i class="bi bi-clock-history"></i>
                             <span>Jadwal: {{ date('H:i', strtotime($jadwalHariTerpilih->jam_mulai)) }} - {{ date('H:i', strtotime($jadwalHariTerpilih->jam_selesai)) }}</span>
+                        </div>
+                    @endif
+
+                    @if ($jurnalHariIni && !empty(trim($jurnalHariIni->materi)))
+                        <div class="text-xs text-white/95 font-medium flex items-start gap-1.5 mt-2 bg-white/10 backdrop-blur-xs rounded-xl px-2.5 py-1.5 border border-white/15 max-w-xl">
+                            <i class="bi bi-journal-text text-amber-300 flex-shrink-0 mt-0.5 text-sm"></i>
+                            <div class="leading-snug break-words min-w-0">
+                                <span class="text-blue-200 text-[11px] block sm:inline font-normal">Materi: </span>
+                                <strong class="text-white">{{ $jurnalHariIni->materi }}</strong>
+                            </div>
                         </div>
                     @endif
                 </div>

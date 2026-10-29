@@ -828,15 +828,8 @@ x-on:keydown.escape.window="fotoPopupOpen = false">
             @endif
         </div>
 
-        <div class="flex items-center gap-2">
-            @if ($action !== '')
-                <button type="button" wire:click="resetForm" class="btn btn-outline-secondary btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold flex items-center gap-2">
-                    <i class="bi bi-arrow-left"></i> Kembali ke Daftar
-                </button>
-            @endif
-            <div wire:key="breadcrumb-wrapper" wire:ignore>
-                <x-breadcrumb />
-            </div>
+        <div wire:key="breadcrumb-wrapper" wire:ignore>
+            <x-breadcrumb />
         </div>
     </div>
 

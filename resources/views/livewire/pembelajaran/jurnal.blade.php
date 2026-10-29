@@ -126,15 +126,17 @@ new class extends \Livewire\Volt\Component {
             <h1 class="text-2xl md:text-3xl font-extrabold font-display text-gradient-logo m-0">Jurnal Pembelajaran</h1>
             <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 m-0 mt-0.5">Dokumentasi kegiatan belajar mengajar: <strong class="text-slate-700 dark:text-slate-200">{{ $pembelajaran->keterangan }}</strong></p>
         </div>
-        <div class="flex items-center gap-2">
-            <a href="{{ route('pembelajaran.index') }}" wire:navigate class="btn btn-outline-secondary btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
-                <i class="bi bi-arrow-left"></i>
-                <span>Kembali</span>
-            </a>
-            <div wire:key="breadcrumb-wrapper" wire:ignore>
-                <x-breadcrumb />
-            </div>
+        <div wire:key="breadcrumb-wrapper" wire:ignore>
+            <x-breadcrumb />
         </div>
+    </div>
+
+    {{-- ACTION BAR NAVIGASI --}}
+    <div class="flex items-center justify-between gap-2.5 flex-wrap mb-4">
+        <a href="{{ route('pembelajaran.index') }}" wire:navigate class="btn btn-outline-secondary btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
+            <i class="bi bi-arrow-left"></i>
+            <span>Kembali ke Pembelajaran</span>
+        </a>
     </div>
 
     <div class="glass-panel rounded-3xl p-4 md:p-6 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">

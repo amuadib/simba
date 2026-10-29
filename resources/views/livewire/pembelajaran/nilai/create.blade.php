@@ -214,24 +214,24 @@ new class extends Component {
             </p>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap">
-            {{-- TOMBOL CEPAT KE PRESENSI PERTEMUAN INI --}}
-            <a href="{{ route('pembelajaran.presensi.create', $pembelajaran->id) }}?tanggal={{ $tanggal }}" wire:navigate
-               class="btn btn-outline-success btn-sm rounded-xl px-3.5 py-2 text-xs font-bold inline-flex items-center gap-1.5 shadow-xs">
-                <i class="bi bi-calendar-check"></i>
-                <span>Presensi Pertemuan</span>
-            </a>
-
-            <a href="{{ route('pembelajaran.jurnal.index', $pembelajaran->id) }}" wire:navigate
-               class="btn btn-outline-secondary btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
-                <i class="bi bi-arrow-left"></i>
-                <span>Kembali ke Jurnal</span>
-            </a>
-
-            <div wire:key="breadcrumb-wrapper" wire:ignore>
-                <x-breadcrumb />
-            </div>
+        <div wire:key="breadcrumb-wrapper" wire:ignore>
+            <x-breadcrumb />
         </div>
+    </div>
+
+    {{-- ACTION BAR NAVIGASI --}}
+    <div class="flex items-center justify-between gap-2.5 flex-wrap mb-4">
+        <a href="{{ route('pembelajaran.jurnal.index', $pembelajaran->id) }}" wire:navigate
+           class="btn btn-outline-secondary btn-sm rounded-xl px-3.5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs">
+            <i class="bi bi-arrow-left"></i>
+            <span>Kembali ke Jurnal</span>
+        </a>
+
+        <a href="{{ route('pembelajaran.presensi.create', $pembelajaran->id) }}?tanggal={{ $tanggal }}" wire:navigate
+           class="btn btn-outline-success btn-sm rounded-xl px-3.5 py-2 text-xs font-bold inline-flex items-center gap-1.5 shadow-xs">
+            <i class="bi bi-calendar-check"></i>
+            <span>Presensi Pertemuan</span>
+        </a>
     </div>
 
     {{-- STATS PENILAIAN JURNAL --}}
