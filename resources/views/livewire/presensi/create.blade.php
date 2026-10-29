@@ -459,14 +459,14 @@ new class extends Component {
                 @endphp
                 <div wire:key="student-row-{{ $s->id }}"
                      class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3 sm:p-3.5 shadow-xs hover:shadow-md transition">
-                    <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center justify-between gap-2.5 sm:gap-3">
                         {{-- Left: Nomor & Info Siswa --}}
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-extrabold flex items-center justify-center text-xs sm:text-sm flex-shrink-0 font-display">
+                        <div class="flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-extrabold flex items-center justify-center text-xs sm:text-sm flex-shrink-0 font-display mt-0.5 sm:mt-0">
                                 {{ $idx + 1 }}
                             </div>
-                            <div class="min-w-0">
-                                <h5 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 truncate m-0 font-display">
+                            <div class="min-w-0 flex-1">
+                                <h5 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 m-0 font-display leading-snug break-words">
                                     {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
                                 </h5>
                                 <div class="text-[11px] text-slate-400 font-medium flex items-center gap-2 mt-0.5">
@@ -482,7 +482,7 @@ new class extends Component {
                         </div>
 
                         {{-- Right: Tombol Status [H] [I] [S] [A] Sesuai Gambar --}}
-                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <div class="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
                             {{-- H --}}
                             <button wire:click="setStatus('{{ $s->id }}', 'H')"
                                     class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-black transition active:scale-95 {{ $currentStatus === 'H' ? 'bg-[#059669] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700' }}"
