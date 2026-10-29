@@ -290,12 +290,13 @@ new class extends Component {
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             {{-- SEARCH BAR --}}
             <div class="relative flex-1 max-w-md">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <i class="bi bi-search text-xs"></i>
                 </div>
                 <input type="text"
                        wire:model.live.debounce.200ms="search"
-                       class="form-control form-control-sm rounded-xl pl-9 pr-3 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-2xs"
+                       style="padding-left: 2.6rem !important; padding-right: 2.5rem !important;"
+                       class="form-control form-control-sm rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-2xs"
                        placeholder="Cari nama atau NIS siswa...">
                 @if ($search)
                     <button wire:click="$set('search', '')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">

@@ -427,7 +427,8 @@ new class extends Component {
                 </div>
                 <input type="text"
                        wire:model.live.debounce.200ms="search"
-                       class="form-control rounded-2xl pl-10 pr-9 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs sm:text-sm py-2 shadow-2xs"
+                       style="padding-left: 2.6rem !important; padding-right: 2.5rem !important;"
+                       class="form-control rounded-2xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs sm:text-sm py-2 shadow-2xs"
                        placeholder="Cari nama atau NIS siswa...">
                 @if ($search)
                     <button wire:click="$set('search', '')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
