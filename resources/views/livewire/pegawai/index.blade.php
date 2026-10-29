@@ -1587,16 +1587,9 @@ new class extends \Livewire\Volt\Component {
                             <input type="date" wire:model="tanggal_lahir" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
                             @error('tanggal_lahir') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
-                    </div>
-                </div>
 
-                {{-- Section 2: Penugasan & Kepegawaian --}}
-                <div class="p-4 md:p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-display mb-4 flex items-center gap-2">
-                        <i class="bi bi-briefcase text-base"></i> 2. Penugasan & Kepegawaian
-                    </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                        <div class="md:col-span-6">
+                        {{-- Lembaga, TMT, Status — dipindah dari Section Penugasan --}}
+                        <div class="md:col-span-4">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Lembaga Induk / Satmikal Utama <span class="text-rose-500">*</span></label>
                             <select wire:model="form_lembaga_id" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" required>
                                 <option value="">-- Pilih Lembaga --</option>
@@ -1604,31 +1597,14 @@ new class extends \Livewire\Volt\Component {
                                     <option value="{{ $lid }}">{{ $lname }}</option>
                                 @endforeach
                             </select>
-                            <span class="text-[11px] text-slate-400 mt-0.5 block">Lembaga tugas utama. Penugasan di lembaga lainnya dapat dikelola lewat SK Penugasan.</span>
+                            <span class="text-[11px] text-slate-400 mt-0.5 block">Penugasan di lembaga lain dikelola lewat SK Penugasan.</span>
                             @error('form_lembaga_id') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="md:col-span-6">
-                            <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Jabatan / Tugas</label>
-                            <select wire:model="form_jabatan" class="form-select form-select-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
-                                <option value="">-- Pilih Jabatan --</option>
-                                @foreach ($daftarJabatan as $jid => $jname)
-                                    <option value="{{ $jid }}">{{ $jname }}</option>
-                                @endforeach
-                            </select>
-                            @error('form_jabatan') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="md:col-span-4">
                             <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">TMT (Mulai Bertugas)</label>
                             <input type="date" wire:model="tmt" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl">
                             @error('tmt') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="md:col-span-4">
-                            <label class="form-label text-xs font-bold text-slate-600 dark:text-slate-300">Nomor SK Penugasan (Awal)</label>
-                            <input wire:model="form_nomor_sk" class="form-control form-control-sm bg-slate-50/50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl" placeholder="Nomor Surat Keputusan">
-                            @error('form_nomor_sk') <span class="text-danger text-xs mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="md:col-span-4">
@@ -1645,10 +1621,10 @@ new class extends \Livewire\Volt\Component {
                     </div>
                 </div>
 
-                {{-- Section 3: Kontak, Foto & Domisili --}}
+                {{-- Section 2: Kontak, Foto & Domisili --}}
                 <div class="p-4 md:p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 font-display mb-4 flex items-center gap-2">
-                        <i class="bi bi-geo-alt text-base"></i> 3. Kontak, Foto & Domisili
+                        <i class="bi bi-geo-alt text-base"></i> 2. Kontak, Foto & Domisili
                     </h4>
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                         <div class="md:col-span-6">
