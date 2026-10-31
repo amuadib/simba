@@ -15,6 +15,11 @@ class Jurnal extends Model
         'tanggal',
         'materi',
     ];
+
+    public function files()
+    {
+        return $this->hasMany(JurnalFile::class);
+    }
     // protected $casts = [
     //     'tanggal' => 'date',
     // ];

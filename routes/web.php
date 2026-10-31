@@ -25,6 +25,9 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('pembelajaran')->group(function () {
         Volt::route('/{pembelajaran}/jurnal', 'pembelajaran.jurnal')->name('pembelajaran.jurnal.index');
+        Volt::route('/{pembelajaran}/jurnal/create', 'pembelajaran.jurnal.create')->name('pembelajaran.jurnal.create');
+        Volt::route('/{pembelajaran}/jurnal/{jurnal}/edit', 'pembelajaran.jurnal.create')->name('pembelajaran.jurnal.edit');
+        Volt::route('/{pembelajaran}/jurnal/{jurnal}', 'pembelajaran.jurnal.show')->name('pembelajaran.jurnal.show');
         Volt::route('/{pembelajaran}/jurnal/{jurnal}/nilai/create', 'pembelajaran.nilai.create')->name('pembelajaran.jurnal.nilai.create');
         Volt::route('/{pembelajaran}/jurnal/nilai', 'pembelajaran.nilai.index')->name('pembelajaran.jurnal.nilai.index');
         Route::get('/presensi', function() { return redirect()->route('pembelajaran.presensi.index'); });

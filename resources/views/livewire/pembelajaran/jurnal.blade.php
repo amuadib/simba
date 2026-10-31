@@ -3,118 +3,92 @@
 
 use App\Models\Jurnal;
 use App\Models\Pembelajaran;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
-new class extends \Livewire\Volt\Component {
+new class extends Component
+{
     use WithPagination;
 
     public $pembelajaran;
-    public $tanggal = '';
-    public $materi = '';
-    public $pembelajaran_list = [];
-    public $pembelajaran_id=null;
 
-    public $mode='tambah';
-    public $editingId = null;
+    public $pembelajaran_list = [];
+
+    public $pembelajaran_id = null;
+
+    // Salin jurnal mode
+    public $mode = 'list';
+
+    public $salinId = null;
+
+    public $salinMateri = '';
+
+    public $salinTanggal = '';
 
     public $paginationTheme = 'bootstrap';
 
     public function mount(Pembelajaran $pembelajaran)
     {
         $this->pembelajaran = $pembelajaran;
-        $this->tanggal = date('Y-m-d');
-    }
-
-    public function store()
-    {
-        $this->validate([
-            'tanggal' => 'required|date',
-            'materi' => 'required',
-        ]);
-
-        Jurnal::create([
-            'pembelajaran_id' => $this->pembelajaran->id,
-            'tanggal' => $this->tanggal,
-            'materi' => $this->materi,
-        ]);
-
-        $this->reset(['materi']);
-        $this->tanggal = date('Y-m-d');
-        $this->dispatch('toast', message: 'Jurnal berhasil ditambahkan', type: 'success');
-    }
-
-    public function edit($id)
-    {
-        $jurnal = Jurnal::find($id);
-        $this->mode='update';
-        $this->editingId = $id;
-        $this->tanggal = $jurnal->tanggal;
-        $this->materi = $jurnal->materi;
-    }
-
-    public function update()
-    {
-        $this->validate([
-            'tanggal' => 'required|date',
-            'materi' => 'required',
-        ]);
-
-        $jurnal = Jurnal::find($this->editingId);
-        $jurnal->update([
-            'tanggal' => $this->tanggal,
-            'materi' => $this->materi,
-        ]);
-
-        $this->reset(['mode', 'editingId', 'materi']);
-        $this->tanggal = date('Y-m-d');
-        $this->dispatch('toast', message: 'Jurnal berhasil diperbarui', type: 'success');
-    }
-
-    public function cancelEdit()
-    {
-        $this->reset(['mode','editingId', 'tanggal', 'materi']);
     }
 
     public function delete($id)
     {
-        Jurnal::find($id)->delete();
+        $jurnal = Jurnal::find($id);
+        if ($jurnal) {
+            // Hapus file fisik
+            foreach ($jurnal->files as $f) {
+                Storage::disk('public')->delete($f->path);
+                $f->delete();
+            }
+            $jurnal->delete();
+        }
         $this->dispatch('toast', message: 'Jurnal berhasil dihapus', type: 'success');
     }
 
-    public function salinJurnal($id)
+    public function openSalin($id)
     {
         $jurnal = Jurnal::find($id);
-        $this->mode='salin';
-        $this->editingId = $id;
-        $this->tanggal = $jurnal->tanggal;
-        $this->materi = $jurnal->materi;
+        $this->mode = 'salin';
+        $this->salinId = $id;
+        $this->salinTanggal = $jurnal->tanggal;
+        $this->salinMateri = $jurnal->materi;
         $this->pembelajaran_list = Pembelajaran::where('tahun_ajaran_id', $this->pembelajaran->tahun_ajaran_id)
-        ->orderBy('keterangan')
-        ->get();
+            ->orderBy('keterangan')
+            ->get();
+    }
+
+    public function cancelSalin()
+    {
+        $this->reset(['mode', 'salinId', 'salinMateri', 'salinTanggal', 'pembelajaran_id']);
     }
 
     public function salin()
     {
         $this->validate([
-            'tanggal' => 'required|date',
-            'materi' => 'required',
+            'salinTanggal' => 'required|date',
+            'salinMateri' => 'required',
             'pembelajaran_id' => 'required',
         ]);
 
         Jurnal::create([
             'pembelajaran_id' => $this->pembelajaran_id,
-            'tanggal' => $this->tanggal,
-            'materi' => $this->materi,
+            'tanggal' => $this->salinTanggal,
+            'materi' => $this->salinMateri,
         ]);
 
-        $this->reset(['mode', 'editingId', 'materi', 'pembelajaran_id']);
-        $this->tanggal = date('Y-m-d');
+        $this->reset(['mode', 'salinId', 'salinMateri', 'salinTanggal', 'pembelajaran_id']);
         $this->dispatch('toast', message: 'Jurnal berhasil disalin', type: 'success');
     }
+
     public function with()
     {
         return [
-            'jurnals' => Jurnal::where('pembelajaran_id', $this->pembelajaran->id)->orderByDesc('tanggal')->paginate(10),
+            'jurnals' => Jurnal::where('pembelajaran_id', $this->pembelajaran->id)
+                ->withCount('files')
+                ->orderByDesc('tanggal')
+                ->paginate(10),
         ];
     }
 };
@@ -137,38 +111,17 @@ new class extends \Livewire\Volt\Component {
             <i class="bi bi-arrow-left"></i>
             <span>Kembali ke Pembelajaran</span>
         </a>
+        <a href="{{ route('pembelajaran.jurnal.create', $pembelajaran) }}" wire:navigate
+            class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md">
+            <i class="bi bi-plus-circle"></i>
+            <span>Tambah</span>
+        </a>
     </div>
 
     <div class="glass-panel rounded-3xl p-4 md:p-6 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">
-        @if ($mode == 'update')
-            <div class="p-4 md:p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/90 dark:border-cyan-500/20 shadow-xs mb-6">
-                <h6 class="font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
-                    <i class="bi bi-pencil-square text-amber-500"></i>
-                    <span>Edit Jurnal Pembelajaran</span>
-                </h6>
-                <form wire:submit="update" class="row g-2.5 items-center">
-                    <div class="col-md-3">
-                        <input type="date" wire:model="tanggal" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('tanggal') is-invalid @enderror" required>
-                        @error('tanggal')
-                            <div class="invalid-feedback text-xs">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-md-6">
-                        <input wire:model="materi" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('materi') is-invalid @enderror"
-                            placeholder="Materi Pembelajaran" required>
-                        @error('materi')
-                            <div class="invalid-feedback text-xs">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-md-3 flex items-center gap-2">
-                        <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
-                            <i class="bi bi-check2-circle text-sm"></i> Update
-                        </button>
-                        <button type="button" wire:click="cancelEdit" class="btn btn-outline-secondary btn-sm rounded-xl px-4 py-2 text-xs font-semibold">Batal</button>
-                    </div>
-                </form>
-            </div>
-        @elseif($mode == 'salin')
+
+        {{-- FORM SALIN JURNAL (tetap inline karena tidak perlu upload file) --}}
+        @if ($mode === 'salin')
             <div class="p-4 md:p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/90 dark:border-cyan-500/20 shadow-xs mb-6">
                 <h6 class="font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
                     <i class="bi bi-copy text-sky-500"></i>
@@ -176,17 +129,13 @@ new class extends \Livewire\Volt\Component {
                 </h6>
                 <form wire:submit="salin" class="row g-2.5 items-center">
                     <div class="col-md-3">
-                        <input type="date" wire:model="tanggal" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('tanggal') is-invalid @enderror" required>
-                        @error('tanggal')
-                            <div class="invalid-feedback text-xs">{{ $message }}</div>
-                        @enderror
+                        <input type="date" wire:model="salinTanggal" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('salinTanggal') is-invalid @enderror" required>
+                        @error('salinTanggal') <div class="invalid-feedback text-xs">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-4">
-                        <input wire:model="materi" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('materi') is-invalid @enderror"
+                        <input wire:model="salinMateri" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('salinMateri') is-invalid @enderror"
                             placeholder="Materi Pembelajaran" required>
-                        @error('materi')
-                            <div class="invalid-feedback text-xs">{{ $message }}</div>
-                        @enderror
+                        @error('salinMateri') <div class="invalid-feedback text-xs">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-3">
                         <select wire:model="pembelajaran_id" class="form-select rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('pembelajaran_id') is-invalid @enderror" required>
@@ -195,42 +144,13 @@ new class extends \Livewire\Volt\Component {
                                 <option value="{{ $p->id }}">{{ $p->keterangan }}</option>
                             @endforeach
                         </select>
-                        @error('pembelajaran_id')
-                            <div class="invalid-feedback text-xs">{{ $message }}</div>
-                        @enderror
+                        @error('pembelajaran_id') <div class="invalid-feedback text-xs">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-2 flex items-center gap-2">
                         <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
                             <i class="bi bi-copy text-sm"></i> Salin
                         </button>
-                        <button type="button" wire:click="cancelEdit" class="btn btn-outline-secondary btn-sm rounded-xl px-3 py-2 text-xs font-semibold">Batal</button>
-                    </div>
-                </form>
-            </div>
-        @else
-            <div class="p-4 md:p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/40 border border-slate-200/90 dark:border-cyan-500/20 shadow-xs mb-6">
-                <h6 class="font-bold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
-                    <i class="bi bi-plus-circle-fill text-sky-500"></i>
-                    <span>Tambah Jurnal Baru</span>
-                </h6>
-                <form wire:submit="store" class="row g-2.5 items-center">
-                    <div class="col-md-3">
-                        <input type="date" wire:model="tanggal" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('tanggal') is-invalid @enderror" required>
-                        @error('tanggal')
-                            <div class="invalid-feedback text-xs">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-md-7">
-                        <input wire:model="materi" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('materi') is-invalid @enderror"
-                            placeholder="Materi Pembelajaran Baru" required>
-                        @error('materi')
-                            <div class="invalid-feedback text-xs">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md w-100 justify-center">
-                            <i class="bi bi-plus-circle text-sm"></i> Tambah
-                        </button>
+                        <button type="button" wire:click="cancelSalin" class="btn btn-outline-secondary btn-sm rounded-xl px-3 py-2 text-xs font-semibold">Batal</button>
                     </div>
                 </form>
             </div>
@@ -244,7 +164,7 @@ new class extends \Livewire\Volt\Component {
                 </div>
                 <div>
                     <h6 class="text-xs font-bold text-slate-800 dark:text-slate-100 font-display m-0">Riwayat Jurnal Pertemuan</h6>
-                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Total {{ $jurnals->count() }} pertemuan tercatat</span>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Total {{ $jurnals->total() }} pertemuan tercatat</span>
                 </div>
             </div>
 
@@ -266,23 +186,27 @@ new class extends \Livewire\Volt\Component {
         <div class="block md:hidden space-y-3">
             @forelse ($jurnals as $j)
                 <div wire:key="mobile-jurnal-{{ $j->id }}" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 shadow-xs">
-                    {{-- Header Kartu: Tanggal & Aksi Tambahan (Salin, Edit, Hapus) --}}
+                    {{-- Header Kartu: Tanggal & Aksi --}}
                     <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
                         <div class="font-bold text-xs text-slate-700 dark:text-slate-200 flex items-center gap-1.5 font-display">
                             <i class="bi bi-calendar3 text-sky-500"></i>
                             <span>{{ \Carbon\Carbon::parse($j->tanggal)->locale('id_ID')->isoFormat('dddd, DD MMMM YYYY') }}</span>
                         </div>
                         <div class="flex items-center gap-1">
-                            <button wire:click="salinJurnal('{{ $j->id }}')"
+                            <a href="{{ route('pembelajaran.jurnal.show', [$pembelajaran->id, $j->id]) }}" wire:navigate
+                                class="w-7 h-7 rounded-lg text-slate-500 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-slate-800 flex items-center justify-center text-xs transition" title="Lihat Detail">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <button wire:click="openSalin('{{ $j->id }}')"
                                 class="w-7 h-7 rounded-lg text-slate-500 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-slate-800 flex items-center justify-center text-xs transition" title="Salin Jurnal">
                                 <i class="bi bi-copy"></i>
                             </button>
-                            <button wire:click="edit('{{ $j->id }}')"
+                            <a href="{{ route('pembelajaran.jurnal.edit', [$pembelajaran->id, $j->id]) }}" wire:navigate
                                 class="w-7 h-7 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-slate-800 flex items-center justify-center text-xs transition" title="Edit">
                                 <i class="bi bi-pencil"></i>
-                            </button>
+                            </a>
                             <button wire:click="delete('{{ $j->id }}')"
-                                wire:confirm="Hapus jurnal ini?" class="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 flex items-center justify-center text-xs transition" title="Hapus">
+                                wire:confirm="Hapus jurnal ini beserta semua file lampirannya?" class="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 flex items-center justify-center text-xs transition" title="Hapus">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -292,6 +216,16 @@ new class extends \Livewire\Volt\Component {
                     <div class="py-2.5 text-xs text-slate-800 dark:text-slate-100 leading-relaxed font-medium">
                         {!! nl2br(e($j->materi)) !!}
                     </div>
+
+                    {{-- Badge file --}}
+                    @if ($j->files_count > 0)
+                        <div class="mb-2">
+                            <a href="{{ route('pembelajaran.jurnal.show', [$pembelajaran->id, $j->id]) }}" wire:navigate
+                                class="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 dark:text-cyan-400 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 px-2 py-0.5 rounded-full">
+                                <i class="bi bi-paperclip"></i> {{ $j->files_count }} file
+                            </a>
+                        </div>
+                    @endif
 
                     {{-- Tombol Aksi Utama: Presensi & Nilai --}}
                     <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -318,12 +252,13 @@ new class extends \Livewire\Volt\Component {
         {{-- TAMPILAN DESKTOP/TABLET: TABEL LENGKAP (LAYAR >= MD) --}}
         <div class="hidden md:block rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 shadow-sm overflow-hidden">
             <div class="overflow-x-auto w-full">
-                <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem; min-width: 600px;">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem; min-width: 650px;">
                     <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
                         <tr>
                             <th class="py-3 px-4" width="200">Tanggal</th>
                             <th class="py-3 px-4">Materi Pembelajaran</th>
-                            <th class="py-3 px-4 text-center whitespace-nowrap" width="300">Aksi</th>
+                            <th class="py-3 px-4 text-center" width="80">File</th>
+                            <th class="py-3 px-4 text-center whitespace-nowrap" width="320">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -336,9 +271,24 @@ new class extends \Livewire\Volt\Component {
                                 <td class="px-4 text-slate-800 dark:text-slate-100">
                                     {!! nl2br(e($j->materi)) !!}
                                 </td>
+                                <td class="px-4 text-center">
+                                    @if ($j->files_count > 0)
+                                        <a href="{{ route('pembelajaran.jurnal.show', [$pembelajaran->id, $j->id]) }}" wire:navigate
+                                            class="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 dark:text-cyan-400 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 px-2 py-0.5 rounded-full hover:bg-sky-100 transition"
+                                            title="Lihat file lampiran">
+                                            <i class="bi bi-paperclip"></i> {{ $j->files_count }}
+                                        </a>
+                                    @else
+                                        <span class="text-slate-300 dark:text-slate-600 text-xs">—</span>
+                                    @endif
+                                </td>
                                 <td class="px-4 text-center whitespace-nowrap">
                                     <div class="inline-flex items-center justify-center gap-1.5">
-                                        <button wire:click="salinJurnal('{{ $j->id }}')"
+                                        <a href="{{ route('pembelajaran.jurnal.show', [$pembelajaran->id, $j->id]) }}" wire:navigate
+                                            class="btn btn-sm btn-outline-secondary rounded-xl text-xs px-2.5 py-1.5" title="Lihat Detail">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <button wire:click="openSalin('{{ $j->id }}')"
                                             class="btn btn-sm btn-outline-info rounded-xl text-xs px-2.5 py-1.5" title="Salin Jurnal">
                                             <i class="bi bi-copy"></i>
                                         </button>
@@ -356,12 +306,12 @@ new class extends \Livewire\Volt\Component {
                                             <i class="bi bi-award"></i>
                                             <span>Nilai</span>
                                         </a>
-                                        <button wire:click="edit('{{ $j->id }}')"
-                                            class="btn btn-sm btn-outline-warning rounded-xl text-xs px-2.5 py-1.5" title="Edit">
+                                        <a href="{{ route('pembelajaran.jurnal.edit', [$pembelajaran->id, $j->id]) }}" wire:navigate
+                                            class="btn btn-sm btn-outline-warning rounded-xl text-xs px-2.5 py-1.5" title="Edit Jurnal">
                                             <i class="bi bi-pencil"></i>
-                                        </button>
+                                        </a>
                                         <button wire:click="delete('{{ $j->id }}')"
-                                            wire:confirm="Hapus jurnal ini?" class="btn btn-sm btn-outline-danger rounded-xl text-xs px-2.5 py-1.5" title="Hapus">
+                                            wire:confirm="Hapus jurnal ini beserta semua file lampirannya?" class="btn btn-sm btn-outline-danger rounded-xl text-xs px-2.5 py-1.5" title="Hapus">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -369,7 +319,7 @@ new class extends \Livewire\Volt\Component {
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="text-slate-500 dark:text-slate-400 py-6 text-center">Belum ada jurnal pembelajaran.</td>
+                                <td colspan="4" class="text-slate-500 dark:text-slate-400 py-6 text-center">Belum ada jurnal pembelajaran.</td>
                             </tr>
                         @endforelse
                     </tbody>
