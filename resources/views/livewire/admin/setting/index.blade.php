@@ -334,7 +334,7 @@ new class extends Component {
             </button>
         </div>
 
-        <button type="button" wire:click="save" class="btn-logo-gradient inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition-all">
+        <button type="button" wire:click="save" class="btn-logo-gradient inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:shadow-lg transition-all">
             <span wire:loading wire:target="save" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             <i wire:loading.remove wire:target="save" class="bi bi-save2"></i>
             <span>Simpan Pengaturan</span>
@@ -432,8 +432,8 @@ new class extends Component {
                             <span x-text="openLembaga.length === {{ count($lembaga_items) }} ? 'Tutup Semua' : 'Buka Semua'">Buka Semua</span>
                         </button>
                     @endif
-                    <button type="button" wire:click="addLembaga" class="btn-logo-gradient inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-sm hover:shadow-md transition-all">
-                        <i class="bi bi-plus-circle"></i>
+                    <button type="button" wire:click="addLembaga" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white shadow-md hover:shadow-lg transition-all">
+                        <i class="bi bi-plus-circle text-sm"></i>
                         <span>Tambah Lembaga</span>
                     </button>
                 </div>
@@ -910,8 +910,8 @@ new class extends Component {
                     <h5 class="text-muted">Belum ada data lembaga terdaftar.</h5>
                     <p class="text-muted small">Klik tombol di bawah untuk menambahkan lembaga pertama.</p>
                     <div>
-                        <button type="button" wire:click="addLembaga" class="btn-logo-gradient inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-sm">
-                            <i class="bi bi-plus-circle"></i> Tambah Lembaga
+                        <button type="button" wire:click="addLembaga" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white shadow-md">
+                            <i class="bi bi-plus-circle text-sm"></i> Tambah Lembaga
                         </button>
                     </div>
                 </div>

@@ -364,7 +364,7 @@ new class extends \Livewire\Volt\Component {
                 <i class="bi bi-x-circle"></i> Batal
             </a>
             <button type="submit"
-                class="btn-logo-gradient px-6 py-2.5 rounded-xl text-xs font-bold shadow-md inline-flex items-center gap-2">
+                class="btn-logo-gradient px-6 py-2.5 text-xs font-bold shadow-md inline-flex items-center gap-2">
                 <i class="bi bi-save"></i>
                 {{ $jurnal ? 'Perbarui Jurnal' : 'Simpan Jurnal' }}
             </button>

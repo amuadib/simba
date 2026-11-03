@@ -27,7 +27,7 @@
                 @endforeach
             </div>
 
-            <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold shadow-md">
+            <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold shadow-md">
                 <i class="bi bi-cloud-arrow-down-fill text-sm"></i>
                 <span>Ekspor Terpilih</span>
             </button>
@@ -46,7 +46,7 @@
                 <label class="form-label text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Pilih File Cadangan (.json)</label>
                 <input type="file" name="file" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs" accept=".json" required>
             </div>
-            <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold shadow-md">
+            <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold shadow-md">
                 <i class="bi bi-cloud-arrow-up-fill text-sm"></i>
                 <span>Impor Database</span>
             </button>

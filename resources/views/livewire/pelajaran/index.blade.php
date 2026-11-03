@@ -86,7 +86,7 @@ new class extends \Livewire\Volt\Component {
                         @enderror
                     </div>
                     <div class="col-auto flex items-center gap-2">
-                        <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                        <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md">
                             <i class="bi bi-check2-circle text-sm"></i> Update
                         </button>
                         <button type="button" wire:click="cancelEdit" class="btn btn-outline-secondary btn-sm rounded-xl px-4 py-2 text-xs font-semibold">Batal</button>
@@ -108,7 +108,7 @@ new class extends \Livewire\Volt\Component {
                         @enderror
                     </div>
                     <div class="col-auto">
-                        <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                        <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md">
                             <i class="bi bi-plus-circle text-sm"></i> Tambah
                         </button>
                     </div>

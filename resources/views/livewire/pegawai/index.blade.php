@@ -1021,7 +1021,7 @@ new class extends \Livewire\Volt\Component {
                             <span>Ekspor Semua</span>
                         </button>
 
-                        <button wire:click="create" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                        <button wire:click="create" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md">
                             <i class="bi bi-plus-circle text-sm"></i> Tambah Pegawai
                         </button>
                     </div>
@@ -1513,7 +1513,7 @@ new class extends \Livewire\Volt\Component {
                     <button type="button" wire:click="resetForm" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-2">
                         <i class="bi bi-x-lg"></i> Batal / Kembali
                     </button>
-                    <button type="button" wire:click="{{ $action === 'edit' ? 'update' : 'store' }}" class="btn-logo-gradient px-5 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-2">
+                    <button type="button" wire:click="{{ $action === 'edit' ? 'update' : 'store' }}" class="btn-logo-gradient px-5 py-2 text-xs font-bold shadow-md flex items-center gap-2">
                         <i class="bi bi-check2-circle text-base"></i> {{ $action === 'edit' ? 'Perbarui Data' : 'Simpan Data' }}
                     </button>
                 </div>
@@ -1680,7 +1680,7 @@ new class extends \Livewire\Volt\Component {
                     <button type="button" wire:click="resetForm" class="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-2">
                         <i class="bi bi-x-circle"></i> Batal
                     </button>
-                    <button type="submit" class="btn-logo-gradient px-6 py-2.5 rounded-xl text-xs font-bold shadow-md flex items-center gap-2">
+                    <button type="submit" class="btn-logo-gradient px-6 py-2.5 text-xs font-bold shadow-md flex items-center gap-2">
                         <i class="bi bi-save"></i> {{ $action === 'edit' ? 'Perbarui Pegawai' : 'Simpan Pegawai' }}
                     </button>
                 </div>
@@ -1876,8 +1876,8 @@ new class extends \Livewire\Volt\Component {
                         <h4 class="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-cyan-400 font-display flex items-center gap-2">
                             <i class="bi bi-file-earmark-medical text-base"></i> Riwayat Lembaga Bertugas & SK Penugasan
                         </h4>
-                        <button type="button" class="btn-logo-gradient px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5" wire:click="kelolaSk('{{ $pData->id }}')">
-                            <i class="bi bi-gear"></i> Kelola SK Penugasan
+                        <button type="button" class="btn-logo-gradient px-4 py-2 text-xs font-bold shadow-md flex items-center gap-1.5" wire:click="kelolaSk('{{ $pData->id }}')">
+                            <i class="bi bi-gear text-sm"></i> Kelola SK Penugasan
                         </button>
                     </div>
 
@@ -2233,7 +2233,7 @@ new class extends \Livewire\Volt\Component {
                                     <i class="bi bi-save"></i> Perbarui SK Penugasan
                                 </button>
                             @else
-                                <button type="submit" class="btn-logo-gradient px-5 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5" wire:loading.attr="disabled">
+                                <button type="submit" class="btn-logo-gradient px-5 py-2 text-xs font-bold shadow-md flex items-center gap-1.5" wire:loading.attr="disabled">
                                     <i class="bi bi-plus-circle"></i> Tambahkan SK Penugasan
                                 </button>
                             @endif
@@ -2283,7 +2283,7 @@ new class extends \Livewire\Volt\Component {
                         <button type="button" wire:click="closeBulkUpdate" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
                             Batal
                         </button>
-                        <button type="button" wire:click="bulkUpdate" class="btn-logo-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5" wire:loading.attr="disabled">
+                        <button type="button" wire:click="bulkUpdate" class="btn-logo-gradient px-4 py-2 text-xs font-bold shadow-md flex items-center gap-1.5" wire:loading.attr="disabled">
                             <i class="bi bi-check2-circle"></i> Simpan Perubahan Massal
                         </button>
                     </div>

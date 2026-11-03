@@ -891,7 +891,7 @@ x-on:keydown.escape.window="fotoPopupOpen = false">
                             </button>
                         @endif
 
-                        <button wire:click="create" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                        <button wire:click="create" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md">
                             <i class="bi bi-plus-circle text-sm"></i> Tambah Siswa
                         </button>
                     </div>
@@ -1526,7 +1526,7 @@ x-on:keydown.escape.window="fotoPopupOpen = false">
                     <button type="button" wire:click="resetForm" class="btn btn-outline-secondary btn-sm rounded-xl px-4 py-2 text-xs font-semibold">
                         Batal
                     </button>
-                    <button type="button" wire:click="{{ $action === 'edit' ? 'update' : 'store' }}" wire:loading.attr="disabled" class="btn-logo-gradient inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold shadow-md">
+                    <button type="button" wire:click="{{ $action === 'edit' ? 'update' : 'store' }}" wire:loading.attr="disabled" class="btn-logo-gradient inline-flex items-center gap-2 px-5 py-2 text-xs font-bold shadow-md">
                         <span wire:loading.remove wire:target="{{ $action === 'edit' ? 'update' : 'store' }}">
                             <i class="bi bi-check2-circle text-sm"></i> {{ $action === 'edit' ? 'Simpan Perubahan' : 'Simpan Siswa' }}
                         </span>
@@ -1806,7 +1806,7 @@ x-on:keydown.escape.window="fotoPopupOpen = false">
                         <button type="button" wire:click="resetForm" class="btn btn-secondary rounded-xl px-5 py-2.5 text-xs font-semibold">
                             Batal
                         </button>
-                        <button type="submit" wire:loading.attr="disabled" class="btn-logo-gradient inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg">
+                        <button type="submit" wire:loading.attr="disabled" class="btn-logo-gradient inline-flex items-center gap-2 px-6 py-2.5 text-xs font-bold shadow-lg">
                             <span wire:loading.remove wire:target="{{ $action == 'edit' ? 'update' : 'store' }}">
                                 <i class="bi bi-check2-circle text-base"></i> {{ $action == 'edit' ? 'Simpan Perubahan Siswa' : 'Simpan Siswa' }}
                             </span>
@@ -2349,8 +2349,8 @@ x-on:keydown.escape.window="fotoPopupOpen = false">
                         <button type="button" wire:click="closeBulkUpdate" class="btn btn-secondary rounded-xl flex-1 py-2 text-xs font-semibold">
                             Batal
                         </button>
-                        <button wire:click="bulkUpdate" class="btn-logo-gradient rounded-xl flex-1 py-2 text-xs font-bold shadow-md" wire:loading.attr="disabled">
-                            <i class="bi bi-save me-1"></i> Simpan
+                        <button wire:click="bulkUpdate" class="btn-logo-gradient inline-flex items-center justify-center gap-1.5 flex-1 py-2 text-xs font-bold shadow-md" wire:loading.attr="disabled">
+                            <i class="bi bi-save text-sm"></i> Simpan
                         </button>
                     </div>
                 </div>
@@ -2804,7 +2804,7 @@ x-on:keydown.escape.window="fotoPopupOpen = false">
             <div class="px-5 py-3.5 bg-slate-50 dark:bg-slate-800/70 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
                 <button type="button" 
                         @click="fotoPopupOpen = false; $wire.show(fotoData.id)" 
-                        class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition-all">
+                        class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white shadow-md hover:shadow-lg transition-all">
                     <i class="bi bi-person-lines-fill"></i>
                     <span>Lihat Profil Lengkap</span>
                 </button>

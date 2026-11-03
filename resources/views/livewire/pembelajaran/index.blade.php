@@ -226,7 +226,7 @@ new class extends \Livewire\Volt\Component {
                         <input wire:model="keterangan" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs" placeholder="Keterangan">
                     </div>
                     <div class="col-md-2 flex items-center gap-2">
-                        <button type="submit" class="btn-logo-gradient inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md w-100">
+                        <button type="submit" class="btn-logo-gradient inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md w-full">
                             <i class="bi bi-check2-circle text-sm"></i> SIMPAN
                         </button>
                         <button type="button" wire:click="cancelEdit" class="btn btn-outline-secondary btn-sm rounded-xl px-4 py-2 text-xs font-semibold">BATAL</button>
@@ -274,7 +274,7 @@ new class extends \Livewire\Volt\Component {
                     </div>
                     <div class="col-12 flex items-center justify-between mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
                         <small class="text-slate-500 dark:text-slate-400 text-xs">Pilih <strong>Kelas</strong> untuk menambahkan Anggota otomatis dari Rombel.</small>
-                        <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                        <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md">
                             <i class="bi bi-plus-circle text-sm"></i> TAMBAH
                         </button>
                     </div>
@@ -579,7 +579,7 @@ new class extends \Livewire\Volt\Component {
                                     </select>
                                 </div>
                                 <div class="md:col-span-2">
-                                    <button type="submit" class="btn-logo-gradient w-100 py-1.5 rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-1.5"><i class="bi bi-save"></i> SIMPAN</button>
+                                    <button type="submit" class="btn-logo-gradient w-full py-2 text-xs font-bold shadow-md flex items-center justify-center gap-1.5"><i class="bi bi-save text-sm"></i> SIMPAN</button>
                                 </div>
                             </div>
                         </form>

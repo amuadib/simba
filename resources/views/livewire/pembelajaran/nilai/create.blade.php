@@ -493,7 +493,7 @@ new class extends Component {
                             <button type="button" wire:click="closeEditSantriModal" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
                                 Batal
                             </button>
-                            <button type="submit" class="btn-logo-gradient px-5 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5" wire:loading.attr="disabled">
+                            <button type="submit" class="btn-logo-gradient px-5 py-2 text-xs font-bold shadow-md flex items-center gap-1.5" wire:loading.attr="disabled">
                                 <i class="bi bi-save"></i> Simpan Perubahan
                             </button>
                         </div>

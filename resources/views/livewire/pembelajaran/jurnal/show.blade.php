@@ -124,7 +124,7 @@ new class extends \Livewire\Volt\Component {
                 <i class="bi bi-folder-x text-4xl block mb-2 text-slate-300 dark:text-slate-600"></i>
                 <p class="text-sm">Belum ada file lampiran untuk jurnal ini.</p>
                 <a href="{{ route('pembelajaran.jurnal.edit', [$pembelajaran->id, $jurnal->id]) }}" wire:navigate
-                    class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md mt-3">
+                    class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md mt-3">
                     <i class="bi bi-upload"></i> Upload File
                 </a>
             </div>

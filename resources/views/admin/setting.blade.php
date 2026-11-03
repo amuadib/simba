@@ -115,7 +115,7 @@
                     </div>
                 @endif
 
-                <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold shadow-md">
+                <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold shadow-md">
                     <i class="bi bi-save2"></i>
                     <span>Simpan Pengaturan</span>
                 </button>

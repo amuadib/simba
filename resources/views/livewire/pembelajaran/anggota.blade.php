@@ -139,7 +139,7 @@ new class extends Component {
 
             {{-- CENTER: ACTIONS --}}
             <div class="col-md-2 flex flex-col justify-center items-center gap-3">
-                <button wire:click="addSelected" class="btn-logo-gradient w-100 py-3 rounded-2xl flex items-center justify-center text-sm shadow-md" title="Daftarkan Siswa">
+                <button wire:click="addSelected" class="btn-logo-gradient w-full py-2.5 flex items-center justify-center text-sm font-bold shadow-md" title="Daftarkan Siswa">
                     <i class="bi bi-chevron-right d-none d-md-inline"></i>
                     <i class="bi bi-chevron-down d-md-none"></i>
                 </button>

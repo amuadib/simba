@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" class="dark">
 
 <head>
     <meta charset="utf-8">
@@ -13,8 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    {{-- Local Assets --}}
-    <link href="{{ asset('bootstrap.min.css') }}" rel="stylesheet">
+    {{-- Bootstrap Icons (dipertahankan) --}}
     <link href="{{ asset('bootstrap-icons.css') }}" rel="stylesheet">
 
     {{-- Tailwind CSS v4 via Vite --}}
@@ -23,8 +22,9 @@
     <script>
         // Apply theme immediately to prevent flashing
         (function() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
+            const t = localStorage.getItem('theme') || 'dark';
+            if (t === 'dark') document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
         })();
     </script>
 
@@ -63,7 +63,7 @@
                                radial-gradient(at 50% 100%, rgba(0, 180, 216, 0.08) 0px, transparent 60%);
         }
 
-        [data-theme="dark"] {
+        .dark {
             /* DARK THEME (Cosmic Deep Gear Navy) */
             --bg-page: #060e1a;
             --bg-page-subtle: #09172c;
@@ -300,6 +300,12 @@
             line-height: 1;
         }
 
+        .icon-circle svg {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .icon-circle-sm {
             width: 40px;
             height: 40px;
@@ -373,12 +379,12 @@
             transition: all 0.35s ease;
         }
 
-        [data-theme="dark"] .featured-hero-card {
+        .dark .featured-hero-card {
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
             border: 1.5px solid rgba(99, 102, 241, 0.35);
         }
 
-        [data-theme="light"] .featured-hero-card {
+        :not(.dark) .featured-hero-card {
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border: 1.5px solid rgba(99, 102, 241, 0.25);
         }
@@ -509,6 +515,12 @@
             flex-shrink: 0;
         }
 
+        .unit-info-item svg {
+            color: var(--primary);
+            margin-top: 0.1rem;
+            flex-shrink: 0;
+        }
+
         /* Footer */
         .welcome-footer {
             background: var(--footer-bg);
@@ -574,66 +586,75 @@
     @livewireStyles
 </head>
 
-<body x-data="{ 
+<body x-data="{
     theme: localStorage.getItem('theme') || 'dark',
     toggleTheme() {
         this.theme = this.theme === 'dark' ? 'light' : 'dark';
         localStorage.setItem('theme', this.theme);
-        document.documentElement.setAttribute('data-theme', this.theme);
+        if (this.theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
     }
-}" :data-theme="theme">
+}">
 
     {{-- Top Navigation Bar --}}
-    <nav class="welcome-navbar py-2 px-3 px-md-4">
-        <div class="container-fluid max-w-7xl d-flex align-items-center justify-content-between">
+    <nav class="welcome-navbar py-2 px-3 md:px-4">
+        <div class="container mx-auto px-4 max-w-7xl flex items-center justify-between">
             {{-- Brand Logo & Title --}}
-            <a href="{{ url('/') }}" class="d-flex align-items-center text-decoration-none gap-2 gap-md-3">
-                <div class="bg-white rounded-3 p-1 d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px; border: 1px solid rgba(0,0,0,0.06);">
+            <a href="{{ url('/') }}" class="flex items-center no-underline gap-2 md:gap-3">
+                <div class="bg-white rounded-2xl p-1 flex items-center justify-center shadow-sm" style="width: 42px; height: 42px; border: 1px solid rgba(0,0,0,0.06);">
                     <img src="{{ logo_url() }}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                 </div>
                 <div>
-                    <div class="navbar-brand-title d-flex align-items-center gap-2">
+                    <div class="navbar-brand-title flex items-center gap-2">
                         <span>{{ config('local.app.nama') ?? 'SIMBA' }}</span>
                     </div>
-                    <div class="navbar-brand-subtitle d-none d-md-block">
+                    <div class="navbar-brand-subtitle hidden md:block">
                         {{ config('local.app.keterangan') ?? 'Sistem Informasi Lembaga Pendidikan Miftahul Ulum' }}
                     </div>
                 </div>
             </a>
 
             {{-- Nav Links --}}
-            <div class="d-none d-lg-flex align-items-center gap-1">
+            <div class="hidden lg:flex items-center gap-1">
                 <a href="#profil-yayasan" class="nav-link-custom">
-                    <i class="bi bi-shield-check me-1"></i> Yayasan
+                    <svg xmlns="http://www.w3.org/2000/svg" class="inline size-4 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg> Yayasan
                 </a>
                 <a href="#satuan-pendidikan" class="nav-link-custom">
-                    <i class="bi bi-buildings me-1"></i> Satuan Pendidikan
+                    <svg xmlns="http://www.w3.org/2000/svg" class="inline size-4 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg> Satuan Pendidikan
                 </a>
                 <a href="#keunggulan" class="nav-link-custom">
-                    <i class="bi bi-stars me-1"></i> Keunggulan
+                    <svg xmlns="http://www.w3.org/2000/svg" class="inline size-4 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" /></svg> Keunggulan
                 </a>
                 <a href="#kontak" class="nav-link-custom">
-                    <i class="bi bi-geo-alt me-1"></i> Lokasi & Kontak
+                    <svg xmlns="http://www.w3.org/2000/svg" class="inline size-4 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg> Lokasi & Kontak
                 </a>
             </div>
 
             {{-- Right CTA & Theme Toggle --}}
-            <div class="d-flex align-items-center gap-2">
+            <div class="flex items-center gap-2">
                 {{-- Theme Switcher Button --}}
                 <button type="button" @click="toggleTheme()" class="btn-theme-toggle" title="Ganti Tema">
-                    <i class="bi" :class="theme === 'dark' ? 'bi-sun-fill text-warning' : 'bi-moon-stars-fill text-primary'"></i>
-                    <span class="d-none d-sm-inline" x-text="theme === 'dark' ? 'Terang' : 'Gelap'"></span>
+                    <template x-if="theme === 'dark'">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-yellow-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75ZM7.5 12a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM18.894 6.166a.75.75 0 0 0-1.06-1.06l-1.591 1.59a.75.75 0 1 0 1.06 1.061l1.591-1.59ZM21.75 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5H21a.75.75 0 0 1 .75.75ZM17.834 18.894a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 1 0-1.061 1.06l1.59 1.591ZM12 18a.75.75 0 0 1 .75.75V21a.75.75 0 0 1-1.5 0v-2.25A.75.75 0 0 1 12 18ZM7.758 17.303a.75.75 0 0 0-1.061-1.06l-1.591 1.59a.75.75 0 0 0 1.06 1.061l1.592-1.59ZM6 12a.75.75 0 0 1-.75.75H3a.75.75 0 0 1 0-1.5h2.25A.75.75 0 0 1 6 12ZM6.697 7.757a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 0 0-1.061 1.06l1.59 1.592Z" /></svg>
+                    </template>
+                    <template x-if="theme !== 'dark'">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-sky-600" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 0 1 .162.819A8.97 8.97 0 0 0 9 6a9 9 0 0 0 9 9 8.97 8.97 0 0 0 3.463-.69.75.75 0 0 1 .981.98 10.503 10.503 0 0 1-9.694 6.46c-5.799 0-10.5-4.7-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 0 1 .818.162Z" clip-rule="evenodd" /></svg>
+                    </template>
+                    <span class="hidden sm:inline" x-text="theme === 'dark' ? 'Terang' : 'Gelap'"></span>
                 </button>
 
                 {{-- Login / Dashboard Button --}}
                 @auth
                     <a href="{{ route('dashboard') }}" class="btn-primary-custom">
-                        <i class="bi bi-speedometer2"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg>
                         <span>Buka Dashboard</span>
                     </a>
                 @else
                     <a href="{{ route('login') }}" class="btn-primary-custom">
-                        <i class="bi bi-box-arrow-in-right"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" /></svg>
                         <span>Masuk ke Sistem</span>
                     </a>
                 @endauth
@@ -652,46 +673,46 @@
         $footerYayasan = $footerLembaga[99] ?? (config('local.lembaga.99') ?? reset($footerLembaga));
     @endphp
     <footer class="welcome-footer" id="kontak">
-        <div class="container">
-            <div class="row g-4 mb-4">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
                 {{-- Info Yayasan --}}
-                <div class="col-lg-5 col-md-6">
-                    <div class="d-flex align-items-center gap-3 mb-3">
-                        <div class="bg-white rounded-3 p-1 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <div class="lg:col-span-1">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-white rounded-xl p-1 flex items-center justify-center" style="width: 48px; height: 48px;">
                             <img src="{{ logo_url() }}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                         </div>
                         <div>
-                            <h5 class="mb-0 text-white fw-bold">{{ $footerYayasan['nama'] ?? 'Yayasan' }}</h5>
-                            <small class="text-secondary">{{ config('local.app.keterangan') ?? (setting('nama_aplikasi') ?? 'Penyelenggara Lembaga Pendidikan') }}</small>
+                            <h5 class="mb-0 text-white font-bold">{{ $footerYayasan['nama'] ?? 'Yayasan' }}</h5>
+                            <small class="text-slate-400">{{ config('local.app.keterangan') ?? (setting('nama_aplikasi') ?? 'Penyelenggara Lembaga Pendidikan') }}</small>
                         </div>
                     </div>
-                    <p class="small text-secondary mb-3 pe-lg-4">
+                    <p class="text-sm text-slate-400 mb-3 lg:pr-4">
                         Wadah pendidikan Islam terpadu yang membina generasi beriman, berilmu, dan berakhlak mulia melalui seluruh satuan pendidikan naungan yayasan.
                     </p>
-                    <div class="d-flex align-items-center gap-3">
-                        <span class="badge bg-dark border border-secondary text-secondary px-3 py-2 rounded-pill small">
-                            <i class="bi bi-shield-fill-check text-success me-1"></i> Terakreditasi & Resmi
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800 border border-slate-600 text-slate-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 text-emerald-400" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" /></svg> Terakreditasi & Resmi
                         </span>
                         @if (!empty($footerYayasan['alamat']))
-                            <span class="badge bg-dark border border-secondary text-secondary px-3 py-2 rounded-pill small">
-                                <i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ \Illuminate\Support\Str::limit($footerYayasan['alamat'], 35) }}
+                            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800 border border-slate-600 text-slate-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5 text-red-400" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clip-rule="evenodd" /></svg> {{ \Illuminate\Support\Str::limit($footerYayasan['alamat'], 35) }}
                             </span>
                         @endif
                     </div>
                 </div>
 
                 {{-- Satuan Pendidikan Naungan --}}
-                <div class="col-lg-3 col-md-6">
+                <div>
                     <h6 class="footer-heading">Satuan Pendidikan</h6>
                     @foreach ($footerLembaga as $fid => $fitem)
                         @if ((int)$fid !== 99)
-                            <div class="d-flex align-items-center justify-content-between mb-1">
+                            <div class="flex items-center justify-between mb-1">
                                 <a href="#satuan-pendidikan" class="footer-link mb-0">
-                                    <i class="bi bi-chevron-right text-primary me-1 small"></i> {{ $fitem['nama'] ?? $fitem['singkatan'] ?? 'Unit ' . $fid }}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="inline size-3 text-sky-500 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg> {{ $fitem['nama'] ?? $fitem['singkatan'] ?? 'Unit ' . $fid }}
                                 </a>
                                 @if (!empty($fitem['website']))
-                                    <a href="{{ str_starts_with($fitem['website'], 'http') ? $fitem['website'] : 'https://' . $fitem['website'] }}" target="_blank" rel="noopener" class="text-secondary text-opacity-75 small ms-1" title="Website {{ $fitem['singkatan'] ?? '' }}">
-                                        <i class="bi bi-globe"></i>
+                                    <a href="{{ str_starts_with($fitem['website'], 'http') ? $fitem['website'] : 'https://' . $fitem['website'] }}" target="_blank" rel="noopener" class="text-slate-500 hover:text-slate-300 text-sm ml-1" title="Website {{ $fitem['singkatan'] ?? '' }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="inline size-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" /></svg>
                                     </a>
                                 @endif
                             </div>
@@ -699,33 +720,33 @@
                     @endforeach
                     @if (isset($footerLembaga[99]))
                         <a href="#profil-yayasan" class="footer-link">
-                            <i class="bi bi-chevron-right text-primary me-1 small"></i> {{ !empty($footerLembaga[99]['singkatan']) ? $footerLembaga[99]['singkatan'] . ' - ' : '' }}Kantor Yayasan
+                            <svg xmlns="http://www.w3.org/2000/svg" class="inline size-3 text-sky-500 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg> {{ !empty($footerLembaga[99]['singkatan']) ? $footerLembaga[99]['singkatan'] . ' - ' : '' }}Kantor Yayasan
                         </a>
                     @endif
                 </div>
 
                 {{-- Layanan & Akses --}}
-                <div class="col-lg-4 col-md-6">
+                <div>
                     <h6 class="footer-heading">Akses SIMBA & Kontak</h6>
                     @if (!empty($footerYayasan['alamat']))
-                        <div class="small text-secondary mb-2">
-                            <i class="bi bi-geo-alt text-primary me-2"></i>{{ $footerYayasan['alamat'] }}
+                        <div class="text-sm text-slate-400 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="inline size-3.5 text-sky-500 mr-1.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>{{ $footerYayasan['alamat'] }}
                         </div>
                     @endif
                     @if (!empty($footerYayasan['kontak']) || !empty($footerYayasan['telp']))
-                        <div class="small text-secondary mb-2">
-                            <i class="bi bi-telephone text-primary me-2"></i>{{ $footerYayasan['kontak'] ?: $footerYayasan['telp'] }}
+                        <div class="text-sm text-slate-400 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="inline size-3.5 text-sky-500 mr-1.5" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M1.5 4.5a3 3 0 0 1 3-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 0 1-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 0 0 6.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 0 1 1.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 0 1-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5Z" clip-rule="evenodd" /></svg>{{ $footerYayasan['kontak'] ?: $footerYayasan['telp'] }}
                         </div>
                     @endif
                     @if (!empty($footerYayasan['email']))
-                        <div class="small text-secondary mb-2">
-                            <i class="bi bi-envelope text-primary me-2"></i>{{ $footerYayasan['email'] }}
+                        <div class="text-sm text-slate-400 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="inline size-3.5 text-sky-500 mr-1.5" viewBox="0 0 24 24" fill="currentColor"><path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z" /><path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" /></svg>{{ $footerYayasan['email'] }}
                         </div>
                     @endif
                     @if (!empty($footerYayasan['website']))
-                        <div class="small text-secondary mb-3">
-                            <i class="bi bi-globe text-primary me-2"></i>
-                            <a href="{{ str_starts_with($footerYayasan['website'], 'http') ? $footerYayasan['website'] : 'https://' . $footerYayasan['website'] }}" target="_blank" rel="noopener" class="text-secondary text-decoration-none">
+                        <div class="text-sm text-slate-400 mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="inline size-3.5 text-sky-500 mr-1.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" /></svg>
+                            <a href="{{ str_starts_with($footerYayasan['website'], 'http') ? $footerYayasan['website'] : 'https://' . $footerYayasan['website'] }}" target="_blank" rel="noopener" class="text-slate-400 hover:text-white no-underline">
                                 {{ $footerYayasan['website'] }}
                             </a>
                         </div>
@@ -733,21 +754,23 @@
                         <div class="mb-3"></div>
                     @endif
                     <div>
-                        <a href="{{ route('login') }}" class="btn btn-sm btn-outline-light rounded-pill px-3">
-                            <i class="bi bi-lock me-1"></i> Portal Guru & Tenaga Kependidikan
+                        <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 border border-slate-500 text-slate-300 hover:bg-slate-700 hover:text-white font-semibold px-4 py-2 rounded-full transition text-sm no-underline">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg> Portal Guru & Tenaga Kependidikan
                         </a>
                     </div>
                 </div>
             </div>
 
-            <hr class="border-secondary opacity-25 my-4">
+            <hr class="border-slate-700 opacity-25 my-6">
 
-            <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 small text-secondary">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-2 text-sm text-slate-500">
                 <div>
                     &copy; {{ date('Y') }} <strong>{{ setting('nama_aplikasi') ?? config('local.app.nama') ?? 'SIMBA' }}</strong>. {{ $footerYayasan['nama'] ?? 'Yayasan' }}. Hak cipta dilindungi.
                 </div>
-                <div class="d-flex gap-3">
-                    <a href="#profil-yayasan" class="text-secondary text-decoration-none">Kembali ke Atas <i class="bi bi-arrow-up-circle ms-1"></i></a>
+                <div class="flex gap-3">
+                    <a href="#profil-yayasan" class="text-slate-500 hover:text-white no-underline">Kembali ke Atas
+                        <svg xmlns="http://www.w3.org/2000/svg" class="inline size-4 ml-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 11.25l-3-3m0 0l-3 3m3-3v7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /></svg>
+                    </a>
                 </div>
             </div>
         </div>

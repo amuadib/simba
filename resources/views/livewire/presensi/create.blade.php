@@ -568,7 +568,7 @@ new class extends Component {
             <div class="flex items-center gap-2 flex-wrap">
                 @if ($jurnalHariIni)
                     <a href="{{ route('pembelajaran.jurnal.nilai.create', [$pembelajaran->id, $jurnalHariIni->id]) }}" wire:navigate
-                       class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition">
+                       class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md hover:shadow-lg transition">
                         <i class="bi bi-award"></i>
                         <span>Input Nilai Jurnal Pertemuan Ini</span>
                     </a>

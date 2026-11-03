@@ -237,7 +237,7 @@ new class extends \Livewire\Volt\Component {
                             @enderror
                         </div>
                         <div class="col-md-2 flex items-center gap-2">
-                            <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                            <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md">
                                 <i class="bi bi-check2-circle text-sm"></i> Update
                             </button>
                             <button type="button" wire:click="cancelEdit" class="btn btn-outline-secondary btn-sm rounded-xl px-4 py-2 text-xs font-semibold">Batal</button>
@@ -296,7 +296,7 @@ new class extends \Livewire\Volt\Component {
                             @enderror
                         </div>
                         <div class="col-md-2">
-                            <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md w-full justify-center">
+                            <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md w-full justify-center">
                                 <i class="bi bi-plus-circle text-sm"></i> Tambah
                             </button>
                         </div>
@@ -350,7 +350,7 @@ new class extends \Livewire\Volt\Component {
                                     <i class="bi bi-diagram-3 text-4xl block mb-2 opacity-50"></i>
                                     Tidak ada data rombel
                                     <div class="mt-3">
-                                        <button wire:click="naikkanTingkat" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                                        <button wire:click="naikkanTingkat" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md">
                                             <i class="bi bi-arrow-up-right-circle text-sm"></i> Proses Kenaikan Kelas Otomatis
                                         </button>
                                     </div>

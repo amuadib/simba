@@ -140,7 +140,37 @@
         [x-cloak] {
             display: none !important;
         }
-
+        nav a {
+            text-decoration: none !important;
+        }
+        .btn-logo-gradient,
+        a.btn-logo-gradient,
+        button.btn-logo-gradient {
+            background: linear-gradient(135deg, #0284c7 0%, #00b4d8 50%, #10b981 100%) !important;
+            color: #ffffff !important;
+            font-weight: 700;
+            border-radius: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            border: none !important;
+            outline: none !important;
+            text-decoration: none !important;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35) !important;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            line-height: 1.25;
+        }
+        .btn-logo-gradient:hover,
+        a.btn-logo-gradient:hover,
+        button.btn-logo-gradient:hover {
+            background: linear-gradient(135deg, #0369a1 0%, #0284c7 50%, #059669 100%) !important;
+            box-shadow: 0 6px 20px rgba(0, 180, 216, 0.45) !important;
+            transform: translateY(-1px);
+            color: #ffffff !important;
+            text-decoration: none !important;
+        }
         body {
             font-family: var(--font-sans);
             background: var(--bg-main);

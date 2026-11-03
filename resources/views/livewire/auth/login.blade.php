@@ -120,7 +120,7 @@ new #[Layout('layouts.guest')] class extends Component {
             {{-- Submit Button --}}
             <div class="pt-2">
                 <button type="submit" 
-                        class="w-full py-3 px-4 rounded-xl btn-logo-gradient flex items-center justify-center gap-2 text-sm font-bold shadow-lg"
+                        class="w-full py-3 px-4 btn-logo-gradient flex items-center justify-center gap-2 text-sm font-bold shadow-lg"
                         wire:loading.attr="disabled">
                     <span wire:loading.remove class="flex items-center gap-2">
                         <span>Masuk ke SIMBA</span>

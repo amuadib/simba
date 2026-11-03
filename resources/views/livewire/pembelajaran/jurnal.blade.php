@@ -113,7 +113,7 @@ new class extends Component
         </a>
         <a href="{{ route('pembelajaran.jurnal.create', $pembelajaran) }}" wire:navigate
             class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md">
-            <i class="bi bi-plus-circle"></i>
+            <i class="bi bi-plus-circle text-sm"></i>
             <span>Tambah</span>
         </a>
     </div>
@@ -147,7 +147,7 @@ new class extends Component
                         @error('pembelajaran_id') <div class="invalid-feedback text-xs">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-2 flex items-center gap-2">
-                        <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                        <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md">
                             <i class="bi bi-copy text-sm"></i> Salin
                         </button>
                         <button type="button" wire:click="cancelSalin" class="btn btn-outline-secondary btn-sm rounded-xl px-3 py-2 text-xs font-semibold">Batal</button>
