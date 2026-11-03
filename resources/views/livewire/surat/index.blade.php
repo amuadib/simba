@@ -206,6 +206,7 @@ new class extends \Livewire\Volt\Component {
         }
 
         $this->showModal = true;
+        $this->dispatch('content-updated', content: $this->form_konten);
     }
 
     public function editSurat(int $id): void
@@ -242,6 +243,7 @@ new class extends \Livewire\Volt\Component {
         }
 
         $this->showModal = true;
+        $this->dispatch('content-updated', content: $this->form_konten);
     }
 
     public function viewSuratDetail(int $id): void
@@ -376,8 +378,12 @@ new class extends \Livewire\Volt\Component {
         $this->dispatch('content-updated', content: $this->form_konten);
     }
 
-    public function saveSurat(bool $andPrint = false): void
+    public function saveSurat(bool $andPrint = false, ?string $konten = null): void
     {
+        if ($konten !== null) {
+            $this->form_konten = $konten;
+        }
+
         $user = auth()->user();
         if (! $user->canAccessLembaga($this->form_lembaga_id)) {
             $this->dispatch('toast', message: 'Akses ditolak untuk lembaga ini.', type: 'error');
@@ -498,6 +504,7 @@ new class extends \Livewire\Volt\Component {
             $this->template_lembaga_id = ! empty($allowed) ? (int) $allowed[0] : 1;
         }
         $this->showTemplateModal = true;
+        $this->dispatch('template-content-updated', content: '');
     }
 
     public function editTemplate(int $id): void
@@ -518,10 +525,15 @@ new class extends \Livewire\Volt\Component {
         $this->template_is_active = $tmpl->is_active;
 
         $this->showTemplateModal = true;
+        $this->dispatch('template-content-updated', content: $this->template_konten);
     }
 
-    public function saveTemplate(): void
+    public function saveTemplate(?string $konten = null): void
     {
+        if ($konten !== null) {
+            $this->template_konten = $konten;
+        }
+
         $this->validate([
             'template_nama'       => 'required|string|max:255',
             'template_kode_surat' => 'required|string',
@@ -836,12 +848,16 @@ x-init="
         window.open(event.detail.url, '_blank');
     });
     window.addEventListener('content-updated', event => {
-        const editor = document.getElementById('wysiwyg-editor');
-        if (editor) editor.innerHTML = event.detail.content;
+        setTimeout(() => {
+            const editor = document.getElementById('wysiwyg-editor');
+            if (editor && event.detail?.content !== undefined) editor.innerHTML = event.detail.content;
+        }, 50);
     });
     window.addEventListener('template-content-updated', event => {
-        const editor = document.getElementById('wysiwyg-template-editor');
-        if (editor) editor.innerHTML = event.detail.content;
+        setTimeout(() => {
+            const editor = document.getElementById('wysiwyg-template-editor');
+            if (editor && event.detail?.content !== undefined) editor.innerHTML = event.detail.content;
+        }, 50);
     });
 ">
 
@@ -925,7 +941,7 @@ x-init="
         <div class="flex items-center gap-2 flex-wrap">
             <button type="button" 
                     wire:click="openCreateSurat('template')"
-                    class="btn-logo-gradient inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all">
+                    class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md hover:shadow-lg transition-all">
                 <i class="bi bi-file-earmark-plus-fill text-sm"></i>
                 <span>Buat Surat (Template)</span>
             </button>
@@ -1547,58 +1563,60 @@ x-init="
                                     <i class="bi bi-tag-fill text-[9px]"></i> Klik Tag di Bawah untuk Memasukkan ke Kursor Editor:
                                 </div>
                                 <div class="flex flex-wrap gap-1.5">
-                                    <button type="button" @click="insertTag('{nama}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-colors">{nama}</button>
-                                    <button type="button" @click="insertTag('{nik}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-colors">{nik}</button>
-                                    <button type="button" @click="insertTag('{ttl}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-colors">{ttl}</button>
-                                    <button type="button" @click="insertTag('{tempat_lahir}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-colors">{tempat_lahir}</button>
-                                    <button type="button" @click="insertTag('{tanggal_lahir}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-colors">{tanggal_lahir}</button>
-                                    <button type="button" @click="insertTag('{alamat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-colors">{alamat}</button>
-                                    <button type="button" @click="insertTag('{nisn}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-colors">{nisn}</button>
-                                    <button type="button" @click="insertTag('{nis}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-colors">{nis}</button>
-                                    <button type="button" @click="insertTag('{rombel}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-colors">{rombel}</button>
-                                    <button type="button" @click="insertTag('{niy}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors">{niy}</button>
-                                    <button type="button" @click="insertTag('{nuptk}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors">{nuptk}</button>
-                                    <button type="button" @click="insertTag('{jabatan}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors">{jabatan}</button>
-                                    <button type="button" @click="insertTag('{nomor_surat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30 hover:bg-violet-500/20 transition-colors">{nomor_surat}</button>
-                                    <button type="button" @click="insertTag('{tanggal_surat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30 hover:bg-violet-500/20 transition-colors">{tanggal_surat}</button>
-                                    <button type="button" @click="insertTag('{lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30 hover:bg-violet-500/20 transition-colors">{lembaga}</button>
-                                    <button type="button" @click="insertTag('{kepala_lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition-colors">{kepala_lembaga}</button>
-                                    <button type="button" @click="insertTag('{nip_kepala}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition-colors">{nip_kepala}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{nama}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-colors">{nama}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{nik}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-colors">{nik}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{ttl}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-colors">{ttl}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{tempat_lahir}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-colors">{tempat_lahir}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{tanggal_lahir}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-colors">{tanggal_lahir}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{alamat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 transition-colors">{alamat}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{nisn}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-colors">{nisn}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{nis}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-colors">{nis}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{rombel}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-colors">{rombel}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{niy}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors">{niy}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{nuptk}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors">{nuptk}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{jabatan}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors">{jabatan}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{nomor_surat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30 hover:bg-violet-500/20 transition-colors">{nomor_surat}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{tanggal_surat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30 hover:bg-violet-500/20 transition-colors">{tanggal_surat}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30 hover:bg-violet-500/20 transition-colors">{lembaga}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{kepala_lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition-colors">{kepala_lembaga}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{nip_kepala}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition-colors">{nip_kepala}</button>
                                 </div>
                             </div>
 
                             {{-- WYSIWYG TOOLBAR --}}
                             <div class="rounded-2xl border border-slate-300 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800">
                                 <div class="p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex flex-wrap items-center gap-1 text-xs">
-                                    <button type="button" @click="formatDoc('bold')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 font-bold" title="Tebal"><i class="bi bi-type-bold"></i></button>
-                                    <button type="button" @click="formatDoc('italic')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 italic" title="Miring"><i class="bi bi-type-italic"></i></button>
-                                    <button type="button" @click="formatDoc('underline')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 underline" title="Garis Bawah"><i class="bi bi-type-underline"></i></button>
-                                    <button type="button" @click="formatDoc('strikeThrough')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 line-through" title="Coret"><i class="bi bi-type-strikethrough"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('bold')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 font-bold" title="Tebal"><i class="bi bi-type-bold"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('italic')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 italic" title="Miring"><i class="bi bi-type-italic"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('underline')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 underline" title="Garis Bawah"><i class="bi bi-type-underline"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('strikeThrough')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 line-through" title="Coret"><i class="bi bi-type-strikethrough"></i></button>
                                     
                                     <span class="w-[1px] h-4 bg-slate-300 dark:bg-slate-600 mx-1"></span>
 
-                                    <button type="button" @click="formatDoc('justifyLeft')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Rata Kiri"><i class="bi bi-text-left"></i></button>
-                                    <button type="button" @click="formatDoc('justifyCenter')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Rata Tengah"><i class="bi bi-text-center"></i></button>
-                                    <button type="button" @click="formatDoc('justifyRight')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Rata Kanan"><i class="bi bi-text-right"></i></button>
-                                    <button type="button" @click="formatDoc('justifyFull')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Rata Kiri-Kanan"><i class="bi bi-justify"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('justifyLeft')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Rata Kiri"><i class="bi bi-text-left"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('justifyCenter')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Rata Tengah"><i class="bi bi-text-center"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('justifyRight')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Rata Kanan"><i class="bi bi-text-right"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('justifyFull')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Rata Kiri-Kanan"><i class="bi bi-justify"></i></button>
 
                                     <span class="w-[1px] h-4 bg-slate-300 dark:bg-slate-600 mx-1"></span>
 
-                                    <button type="button" @click="formatDoc('insertUnorderedList')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Daftar Bullet"><i class="bi bi-list-ul"></i></button>
-                                    <button type="button" @click="formatDoc('insertOrderedList')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Daftar Angka"><i class="bi bi-list-ol"></i></button>
-                                    <button type="button" @click="formatDoc('insertHorizontalRule')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Garis Pemisah"><i class="bi bi-hr"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('insertUnorderedList')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Daftar Bullet"><i class="bi bi-list-ul"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('insertOrderedList')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Daftar Angka"><i class="bi bi-list-ol"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('insertHorizontalRule')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Garis Pemisah"><i class="bi bi-hr"></i></button>
 
                                     <span class="w-[1px] h-4 bg-slate-300 dark:bg-slate-600 mx-1"></span>
 
-                                    <button type="button" @click="formatDoc('undo')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
-                                    <button type="button" @click="formatDoc('redo')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
-                                    <button type="button" @click="formatDoc('removeFormat')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-rose-500" title="Hapus Format"><i class="bi bi-eraser"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('undo')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('redo')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button type="button" @mousedown.prevent @click="formatDoc('removeFormat')" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-rose-500" title="Hapus Format"><i class="bi bi-eraser"></i></button>
                                 </div>
 
                                 {{-- CONTENTEDITABLE VISUAL CANVAS --}}
                                 <div id="wysiwyg-editor" 
+                                     wire:ignore
                                      contenteditable="true" 
-                                     @input="$wire.set('form_konten', $el.innerHTML)"
+                                     @input.debounce.500ms="$wire.set('form_konten', $el.innerHTML)"
+                                     @blur="$wire.set('form_konten', $el.innerHTML)"
                                      class="p-5 min-h-[320px] max-h-[460px] overflow-y-auto text-sm leading-relaxed text-slate-800 dark:text-slate-100 font-serif focus:outline-none bg-white dark:bg-slate-900 border-none">
                                     {!! $form_konten !!}
                                 </div>
@@ -1673,7 +1691,7 @@ x-init="
                     <div class="flex items-center gap-2">
                         @if ($form_jenis_pembuatan === 'template')
                             <button type="button" 
-                                    wire:click="saveSurat(true)"
+                                    @click="$wire.saveSurat(true, document.getElementById('wysiwyg-editor')?.innerHTML)"
                                     wire:loading.attr="disabled"
                                     class="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs flex items-center gap-2 transition-all">
                                 <i class="bi bi-printer text-cyan-400"></i>
@@ -1682,7 +1700,7 @@ x-init="
                         @endif
 
                         <button type="button" 
-                                wire:click="saveSurat(false)"
+                                @click="$wire.saveSurat(false, '{{ $form_jenis_pembuatan }}' === 'template' ? document.getElementById('wysiwyg-editor')?.innerHTML : null)"
                                 wire:loading.attr="disabled"
                                 class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white font-bold text-xs shadow-md shadow-cyan-500/25 flex items-center gap-2 transition-all">
                             <i class="bi bi-check2-circle"></i>
@@ -1784,23 +1802,23 @@ x-init="
                             <i class="bi bi-tag-fill text-[9px]"></i> Klik Tag untuk Memasukkan ke Template:
                         </div>
                         <div class="flex flex-wrap gap-1.5">
-                            <button type="button" @click="insertTemplateTag('{nama}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500">{nama}</button>
-                            <button type="button" @click="insertTemplateTag('{nik}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500">{nik}</button>
-                            <button type="button" @click="insertTemplateTag('{ttl}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500">{ttl}</button>
-                            <button type="button" @click="insertTemplateTag('{tempat_lahir}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500">{tempat_lahir}</button>
-                            <button type="button" @click="insertTemplateTag('{tanggal_lahir}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500">{tanggal_lahir}</button>
-                            <button type="button" @click="insertTemplateTag('{alamat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500">{alamat}</button>
-                            <button type="button" @click="insertTemplateTag('{nisn}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30">{nisn}</button>
-                            <button type="button" @click="insertTemplateTag('{nis}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30">{nis}</button>
-                            <button type="button" @click="insertTemplateTag('{rombel}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30">{rombel}</button>
-                            <button type="button" @click="insertTemplateTag('{niy}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">{niy}</button>
-                            <button type="button" @click="insertTemplateTag('{nuptk}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">{nuptk}</button>
-                            <button type="button" @click="insertTemplateTag('{jabatan}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">{jabatan}</button>
-                            <button type="button" @click="insertTemplateTag('{nomor_surat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30">{nomor_surat}</button>
-                            <button type="button" @click="insertTemplateTag('{tanggal_surat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30">{tanggal_surat}</button>
-                            <button type="button" @click="insertTemplateTag('{lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30">{lembaga}</button>
-                            <button type="button" @click="insertTemplateTag('{kepala_lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30">{kepala_lembaga}</button>
-                            <button type="button" @click="insertTemplateTag('{nip_kepala}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30">{nip_kepala}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{nama}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500">{nama}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{nik}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500">{nik}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{ttl}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500">{ttl}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{tempat_lahir}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500">{tempat_lahir}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{tanggal_lahir}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500">{tanggal_lahir}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{alamat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-cyan-500">{alamat}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{nisn}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30">{nisn}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{nis}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30">{nis}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{rombel}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30">{rombel}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{niy}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">{niy}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{nuptk}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">{nuptk}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{jabatan}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">{jabatan}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{nomor_surat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30">{nomor_surat}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{tanggal_surat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30">{tanggal_surat}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30">{lembaga}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{kepala_lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30">{kepala_lembaga}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{nip_kepala}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30">{nip_kepala}</button>
                         </div>
                     </div>
 
@@ -1833,23 +1851,25 @@ x-init="
                     {{-- WYSIWYG TOOLBAR FOR TEMPLATE --}}
                     <div class="rounded-2xl border border-slate-300 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800">
                         <div class="p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex flex-wrap items-center gap-1 text-xs">
-                            <button type="button" @click="formatTemplateDoc('bold')" class="p-1.5 rounded hover:bg-slate-200 font-bold"><i class="bi bi-type-bold"></i></button>
-                            <button type="button" @click="formatTemplateDoc('italic')" class="p-1.5 rounded hover:bg-slate-200 italic"><i class="bi bi-type-italic"></i></button>
-                            <button type="button" @click="formatTemplateDoc('underline')" class="p-1.5 rounded hover:bg-slate-200 underline"><i class="bi bi-type-underline"></i></button>
+                            <button type="button" @mousedown.prevent @click="formatTemplateDoc('bold')" class="p-1.5 rounded hover:bg-slate-200 font-bold"><i class="bi bi-type-bold"></i></button>
+                            <button type="button" @mousedown.prevent @click="formatTemplateDoc('italic')" class="p-1.5 rounded hover:bg-slate-200 italic"><i class="bi bi-type-italic"></i></button>
+                            <button type="button" @mousedown.prevent @click="formatTemplateDoc('underline')" class="p-1.5 rounded hover:bg-slate-200 underline"><i class="bi bi-type-underline"></i></button>
                             <span class="w-[1px] h-4 bg-slate-300 mx-1"></span>
-                            <button type="button" @click="formatTemplateDoc('justifyLeft')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-text-left"></i></button>
-                            <button type="button" @click="formatTemplateDoc('justifyCenter')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-text-center"></i></button>
-                            <button type="button" @click="formatTemplateDoc('justifyRight')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-text-right"></i></button>
-                            <button type="button" @click="formatTemplateDoc('justifyFull')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-justify"></i></button>
+                            <button type="button" @mousedown.prevent @click="formatTemplateDoc('justifyLeft')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-text-left"></i></button>
+                            <button type="button" @mousedown.prevent @click="formatTemplateDoc('justifyCenter')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-text-center"></i></button>
+                            <button type="button" @mousedown.prevent @click="formatTemplateDoc('justifyRight')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-text-right"></i></button>
+                            <button type="button" @mousedown.prevent @click="formatTemplateDoc('justifyFull')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-justify"></i></button>
                             <span class="w-[1px] h-4 bg-slate-300 mx-1"></span>
-                            <button type="button" @click="formatTemplateDoc('insertUnorderedList')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-list-ul"></i></button>
-                            <button type="button" @click="formatTemplateDoc('insertOrderedList')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-list-ol"></i></button>
-                            <button type="button" @click="formatTemplateDoc('insertHorizontalRule')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-hr"></i></button>
+                            <button type="button" @mousedown.prevent @click="formatTemplateDoc('insertUnorderedList')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-list-ul"></i></button>
+                            <button type="button" @mousedown.prevent @click="formatTemplateDoc('insertOrderedList')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-list-ol"></i></button>
+                            <button type="button" @mousedown.prevent @click="formatTemplateDoc('insertHorizontalRule')" class="p-1.5 rounded hover:bg-slate-200"><i class="bi bi-hr"></i></button>
                         </div>
 
                         <div id="wysiwyg-template-editor" 
+                             wire:ignore
                              contenteditable="true" 
-                             @input="$wire.set('template_konten', $el.innerHTML)"
+                             @input.debounce.500ms="$wire.set('template_konten', $el.innerHTML)"
+                             @blur="$wire.set('template_konten', $el.innerHTML)"
                              class="p-5 min-h-[300px] max-h-[420px] overflow-y-auto text-sm leading-relaxed text-slate-800 dark:text-slate-100 font-serif focus:outline-none bg-white dark:bg-slate-900 border-none">
                             {!! $template_konten !!}
                         </div>
@@ -1866,7 +1886,8 @@ x-init="
                     </button>
 
                     <button type="button" 
-                            wire:click="saveTemplate" 
+                            @click="$wire.saveTemplate(document.getElementById('wysiwyg-template-editor')?.innerHTML)" 
+                            wire:loading.attr="disabled"
                             class="px-5 py-2.5 rounded-2xl bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xs shadow-md shadow-cyan-500/25 flex items-center gap-2">
                         <i class="bi bi-check2-circle"></i>
                         <span>Simpan Template</span>
