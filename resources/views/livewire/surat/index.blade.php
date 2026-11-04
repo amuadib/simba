@@ -47,6 +47,7 @@ new class extends \Livewire\Volt\Component {
     public ?string $form_target_id = null;
     public $form_file = null;
     public ?string $existing_file_path = null;
+    public bool $is_preselected_template = false;
 
     // Target Selection Helper
     public string $target_search = '';
@@ -181,6 +182,7 @@ new class extends \Livewire\Volt\Component {
     {
         $this->resetSuratForm();
         $this->form_jenis_pembuatan = $mode;
+        $this->is_preselected_template = ($templateId !== null);
 
         $user = auth()->user();
         $allowed = $user->getLembagaIds();
@@ -229,6 +231,7 @@ new class extends \Livewire\Volt\Component {
         $this->form_tujuan = $surat->tujuan ?? '';
         $this->form_keterangan = $surat->keterangan ?? '';
         $this->form_template_id = $surat->surat_template_id;
+        $this->is_preselected_template = !empty($surat->surat_template_id);
         $this->form_konten = $surat->konten ?? '';
         $this->form_target_type = $surat->target_type ?? 'umum';
         $this->form_target_id = $surat->target_id;
@@ -518,6 +521,7 @@ new class extends \Livewire\Volt\Component {
         $this->form_keterangan = '';
         $this->form_konten = '';
         $this->form_template_id = null;
+        $this->is_preselected_template = false;
         $this->form_file = null;
         $this->existing_file_path = null;
         $this->resetTarget();
@@ -1596,17 +1600,19 @@ x-init="
                                     <span>Konten Surat (Editor Visual & Tag Dinamis)</span>
                                 </label>
 
-                                {{-- Template Selector Dropdown --}}
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[11px] text-slate-400">Gunakan Master:</span>
-                                    <select wire:model.live="form_template_id" 
-                                            class="px-2.5 py-1 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-medium">
-                                        <option value="">-- Pilih Template --</option>
-                                        @foreach ($templates as $tmpl)
-                                            <option value="{{ $tmpl->id }}">{{ $tmpl->nama }} ({{ $tmpl->kode_surat }})</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                {{-- Template Selector Dropdown (Hanya tampil jika template belum dipilih di awal) --}}
+                                @if (! $is_preselected_template)
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[11px] text-slate-400">Gunakan Master:</span>
+                                        <select wire:model.live="form_template_id" 
+                                                class="px-2.5 py-1 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-medium">
+                                            <option value="">-- Pilih Template --</option>
+                                            @foreach ($templates as $tmpl)
+                                                <option value="{{ $tmpl->id }}">{{ $tmpl->nama }} ({{ $tmpl->kode_surat }})</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
                             </div>
 
                             {{-- TAG INSERTION PALETTE --}}
