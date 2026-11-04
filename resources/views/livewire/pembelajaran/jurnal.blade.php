@@ -4,6 +4,8 @@
 use App\Models\Jurnal;
 use App\Models\Pembelajaran;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
@@ -61,25 +63,73 @@ new class extends Component
 
     public function cancelSalin()
     {
+        $this->resetErrorBag();
         $this->reset(['mode', 'salinId', 'salinMateri', 'salinTanggal', 'pembelajaran_id']);
+    }
+
+    public function updatedPembelajaranId()
+    {
+        $this->cekTanggalDuplikat();
+    }
+
+    public function updatedSalinTanggal()
+    {
+        $this->cekTanggalDuplikat();
+    }
+
+    protected function cekTanggalDuplikat(): bool
+    {
+        $this->resetErrorBag('salinTanggal');
+
+        if (!empty($this->pembelajaran_id) && !empty($this->salinTanggal)) {
+            $exists = Jurnal::where('pembelajaran_id', $this->pembelajaran_id)
+                ->where('tanggal', $this->salinTanggal)
+                ->exists();
+
+            if ($exists) {
+                $targetPembelajaran = Pembelajaran::find($this->pembelajaran_id);
+                $label = $targetPembelajaran ? $targetPembelajaran->keterangan : 'pembelajaran tujuan';
+                $tglStr = Carbon::parse($this->salinTanggal)->isoFormat('D MMMM Y');
+                $this->addError('salinTanggal', "Jurnal tanggal {$tglStr} sudah ada pada {$label}. Silakan pilih tanggal lain.");
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function salin()
     {
         $this->validate([
-            'salinTanggal' => 'required|date',
-            'salinMateri' => 'required',
             'pembelajaran_id' => 'required',
+            'salinTanggal' => [
+                'required',
+                'date',
+                Rule::unique('jurnals', 'tanggal')->where(function ($query) {
+                    return $query->where('pembelajaran_id', $this->pembelajaran_id);
+                }),
+            ],
+            'salinMateri' => 'required',
+        ], [
+            'pembelajaran_id.required' => 'Pembelajaran tujuan wajib dipilih.',
+            'salinTanggal.required' => 'Tanggal jurnal wajib diisi.',
+            'salinTanggal.unique' => 'Jurnal pada tanggal tersebut sudah ada di pembelajaran tujuan. Silakan pilih tanggal lain.',
+            'salinMateri.required' => 'Materi pembelajaran wajib diisi.',
         ]);
 
-        Jurnal::create([
-            'pembelajaran_id' => $this->pembelajaran_id,
-            'tanggal' => $this->salinTanggal,
-            'materi' => $this->salinMateri,
-        ]);
+        try {
+            Jurnal::create([
+                'pembelajaran_id' => $this->pembelajaran_id,
+                'tanggal' => $this->salinTanggal,
+                'materi' => $this->salinMateri,
+            ]);
 
-        $this->reset(['mode', 'salinId', 'salinMateri', 'salinTanggal', 'pembelajaran_id']);
-        $this->dispatch('toast', message: 'Jurnal berhasil disalin', type: 'success');
+            $this->reset(['mode', 'salinId', 'salinMateri', 'salinTanggal', 'pembelajaran_id']);
+            $this->dispatch('toast', message: 'Jurnal berhasil disalin', type: 'success');
+        } catch (\Illuminate\Database\QueryException $e) {
+            $this->addError('salinTanggal', 'Gagal menyalin: jurnal pada tanggal ini sudah ada di pembelajaran tujuan.');
+            $this->dispatch('toast', message: 'Gagal menyalin: tanggal jurnal sudah ada.', type: 'warning');
+        }
     }
 
     public function with()
@@ -127,26 +177,44 @@ new class extends Component
                     <i class="bi bi-copy text-sky-500"></i>
                     <span>Salin Jurnal ke Pembelajaran Lain</span>
                 </h6>
-                <form wire:submit="salin" class="row g-2.5 items-center">
+                <form wire:submit="salin" class="row g-2.5 items-start">
                     <div class="col-md-3">
-                        <input type="date" wire:model="salinTanggal" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('salinTanggal') is-invalid @enderror" required>
-                        @error('salinTanggal') <div class="invalid-feedback text-xs">{{ $message }}</div> @enderror
+                        <label class="form-label text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tanggal Jurnal</label>
+                        <input type="date" wire:model.live="salinTanggal" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('salinTanggal') is-invalid border-rose-500 @enderror" required>
+                        @error('salinTanggal') 
+                            <div class="text-rose-500 dark:text-rose-400 text-[11px] font-medium mt-1 leading-tight flex items-center gap-1">
+                                <i class="bi bi-exclamation-circle-fill"></i>
+                                <span>{{ $message }}</span>
+                            </div> 
+                        @enderror
                     </div>
                     <div class="col-md-4">
-                        <input wire:model="salinMateri" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('salinMateri') is-invalid @enderror"
+                        <label class="form-label text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Materi Pembelajaran</label>
+                        <input wire:model="salinMateri" class="form-control rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('salinMateri') is-invalid border-rose-500 @enderror"
                             placeholder="Materi Pembelajaran" required>
-                        @error('salinMateri') <div class="invalid-feedback text-xs">{{ $message }}</div> @enderror
+                        @error('salinMateri') 
+                            <div class="text-rose-500 dark:text-rose-400 text-[11px] font-medium mt-1 leading-tight flex items-center gap-1">
+                                <i class="bi bi-exclamation-circle-fill"></i>
+                                <span>{{ $message }}</span>
+                            </div> 
+                        @enderror
                     </div>
                     <div class="col-md-3">
-                        <select wire:model="pembelajaran_id" class="form-select rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('pembelajaran_id') is-invalid @enderror" required>
+                        <label class="form-label text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Pembelajaran Tujuan</label>
+                        <select wire:model.live="pembelajaran_id" class="form-select rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs py-2 shadow-xs @error('pembelajaran_id') is-invalid border-rose-500 @enderror" required>
                             <option value="">Pilih Pembelajaran Tujuan</option>
                             @foreach ($pembelajaran_list as $p)
                                 <option value="{{ $p->id }}">{{ $p->keterangan }}</option>
                             @endforeach
                         </select>
-                        @error('pembelajaran_id') <div class="invalid-feedback text-xs">{{ $message }}</div> @enderror
+                        @error('pembelajaran_id') 
+                            <div class="text-rose-500 dark:text-rose-400 text-[11px] font-medium mt-1 leading-tight flex items-center gap-1">
+                                <i class="bi bi-exclamation-circle-fill"></i>
+                                <span>{{ $message }}</span>
+                            </div> 
+                        @enderror
                     </div>
-                    <div class="col-md-2 flex items-center gap-2">
+                    <div class="col-md-2 flex items-center gap-2 pt-4">
                         <button type="submit" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-md">
                             <i class="bi bi-copy text-sm"></i> Salin
                         </button>
