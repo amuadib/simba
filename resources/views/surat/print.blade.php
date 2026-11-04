@@ -109,8 +109,8 @@
         .stempel-image {
             position: absolute;
             left: 10px;
-            top: 25px;
-            width: 95px;
+            top: -5px;
+            width: 100px;
             opacity: 0.85;
             pointer-events: none;
             z-index: 1;
@@ -123,6 +123,7 @@
             z-index: 2;
         }
         .signature-space {
+            position:relative;
             height: 75px;
         }
 
@@ -245,8 +246,8 @@
         <div class="signature-section">
             <div class="signature-box">
                 <div>
-                    {{ $lembagaInfo['kota'] ?? 'Boyolali' }}, 
-                    {{ $surat->tanggal_surat ? $surat->tanggal_surat->isoFormat('D MMMM Y') : now()->isoFormat('D MMMM Y') }}
+                    {{ $lembagaInfo['kota'] ?? 'Blitar' }}, 
+                    {{ $surat->tanggal_surat ? $surat->tanggal_surat->isoFormat('DD MMMM Y') : now()->isoFormat('D MMMM Y') }}
                 </div>
                 <div style="font-weight: bold; margin-top: 2px;">
                     Kepala {{ $surat->nama_lembaga }}

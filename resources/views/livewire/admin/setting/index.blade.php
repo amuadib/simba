@@ -47,6 +47,33 @@ new class extends Component {
             $jamKerja = $lembaga['jam_kerja'] ?? [];
             $lembaga['jam_kerja_string'] = is_array($jamKerja) ? implode("\n", $jamKerja) : (string) $jamKerja;
 
+            $lembaga['jalan'] = $lembaga['jalan'] ?? '';
+            $lembaga['desa'] = $lembaga['desa'] ?? '';
+            $lembaga['kecamatan'] = $lembaga['kecamatan'] ?? '';
+            $lembaga['kota'] = $lembaga['kota'] ?? '';
+            $lembaga['propinsi'] = $lembaga['propinsi'] ?? '';
+
+            // Otomatis parsing jika jalan masih kosong dan ada alamat lama
+            if (empty($lembaga['jalan']) && !empty($lembaga['alamat'])) {
+                $alamatRaw = (string) $lembaga['alamat'];
+                if (str_contains($alamatRaw, 'Klemunan') && str_contains($alamatRaw, 'Wlingi') && str_contains($alamatRaw, 'Blitar')) {
+                    $lembaga['jalan'] = 'Jl. Manggar RT 02 RW 06 Lingk. Jatikeplek';
+                    $lembaga['desa'] = 'Klemunan';
+                    $lembaga['kecamatan'] = 'Wlingi';
+                    $lembaga['kota'] = 'Blitar';
+                    $lembaga['propinsi'] = 'Jawa Timur';
+                } elseif (str_contains($alamatRaw, ',')) {
+                    $parts = array_pad(array_map('trim', explode(',', $alamatRaw, 5)), 5, '');
+                    $lembaga['jalan'] = $parts[0] ?? '';
+                    $lembaga['desa'] = $parts[1] ?? '';
+                    $lembaga['kecamatan'] = $parts[2] ?? '';
+                    $lembaga['kota'] = $parts[3] ?? '';
+                    $lembaga['propinsi'] = $parts[4] ?? '';
+                } else {
+                    $lembaga['jalan'] = $alamatRaw;
+                }
+            }
+
             $lembaga['email'] = $lembaga['email'] ?? '';
             $lembaga['npsn'] = $lembaga['npsn'] ?? '';
             $lembaga['nomor_statistik'] = $lembaga['nomor_statistik'] ?? $lembaga['nsm'] ?? $lembaga['nss'] ?? '';
@@ -76,6 +103,11 @@ new class extends Component {
             'akreditasi' => '',
             'website' => '',
             'alamat' => '',
+            'jalan' => '',
+            'desa' => '',
+            'kecamatan' => '',
+            'kota' => '',
+            'propinsi' => '',
             'kontak' => '',
             'kepala' => '',
             'nip_kepala' => '',
@@ -205,6 +237,23 @@ new class extends Component {
                 $lembaga['jam_kerja'] = array_values(array_filter($jam_kerja, fn ($val) => $val !== ''));
                 unset($lembaga['jam_kerja_string']);
             }
+
+            // Gabungkan bagian-bagian alamat menjadi string alamat lengkap untuk kompatibilitas
+            $alamatParts = array_filter([
+                $lembaga['jalan'] ?? '',
+                $lembaga['desa'] ?? '',
+                $lembaga['kecamatan'] ?? '',
+                $lembaga['kota'] ?? '',
+                $lembaga['propinsi'] ?? '',
+            ], fn ($val) => trim((string) $val) !== '');
+            $lembaga['alamat'] = implode(', ', $alamatParts);
+        }
+
+        // Sinkronkan alamat yang digabung ke state lokal
+        foreach ($payloadToSave as $id => $item) {
+            if (isset($this->lembaga_items[$id])) {
+                $this->lembaga_items[$id]['alamat'] = $item['alamat'];
+            }
         }
 
         // Simpan konfigurasi lembaga
@@ -212,8 +261,8 @@ new class extends Component {
 
         // Backward compatibility dengan kolom lama di SIMBA
         Setting::setValue('nama_aplikasi', $this->app_nama);
-        if (!empty($this->lembaga_items)) {
-            $firstLembaga = reset($this->lembaga_items);
+        if (!empty($payloadToSave)) {
+            $firstLembaga = reset($payloadToSave);
             if (!empty($firstLembaga['nama'])) {
                 Setting::setValue('nama_lembaga', $firstLembaga['nama']);
             }
@@ -289,8 +338,20 @@ new class extends Component {
             return "https://maps.google.com/maps?q={$lat},{$lon}&hl=id&z=16&output=embed";
         }
 
-        if (!empty($lembaga['alamat'])) {
-            return "https://maps.google.com/maps?q=" . urlencode($lembaga['alamat']) . "&hl=id&z=15&output=embed";
+        $alamat = $lembaga['alamat'] ?? '';
+        if (empty($alamat)) {
+            $alamatParts = array_filter([
+                $lembaga['jalan'] ?? '',
+                $lembaga['desa'] ?? '',
+                $lembaga['kecamatan'] ?? '',
+                $lembaga['kota'] ?? '',
+                $lembaga['propinsi'] ?? '',
+            ], fn ($val) => trim((string) $val) !== '');
+            $alamat = implode(', ', $alamatParts);
+        }
+
+        if (!empty($alamat)) {
+            return "https://maps.google.com/maps?q=" . urlencode($alamat) . "&hl=id&z=15&output=embed";
         }
 
         return null;
@@ -637,7 +698,7 @@ new class extends Component {
                                 </div>
                             </div>
 
-                            <div class="col-12 col-md-6">
+                            <div class="col-12">
                                 <label class="form-label fw-semibold">Jam Kerja (1 baris per jadwal)</label>
                                 <textarea wire:model="lembaga_items.{{ $id }}.jam_kerja_string"
                                           rows="3"
@@ -645,12 +706,44 @@ new class extends Component {
                                           placeholder="Senin - Sabtu: 07:00 - 13:30&#10;Jum'at: 07:00 - 10:00&#10;Ahad Libur"></textarea>
                             </div>
 
-                            <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold">Alamat Lengkap</label>
-                                <textarea wire:model="lembaga_items.{{ $id }}.alamat"
-                                          rows="3"
-                                          class="form-control"
-                                          placeholder="Jl. Manggar RT 02 RW 06 Klemunan..."></textarea>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Jalan</label>
+                                <input type="text"
+                                       wire:model="lembaga_items.{{ $id }}.jalan"
+                                       class="form-control"
+                                       placeholder="jalan / RT / RW">
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <label class="form-label fw-semibold">Desa / Kelurahan</label>
+                                <input type="text"
+                                       wire:model="lembaga_items.{{ $id }}.desa"
+                                       class="form-control"
+                                       placeholder="Desa / Kelurahan">
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <label class="form-label fw-semibold">Kecamatan</label>
+                                <input type="text"
+                                       wire:model="lembaga_items.{{ $id }}.kecamatan"
+                                       class="form-control"
+                                       placeholder="Kecamatan">
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <label class="form-label fw-semibold">Kota / Kabupaten</label>
+                                <input type="text"
+                                       wire:model="lembaga_items.{{ $id }}.kota"
+                                       class="form-control"
+                                       placeholder="Kota / Kabupaten">
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <label class="form-label fw-semibold">Propinsi</label>
+                                <input type="text"
+                                       wire:model="lembaga_items.{{ $id }}.propinsi"
+                                       class="form-control"
+                                       placeholder="Propinsi">
                             </div>
 
                             {{-- BAGIAN LOKASI & GOOGLE MAPS --}}

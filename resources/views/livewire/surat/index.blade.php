@@ -260,14 +260,19 @@ new class extends \Livewire\Volt\Component {
 
     public function selectTargetSiswa($siswaId): void
     {
-        $siswa = Siswa::with('rombel')->find($siswaId);
+        $siswa = Siswa::with(['rombel', 'keanggotaanLembaga.rombel'])->find($siswaId);
         if (! $siswa) {
             return;
         }
 
         $this->form_target_type = 'siswa';
         $this->form_target_id = (string) $siswa->id;
-        $this->selected_target_name = $siswa->nama . ' (NISN: ' . ($siswa->nisn ?: '-') . ')';
+
+        $member = $siswa->keanggotaanLembaga->firstWhere('lembaga_id', (int) $this->form_lembaga_id);
+        $nis = ($member && !empty($member->nis_lokal)) ? $member->nis_lokal : ($siswa->nis ?: '-');
+        $labelLembaga = ($member && !$member->is_induk) ? ' [' . nama_lembaga($this->form_lembaga_id, true) . ']' : '';
+
+        $this->selected_target_name = $siswa->nama . $labelLembaga . ' (NIS: ' . $nis . ' / NISN: ' . ($siswa->nisn ?: '-') . ')';
         $this->target_search = '';
 
         if (empty($this->form_tujuan)) {
@@ -336,6 +341,11 @@ new class extends \Livewire\Volt\Component {
             'tanggal_surat'   => $formatDate($this->form_tanggal_surat),
             'lembaga'         => nama_lembaga($this->form_lembaga_id),
             'alamat_lembaga'  => $lembagaInfo['alamat'] ?? '',
+            'jalan_lembaga'   => $lembagaInfo['jalan'] ?? '',
+            'desa_lembaga'    => $lembagaInfo['desa'] ?? '',
+            'kecamatan_lembaga' => $lembagaInfo['kecamatan'] ?? '',
+            'kota_lembaga'    => $lembagaInfo['kota'] ?? '',
+            'propinsi_lembaga' => $lembagaInfo['propinsi'] ?? '',
             'kontak_lembaga'  => $lembagaInfo['kontak'] ?? '',
             'email_lembaga'   => $lembagaInfo['email'] ?? '',
             'kepala_lembaga'  => $lembagaInfo['kepala'] ?? kepala_lembaga($this->form_lembaga_id),
@@ -345,18 +355,22 @@ new class extends \Livewire\Volt\Component {
         ];
 
         if ($this->form_target_type === 'siswa' && $this->form_target_id) {
-            $siswa = Siswa::with('rombel')->find($this->form_target_id);
+            $siswa = Siswa::with(['rombel', 'keanggotaanLembaga.rombel'])->find($this->form_target_id);
             if ($siswa) {
+                $member = $siswa->keanggotaanLembaga->firstWhere('lembaga_id', (int) $this->form_lembaga_id);
+                $rombelNama = ($member && $member->rombel) ? $member->rombel->nama : ($siswa->rombel ? $siswa->rombel->nama : '-');
+                $nisLokal = ($member && !empty($member->nis_lokal)) ? $member->nis_lokal : ($siswa->nis ?? '-');
+
                 $tglLahirStr = $formatDate($siswa->tanggal_lahir);
                 $tags['nama']          = $siswa->nama;
                 $tags['nik']           = $siswa->nik ?? '-';
                 $tags['nisn']          = $siswa->nisn ?? '-';
-                $tags['nis']           = $siswa->nis ?? '-';
+                $tags['nis']           = $nisLokal;
                 $tags['tempat_lahir']  = $siswa->tempat_lahir ?? '-';
                 $tags['tanggal_lahir'] = $tglLahirStr;
                 $tags['ttl']           = ($siswa->tempat_lahir ? $siswa->tempat_lahir . ', ' : '') . ($tglLahirStr !== '-' ? $tglLahirStr : '');
                 $tags['alamat']        = $siswa->alamat ?? '-';
-                $tags['rombel']        = $siswa->rombel ? $siswa->rombel->nama : '-';
+                $tags['rombel']        = $rombelNama;
             }
         } elseif ($this->form_target_type === 'pegawai' && $this->form_target_id) {
             $pegawai = Pegawai::with('skPenugasan')->find($this->form_target_id);
@@ -776,13 +790,21 @@ new class extends \Livewire\Volt\Component {
             $search = $this->target_search;
             if ($this->form_target_type === 'siswa') {
                 $targetResults = Siswa::query()
-                    ->where('lembaga_id', $this->form_lembaga_id)
+                    ->with(['rombel', 'keanggotaanLembaga.rombel'])
+                    ->where(function ($q) {
+                        $q->where('lembaga_id', (int) $this->form_lembaga_id)
+                          ->orWhereHas('keanggotaanLembaga', fn($k) => $k->where('lembaga_id', (int) $this->form_lembaga_id));
+                    })
                     ->where(function ($q) use ($search) {
                         $q->where('nama', 'like', "%{$search}%")
                           ->orWhere('nisn', 'like', "%{$search}%")
-                          ->orWhere('nis', 'like', "%{$search}%");
+                          ->orWhere('nis', 'like', "%{$search}%")
+                          ->orWhereHas('keanggotaanLembaga', function ($k) use ($search) {
+                              $k->where('lembaga_id', (int) $this->form_lembaga_id)
+                                ->where('nis_lokal', 'like', "%{$search}%");
+                          });
                     })
-                    ->limit(8)
+                    ->limit(10)
                     ->get();
             } elseif ($this->form_target_type === 'pegawai') {
                 $targetResults = Pegawai::query()
@@ -1509,11 +1531,24 @@ x-init="
                                         <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 divide-y divide-slate-100 dark:divide-slate-700 shadow-lg max-h-48 overflow-y-auto">
                                             @foreach ($targetResults as $item)
                                                 @if ($form_target_type === 'siswa')
+                                                    @php
+                                                        $member = $item->keanggotaanLembaga?->firstWhere('lembaga_id', (int) $form_lembaga_id);
+                                                        $kelasNama = $member?->rombel?->nama ?: ($item->rombel?->nama ?: '-');
+                                                        $nisLokal = $member?->nis_lokal ?: ($item->nis ?: '-');
+                                                        $isLembagaKedua = $member && !$member->is_induk;
+                                                    @endphp
                                                     <div wire:click="selectTargetSiswa('{{ $item->id }}')" 
                                                          class="p-2.5 hover:bg-cyan-500/10 cursor-pointer flex items-center justify-between transition-colors">
                                                         <div>
-                                                            <div class="font-bold text-xs text-slate-800 dark:text-slate-100">{{ $item->nama }}</div>
-                                                            <div class="text-[10px] text-slate-400">NISN: {{ $item->nisn ?: '-' }} • NIK: {{ $item->nik ?: '-' }} • Kelas: {{ $item->rombel?->nama ?: '-' }}</div>
+                                                            <div class="font-bold text-xs text-slate-800 dark:text-slate-100 flex items-center gap-1.5 flex-wrap">
+                                                                <span>{{ $item->nama }}</span>
+                                                                @if ($isLembagaKedua)
+                                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                                                        Keanggotaan {{ nama_lembaga($form_lembaga_id, true) }}
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                            <div class="text-[10px] text-slate-400">NISN: {{ $item->nisn ?: '-' }} • NIS: {{ $nisLokal }} • Kelas: {{ $kelasNama }} • NIK: {{ $item->nik ?: '-' }}</div>
                                                         </div>
                                                         <span class="text-xs text-cyan-600 dark:text-cyan-400 font-semibold">Pilih</span>
                                                     </div>
