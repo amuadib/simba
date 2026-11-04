@@ -320,6 +320,23 @@ new class extends \Livewire\Volt\Component {
         $items = \App\Models\Setting::getValue('lembaga') ?? config('local.lembaga') ?? [];
         $lembagaInfo = $items[$this->form_lembaga_id] ?? [];
 
+        // Gabungkan komponen alamat lembaga: jalan + desa + kecamatan + kota + propinsi
+        $alamatParts = array_filter([
+            trim((string) ($lembagaInfo['jalan'] ?? '')),
+            trim((string) ($lembagaInfo['desa'] ?? '')),
+            trim((string) ($lembagaInfo['kecamatan'] ?? '')),
+            trim((string) ($lembagaInfo['kota'] ?? '')),
+            trim((string) ($lembagaInfo['propinsi'] ?? '')),
+        ], fn ($val) => $val !== '');
+
+        if (!empty($alamatParts)) {
+            $alamatLembaga = implode(', ', $alamatParts);
+        } else {
+            // Fallback ke alamat lengkap legacy jika ada, atau tanda hubung jika kosong
+            $legacyAlamat = trim((string) ($lembagaInfo['alamat'] ?? ''));
+            $alamatLembaga = !empty($legacyAlamat) ? $legacyAlamat : '-';
+        }
+
         $formatDate = function ($dateVal) {
             if (empty($dateVal)) {
                 return '-';
@@ -340,7 +357,7 @@ new class extends \Livewire\Volt\Component {
             'tujuan'          => $this->form_tujuan,
             'tanggal_surat'   => $formatDate($this->form_tanggal_surat),
             'lembaga'         => nama_lembaga($this->form_lembaga_id),
-            'alamat_lembaga'  => $lembagaInfo['alamat'] ?? '',
+            'alamat_lembaga'  => $alamatLembaga,
             'jalan_lembaga'   => $lembagaInfo['jalan'] ?? '',
             'desa_lembaga'    => $lembagaInfo['desa'] ?? '',
             'kecamatan_lembaga' => $lembagaInfo['kecamatan'] ?? '',
@@ -1613,6 +1630,7 @@ x-init="
                                     <button type="button" @mousedown.prevent @click="insertTag('{nomor_surat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30 hover:bg-violet-500/20 transition-colors">{nomor_surat}</button>
                                     <button type="button" @mousedown.prevent @click="insertTag('{tanggal_surat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30 hover:bg-violet-500/20 transition-colors">{tanggal_surat}</button>
                                     <button type="button" @mousedown.prevent @click="insertTag('{lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30 hover:bg-violet-500/20 transition-colors">{lembaga}</button>
+                                    <button type="button" @mousedown.prevent @click="insertTag('{alamat_lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30 hover:bg-violet-500/20 transition-colors">{alamat_lembaga}</button>
                                     <button type="button" @mousedown.prevent @click="insertTag('{kepala_lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition-colors">{kepala_lembaga}</button>
                                     <button type="button" @mousedown.prevent @click="insertTag('{nip_kepala}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition-colors">{nip_kepala}</button>
                                 </div>
@@ -1852,6 +1870,7 @@ x-init="
                             <button type="button" @mousedown.prevent @click="insertTemplateTag('{nomor_surat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30">{nomor_surat}</button>
                             <button type="button" @mousedown.prevent @click="insertTemplateTag('{tanggal_surat}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30">{tanggal_surat}</button>
                             <button type="button" @mousedown.prevent @click="insertTemplateTag('{lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30">{lembaga}</button>
+                            <button type="button" @mousedown.prevent @click="insertTemplateTag('{alamat_lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/30">{alamat_lembaga}</button>
                             <button type="button" @mousedown.prevent @click="insertTemplateTag('{kepala_lembaga}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30">{kepala_lembaga}</button>
                             <button type="button" @mousedown.prevent @click="insertTemplateTag('{nip_kepala}')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30">{nip_kepala}</button>
                         </div>

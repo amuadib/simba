@@ -223,7 +223,17 @@
                         <div class="kop-title">{{ config('local.lembaga.99.nama', 'YAYASAN PENDIDIKAN ISLAM BASTOMIYAH RAHMAN') }}</div>
                         <div class="kop-subtitle">{{ $lembagaInfo['nama'] ?? nama_lembaga($surat->lembaga_id) }}</div>
                         <div class="kop-address">
-                            {{ $lembagaInfo['alamat'] ?? '' }}
+                            @php
+                                $kopAlamatParts = array_filter([
+                                    trim((string) ($lembagaInfo['jalan'] ?? '')),
+                                    trim((string) ($lembagaInfo['desa'] ?? '')),
+                                    trim((string) ($lembagaInfo['kecamatan'] ?? '')),
+                                    trim((string) ($lembagaInfo['kota'] ?? '')),
+                                    trim((string) ($lembagaInfo['propinsi'] ?? '')),
+                                ], fn ($v) => $v !== '');
+                                $kopAlamat = !empty($kopAlamatParts) ? implode(', ', $kopAlamatParts) : ($lembagaInfo['alamat'] ?? '');
+                            @endphp
+                            {{ $kopAlamat }}
                             @if (!empty($lembagaInfo['kontak']))
                                 • Telp: {{ $lembagaInfo['kontak'] }}
                             @endif
