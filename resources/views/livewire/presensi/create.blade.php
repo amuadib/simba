@@ -473,14 +473,14 @@ new class extends Component {
                 @endphp
                 <div wire:key="student-row-{{ $s->id }}"
                      class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3 sm:p-3.5 shadow-xs hover:shadow-md transition">
-                    <div class="flex items-center justify-between gap-2.5 sm:gap-3">
-                        {{-- Left: Nomor & Info Siswa --}}
-                        <div class="flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-extrabold flex items-center justify-center text-xs sm:text-sm flex-shrink-0 font-display mt-0.5 sm:mt-0">
+                    {{-- Baris Atas: Nomor, Nama Siswa Lengkap & Tombol Catatan --}}
+                    <div class="flex items-start justify-between gap-2.5">
+                        <div class="flex items-start gap-2.5 min-w-0 flex-1">
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-extrabold flex items-center justify-center text-xs flex-shrink-0 font-display mt-0.5">
                                 {{ $idx + 1 }}
                             </div>
                             <div class="min-w-0 flex-1">
-                                <h5 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 m-0 font-display leading-snug break-words">
+                                <h5 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 m-0 font-display leading-snug">
                                     {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
                                 </h5>
                                 <div class="text-[11px] text-slate-400 font-medium flex items-center gap-2 mt-0.5">
@@ -488,50 +488,54 @@ new class extends Component {
                                     @if ($hasNote)
                                         <span class="text-amber-500 font-semibold flex items-center gap-1 cursor-pointer hover:underline" wire:click="toggleNote('{{ $s->id }}')">
                                             <i class="bi bi-chat-text-fill"></i>
-                                            <span class="truncate max-w-[120px]">{{ $keteranganMap[$s->id] }}</span>
+                                            <span class="truncate max-w-[130px]">{{ $keteranganMap[$s->id] }}</span>
                                         </span>
                                     @endif
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Right: Tombol Status [H] [I] [S] [A] Sesuai Gambar --}}
-                        <div class="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
-                            {{-- H --}}
-                            <button wire:click="setStatus('{{ $s->id }}', 'H')"
-                                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-black transition active:scale-95 {{ $currentStatus === 'H' ? 'bg-[#059669] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700' }}"
-                                    title="Tandai Hadir">
-                                H
-                            </button>
+                        {{-- Tombol Toggle Catatan --}}
+                        <button wire:click="toggleNote('{{ $s->id }}')"
+                                class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center text-xs transition flex-shrink-0"
+                                title="Tambah atau ubah catatan/alasan">
+                            <i class="bi {{ $hasNote || $isNoteOpen ? 'bi-chat-left-text-fill text-blue-500' : 'bi-chat-left' }}"></i>
+                        </button>
+                    </div>
 
-                            {{-- I --}}
-                            <button wire:click="setStatus('{{ $s->id }}', 'I')"
-                                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-black transition active:scale-95 {{ $currentStatus === 'I' ? 'bg-[#d97706] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700' }}"
-                                    title="Tandai Izin">
-                                I
-                            </button>
+                    {{-- Baris Bawah: Tombol Status [H] [I] [S] [A] Berjejer Rapi & Ramah Sentuhan --}}
+                    <div class="grid grid-cols-4 gap-1.5 mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800/80">
+                        {{-- H --}}
+                        <button wire:click="setStatus('{{ $s->id }}', 'H')"
+                                class="py-2 rounded-xl flex items-center justify-center gap-1 text-xs font-black transition active:scale-95 {{ $currentStatus === 'H' ? 'bg-[#059669] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700' }}"
+                                title="Tandai Hadir">
+                            <span>H</span>
+                            <span class="text-[10px] font-semibold hidden sm:inline">Hadir</span>
+                        </button>
 
-                            {{-- S --}}
-                            <button wire:click="setStatus('{{ $s->id }}', 'S')"
-                                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-black transition active:scale-95 {{ $currentStatus === 'S' ? 'bg-[#0284c7] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700' }}"
-                                    title="Tandai Sakit">
-                                S
-                            </button>
+                        {{-- I --}}
+                        <button wire:click="setStatus('{{ $s->id }}', 'I')"
+                                class="py-2 rounded-xl flex items-center justify-center gap-1 text-xs font-black transition active:scale-95 {{ $currentStatus === 'I' ? 'bg-[#d97706] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700' }}"
+                                title="Tandai Izin">
+                            <span>I</span>
+                            <span class="text-[10px] font-semibold hidden sm:inline">Izin</span>
+                        </button>
 
-                            {{-- A --}}
-                            <button wire:click="setStatus('{{ $s->id }}', 'A')"
-                                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-black transition active:scale-95 {{ $currentStatus === 'A' ? 'bg-[#e11d48] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700' }}"
-                                    title="Tandai Alpa">
-                                A
-                            </button>
+                        {{-- S --}}
+                        <button wire:click="setStatus('{{ $s->id }}', 'S')"
+                                class="py-2 rounded-xl flex items-center justify-center gap-1 text-xs font-black transition active:scale-95 {{ $currentStatus === 'S' ? 'bg-[#0284c7] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700' }}"
+                                title="Tandai Sakit">
+                            <span>S</span>
+                            <span class="text-[10px] font-semibold hidden sm:inline">Sakit</span>
+                        </button>
 
-                            {{-- Keterangan Toggle --}}
-                            <button wire:click="toggleNote('{{ $s->id }}')"
-                                    class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center text-xs ml-0.5 transition"
-                                    title="Tambah atau ubah catatan/alasan">
-                                <i class="bi {{ $hasNote || $isNoteOpen ? 'bi-chat-left-text-fill text-blue-500' : 'bi-chat-left' }}"></i>
-                            </button>
-                        </div>
+                        {{-- A --}}
+                        <button wire:click="setStatus('{{ $s->id }}', 'A')"
+                                class="py-2 rounded-xl flex items-center justify-center gap-1 text-xs font-black transition active:scale-95 {{ $currentStatus === 'A' ? 'bg-[#e11d48] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700' }}"
+                                title="Tandai Alpa">
+                            <span>A</span>
+                            <span class="text-[10px] font-semibold hidden sm:inline">Alpa</span>
+                        </button>
                     </div>
 
                     {{-- Collapsible Keterangan Input Box --}}

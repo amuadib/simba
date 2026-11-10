@@ -354,7 +354,7 @@ new class extends Component {
                                 {{ $idx + 1 }}
                             </div>
                             <div class="min-w-0 flex-1">
-                                <h5 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 m-0 font-display leading-tight truncate">
+                                <h5 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 m-0 font-display leading-snug">
                                     {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
                                 </h5>
                                 <div class="text-[11px] text-slate-400 font-normal mt-0.5 flex items-center gap-2">

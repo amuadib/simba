@@ -550,12 +550,12 @@ new class extends Component {
                 <div wire:key="mobile-rekap-{{ $r['id'] }}" x-data="{ open: false }" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 shadow-xs">
                     {{-- Header Kartu: No, Nama, NIS & % Kehadiran --}}
                     <div class="flex items-center justify-between gap-2.5 cursor-pointer" @click="open = !open">
-                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                            <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-extrabold flex items-center justify-center text-xs flex-shrink-0 font-display">
+                        <div class="flex items-start gap-2.5 min-w-0 flex-1">
+                            <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-extrabold flex items-center justify-center text-xs flex-shrink-0 font-display mt-0.5">
                                 {{ $loop->iteration }}
                             </div>
                             <div class="min-w-0 flex-1">
-                                <h5 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 m-0 font-display leading-tight truncate">
+                                <h5 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 m-0 font-display leading-snug">
                                     {!! $r['nama_processed'] !!}
                                 </h5>
                                 <div class="text-[11px] text-slate-400 font-mono mt-0.5">
