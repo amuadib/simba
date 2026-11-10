@@ -432,14 +432,15 @@ new class extends Component {
                             <th class="py-3 px-4" width="60">No</th>
                             <th class="py-3 px-4">
                                 <div class="d-flex align-items-center">
-                                    <span>Nama Siswa</span>
-                                    <button wire:click="toggleSort()" class="btn btn-xs rounded-lg px-2 py-0.5 ms-2 font-bold font-display {{ $sort == 'nama' ? 'btn-primary' : 'btn-success' }}" title="Ubah urutan (Nama Lengkap / Panggilan)">
+                                    <span>Nama&nbsp;</span>
+                                    <button wire:click="toggleSort()" class="btn-xs border-1 px-1 font-display {{ $sort == 'nama' ? 'text-blue-500' : 'text-green-700' }}" title="Ubah urutan (Nama Lengkap / Panggilan)">
                                         @if ($sort == 'nama')
-                                            Lengkap
+                                            LENGKAP
                                         @elseif ($sort == 'panggilan')
-                                            Panggilan
+                                            PANGGILAN
                                         @endif
                                     </button>
+                                    <span>&nbsp;Siswa</span>
                                 </div>
                             </th>
                             <th class="text-center py-3 px-4" width="180">Status Presensi</th>
