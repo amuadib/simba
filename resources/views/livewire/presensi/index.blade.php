@@ -534,8 +534,98 @@ new class extends Component {
             </div>
         </div>
 
-        {{-- MATRIX TABLE CARD --}}
-        <div class="glass-panel rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 shadow-sm overflow-hidden mb-4">
+        {{-- TAMPILAN MOBILE: KARTU REKAP PER SISWA (LAYAR < MD) --}}
+        <div class="block md:hidden space-y-3 mb-6 d-print-none">
+            <div class="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
+                <div>
+                    <span class="font-bold text-slate-700 dark:text-slate-200">{{ $selectedPembelajaran->keterangan ?? '-' }}</span>
+                    <div class="text-[11px] text-slate-400 mt-0.5">{{ Carbon::parse($bulan . '-01')->locale('id_ID')->isoFormat('MMMM YYYY') }} • {{ count($tglList) }} Hari</div>
+                </div>
+                <span class="badge bg-primary/10 text-primary border border-primary/20 rounded-xl px-2.5 py-1 font-bold">
+                    {{ $this->filteredRekap->count() }} Siswa
+                </span>
+            </div>
+
+            @forelse ($this->filteredRekap as $r)
+                <div wire:key="mobile-rekap-{{ $r['id'] }}" x-data="{ open: false }" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 shadow-xs">
+                    {{-- Header Kartu: No, Nama, NIS & % Kehadiran --}}
+                    <div class="flex items-center justify-between gap-2.5 cursor-pointer" @click="open = !open">
+                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-extrabold flex items-center justify-center text-xs flex-shrink-0 font-display">
+                                {{ $loop->iteration }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <h5 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 m-0 font-display leading-tight truncate">
+                                    {!! $r['nama_processed'] !!}
+                                </h5>
+                                <div class="text-[11px] text-slate-400 font-mono mt-0.5">
+                                    NIS: {{ $r['nis'] }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Persentase & Badge Ringkasan --}}
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <div class="text-right">
+                                <span class="badge {{ $r['pct'] >= 90 ? 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/30' : ($r['pct'] >= 75 ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30' : 'bg-rose-500/15 text-rose-600 border border-rose-500/30') }} rounded-lg py-1 px-2 font-mono font-bold text-xs">
+                                    {{ $r['pct'] }}%
+                                </span>
+                                <div class="text-[9px] text-slate-400 font-bold mt-0.5">
+                                    H:{{ $r['H'] }} I:{{ $r['I'] }} S:{{ $r['S'] }} A:{{ $r['A'] }}
+                                </div>
+                            </div>
+                            <i class="bi bi-chevron-down text-slate-400 transition-transform text-xs" :class="{ 'rotate-180': open }"></i>
+                        </div>
+                    </div>
+
+                    {{-- Expanded Rincian Kehadiran Harian --}}
+                    <div x-show="open" x-collapse class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between mb-1">
+                            <span><i class="bi bi-calendar3"></i> Kehadiran Harian:</span>
+                            <span class="text-[9px] text-slate-400 font-normal">Ketuk tanggal untuk ubah status</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-7 gap-1">
+                            @foreach ($tglList as $t)
+                                @php
+                                    $d = $t['date'];
+                                    $st = $r['tgl'][$d] ?? '-';
+                                    $bgBadge = $st === 'H' ? 'bg-emerald-500 text-white' : 
+                                              ($st === 'I' ? 'bg-sky-500 text-white' : 
+                                              ($st === 'S' ? 'bg-amber-500 text-white' : 
+                                              ($st === 'A' ? 'bg-rose-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400')));
+                                @endphp
+                                <button type="button"
+                                    x-data="{
+                                        cycle() {
+                                            const cycle = ['-', 'H', 'I', 'S', 'A'];
+                                            const cur = '{{ $st }}';
+                                            const next = cycle[(cycle.indexOf(cur) + 1) % cycle.length];
+                                            $wire.updateCell('{{ $r['id'] }}', '{{ $d }}', next);
+                                        }
+                                    }"
+                                    @click="cycle()"
+                                    class="p-1 rounded-xl text-center border border-slate-100 dark:border-slate-800/80 transition active:scale-90 flex flex-col items-center justify-center {{ $t['is_today'] ? 'ring-2 ring-cyan-500' : '' }}"
+                                    title="{{ Carbon::parse($d)->translatedFormat('d M Y') }}">
+                                    <span class="text-[9px] text-slate-400 uppercase font-mono">{{ $t['day'] }}</span>
+                                    <span class="w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black {{ $bgBadge }}">
+                                        {{ $st }}
+                                    </span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 text-center text-slate-400 text-xs">
+                    <i class="bi bi-search text-2xl d-block mb-1 text-slate-300"></i>
+                    Tidak ada data siswa yang cocok dengan filter.
+                </div>
+            @endforelse
+        </div>
+
+        {{-- MATRIX TABLE CARD (HANYA DESKTOP / TABLET: LAYAR >= MD) --}}
+        <div class="hidden md:block glass-panel rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 shadow-sm overflow-hidden mb-4">
             {{-- Header info bar --}}
             <div class="p-3 px-4 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200/90 dark:border-slate-700/60 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">

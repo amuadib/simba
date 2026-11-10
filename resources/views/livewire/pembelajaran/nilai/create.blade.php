@@ -338,118 +338,197 @@ new class extends Component {
 
     {{-- DAFTAR SISWA & PENILAIAN --}}
     <div class="glass-panel rounded-3xl p-4 md:p-6 mb-6 border border-slate-200/90 dark:border-cyan-500/20 shadow-xl">
-        {{-- Petunjuk Geser di Layar HP --}}
-        <div class="md:hidden text-[11px] text-slate-500 dark:text-slate-400 mb-2 flex items-center justify-between px-1">
-            <span class="flex items-center gap-1 font-medium">
-                <i class="bi bi-arrows-expand"></i> Geser tabel ke kanan untuk melihat nilai
-            </span>
-            <span class="text-[10px] text-slate-400">Total {{ $totalSiswa }} Siswa</span>
-        </div>
-
-        <div class="rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 shadow-sm overflow-hidden">
-            <div class="overflow-x-auto w-full">
-                <table class="table-hover mb-0 table align-middle" style="font-size: 0.85rem; min-width: 660px;">
-                <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
-                    <tr>
-                        <th class="py-3 px-4" width="60">No</th>
-                        <th class="py-3 px-4">
-                            <div class="d-flex align-items-center">
-                                <span>Nama Siswa</span>
-                                <button wire:click="toggleSort()" class="btn btn-xs rounded-lg px-2 py-0.5 ms-2 font-bold font-display {{ $sort == 'nama' ? 'btn-primary' : 'btn-success' }}" title="Ubah urutan (Nama Lengkap / Panggilan)">
-                                    @if ($sort == 'nama')
-                                        Lengkap
-                                    @elseif ($sort == 'panggilan')
-                                        Panggilan
-                                    @endif
-                                </button>
-                            </div>
-                        </th>
-                        <th class="text-center py-3 px-4" width="180">Status Presensi</th>
-                        <th class="text-center py-3 px-4" width="380">Nilai Siswa</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($anggota as $idx => $a)
-                        @php
-                            $s = $a->siswa;
-                            $curP = $presensiStatus[$s->id] ?? null;
-                            $curN = $inputNilai[$s->id] ?? '';
-                        @endphp
-                        <tr wire:key="row-nilai-{{ $s->id }}">
-                            <td class="px-4 text-center font-bold text-slate-400">
+        {{-- TAMPILAN MOBILE: KARTU SISWA & INPUT NILAI (LAYAR < MD) --}}
+        <div class="block md:hidden space-y-3">
+            @forelse ($anggota as $idx => $a)
+                @php
+                    $s = $a->siswa;
+                    $curP = $presensiStatus[$s->id] ?? null;
+                    $curN = $inputNilai[$s->id] ?? '';
+                @endphp
+                <div wire:key="mobile-input-nilai-{{ $s->id }}" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 shadow-xs">
+                    {{-- Header Kartu: No, Nama Siswa, Edit & Status Presensi --}}
+                    <div class="flex items-start justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-start gap-2.5 min-w-0 flex-1">
+                            <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-extrabold flex items-center justify-center text-xs flex-shrink-0 font-display mt-0.5">
                                 {{ $idx + 1 }}
-                            </td>
-                            <td class="px-4">
-                                <div class="font-semibold d-flex align-items-center justify-content-between pe-3 text-slate-800 dark:text-slate-100">
-                                    <div>
-                                        {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
-                                        <div class="text-[11px] text-slate-400 font-normal">
-                                            NIS: {{ $s->nis ?? $s->nisn ?? '-' }} ({{ $s->rombel->nama ?? '-' }})
-                                        </div>
-                                    </div>
-                                    <button wire:click="editDataSantri('{{ $s->id }}')" class="btn btn-sm btn-link text-amber-500 p-0" title="Edit Data Santri">
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <h5 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 m-0 font-display leading-tight truncate">
+                                    {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
+                                </h5>
+                                <div class="text-[11px] text-slate-400 font-normal mt-0.5 flex items-center gap-2">
+                                    <span>NIS: {{ $s->nis ?? $s->nisn ?? '-' }}</span>
+                                    <button wire:click="editDataSantri('{{ $s->id }}')" class="text-amber-500 hover:text-amber-600 p-0" title="Edit Data Santri">
                                         <i class="bi bi-pencil-square"></i>
                                     </button>
                                 </div>
-                            </td>
+                            </div>
+                        </div>
 
-                            {{-- STATUS PRESENSI (INFORMATIF, MEMISAHKAN PROSES INPUT) --}}
-                            <td class="px-4 text-center">
-                                @if ($curP === 'H')
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 shadow-2xs">
-                                        <i class="bi bi-check-circle-fill"></i> Hadir
-                                    </span>
-                                @elseif ($curP === 'I')
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-700 shadow-2xs">
-                                        <i class="bi bi-info-circle-fill"></i> Izin
-                                    </span>
-                                @elseif ($curP === 'S')
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-300 dark:border-sky-700 shadow-2xs">
-                                        <i class="bi bi-heart-pulse-fill"></i> Sakit
-                                    </span>
-                                @elseif ($curP === 'A')
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-700 shadow-2xs">
-                                        <i class="bi bi-x-circle-fill"></i> Alpa
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                                        <i class="bi bi-dash"></i> Belum Tercatat
-                                    </span>
-                                @endif
-                            </td>
+                        {{-- Badge Presensi --}}
+                        <div class="flex-shrink-0">
+                            @if ($curP === 'H')
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                                    <i class="bi bi-check-circle-fill"></i> Hadir
+                                </span>
+                            @elseif ($curP === 'I')
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                    <i class="bi bi-info-circle-fill"></i> Izin
+                                </span>
+                            @elseif ($curP === 'S')
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-300 dark:border-sky-700">
+                                    <i class="bi bi-heart-pulse-fill"></i> Sakit
+                                </span>
+                            @elseif ($curP === 'A')
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-700">
+                                    <i class="bi bi-x-circle-fill"></i> Alpa
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                    -
+                                </span>
+                            @endif
+                        </div>
+                    </div>
 
-                            {{-- NILAI INPUT & PRESETS --}}
-                            <td class="px-4">
-                                <div class="d-flex items-center justify-center gap-2">
-                                    <div class="btn-group rounded-xl overflow-hidden shadow-2xs">
-                                        @foreach ([70 => 'secondary', 80 => 'info', 85 => 'primary', 90 => 'success', 100 => 'warning'] as $n => $c)
-                                            <button wire:key="nilai-{{ $s->id }}-{{ $n }}"
-                                                wire:click="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', {{ $n }})"
-                                                class="btn btn-sm btn-outline-{{ $c }} {{ $curN == $n ? 'active font-black' : '' }}">
-                                                {{ $n }}
-                                            </button>
-                                        @endforeach
-                                    </div>
+                    {{-- Kontrol Nilai: Preset Nilai Cepat + Manual Input --}}
+                    <div class="pt-2.5 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-1 overflow-x-auto py-0.5 flex-1 scrollbar-none">
+                            @foreach ([70 => 'secondary', 80 => 'info', 85 => 'primary', 90 => 'success', 100 => 'warning'] as $n => $c)
+                                <button wire:key="mobile-btn-nilai-{{ $s->id }}-{{ $n }}"
+                                    wire:click="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', {{ $n }})"
+                                    class="px-2.5 py-1 rounded-xl text-xs font-bold transition active:scale-95 flex-shrink-0 {{ $curN == $n ? 'bg-cyan-500 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700' }}">
+                                    {{ $n }}
+                                </button>
+                            @endforeach
+                        </div>
 
-                                    <input type="number"
-                                        wire:model.blur="inputNilai.{{ $s->id }}"
-                                        wire:change="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', $event.target.value)"
-                                        class="form-control form-control-sm rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-extrabold text-center text-xs py-1.5 shadow-2xs"
-                                        style="width: 75px"
-                                        placeholder="0-100">
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
+                        {{-- Manual Input Box --}}
+                        <div class="flex-shrink-0 w-20">
+                            <input type="number"
+                                wire:model.blur="inputNilai.{{ $s->id }}"
+                                wire:change="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', $event.target.value)"
+                                class="form-control rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-black text-center text-xs py-1.5 shadow-2xs"
+                                placeholder="0-100">
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 text-center text-slate-400 text-xs">
+                    <i class="bi bi-person-x text-2xl d-block mb-1 text-slate-300"></i>
+                    Tidak ada data siswa yang cocok dengan kriteria.
+                </div>
+            @endforelse
+        </div>
+
+        {{-- TAMPILAN DESKTOP/TABLET: TABEL LENGKAP (LAYAR >= MD) --}}
+        <div class="hidden md:block">
+            <div class="rounded-2xl border border-slate-200/90 dark:border-cyan-500/20 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto w-full">
+                    <table class="table-hover mb-0 table align-middle" style="font-size: 0.85rem; min-width: 660px;">
+                    <thead class="bg-slate-100/90 dark:bg-slate-800/90 font-display text-xs text-slate-700 dark:text-slate-300">
                         <tr>
-                            <td colspan="4" class="text-center text-slate-400 py-8">
-                                <i class="bi bi-person-x text-2xl d-block mb-1 text-slate-300"></i>
-                                Tidak ada data siswa yang cocok dengan kriteria.
-                            </td>
+                            <th class="py-3 px-4" width="60">No</th>
+                            <th class="py-3 px-4">
+                                <div class="d-flex align-items-center">
+                                    <span>Nama Siswa</span>
+                                    <button wire:click="toggleSort()" class="btn btn-xs rounded-lg px-2 py-0.5 ms-2 font-bold font-display {{ $sort == 'nama' ? 'btn-primary' : 'btn-success' }}" title="Ubah urutan (Nama Lengkap / Panggilan)">
+                                        @if ($sort == 'nama')
+                                            Lengkap
+                                        @elseif ($sort == 'panggilan')
+                                            Panggilan
+                                        @endif
+                                    </button>
+                                </div>
+                            </th>
+                            <th class="text-center py-3 px-4" width="180">Status Presensi</th>
+                            <th class="text-center py-3 px-4" width="380">Nilai Siswa</th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse ($anggota as $idx => $a)
+                            @php
+                                $s = $a->siswa;
+                                $curP = $presensiStatus[$s->id] ?? null;
+                                $curN = $inputNilai[$s->id] ?? '';
+                            @endphp
+                            <tr wire:key="row-nilai-{{ $s->id }}">
+                                <td class="px-4 text-center font-bold text-slate-400">
+                                    {{ $idx + 1 }}
+                                </td>
+                                <td class="px-4">
+                                    <div class="font-semibold d-flex align-items-center justify-content-between pe-3 text-slate-800 dark:text-slate-100">
+                                        <div>
+                                            {!! setNama($s->nama, $s->panggilan, $s->jenis_kelamin) !!}
+                                            <div class="text-[11px] text-slate-400 font-normal">
+                                                NIS: {{ $s->nis ?? $s->nisn ?? '-' }} ({{ $s->rombel->nama ?? '-' }})
+                                            </div>
+                                        </div>
+                                        <button wire:click="editDataSantri('{{ $s->id }}')" class="btn btn-sm btn-link text-amber-500 p-0" title="Edit Data Santri">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                    </div>
+                                </td>
+
+                                {{-- STATUS PRESENSI (INFORMATIF, MEMISAHKAN PROSES INPUT) --}}
+                                <td class="px-4 text-center">
+                                    @if ($curP === 'H')
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 shadow-2xs">
+                                            <i class="bi bi-check-circle-fill"></i> Hadir
+                                        </span>
+                                    @elseif ($curP === 'I')
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-700 shadow-2xs">
+                                            <i class="bi bi-info-circle-fill"></i> Izin
+                                        </span>
+                                    @elseif ($curP === 'S')
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-300 dark:border-sky-700 shadow-2xs">
+                                            <i class="bi bi-heart-pulse-fill"></i> Sakit
+                                        </span>
+                                    @elseif ($curP === 'A')
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-700 shadow-2xs">
+                                            <i class="bi bi-x-circle-fill"></i> Alpa
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                            <i class="bi bi-dash"></i> Belum Tercatat
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- NILAI INPUT & PRESETS --}}
+                                <td class="px-4">
+                                    <div class="d-flex items-center justify-center gap-2">
+                                        <div class="btn-group rounded-xl overflow-hidden shadow-2xs">
+                                            @foreach ([70 => 'secondary', 80 => 'info', 85 => 'primary', 90 => 'success', 100 => 'warning'] as $n => $c)
+                                                <button wire:key="nilai-{{ $s->id }}-{{ $n }}"
+                                                    wire:click="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', {{ $n }})"
+                                                    class="btn btn-sm btn-outline-{{ $c }} {{ $curN == $n ? 'active font-black' : '' }}">
+                                                    {{ $n }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+
+                                        <input type="number"
+                                            wire:model.blur="inputNilai.{{ $s->id }}"
+                                            wire:change="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', $event.target.value)"
+                                            class="form-control form-control-sm rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-extrabold text-center text-xs py-1.5 shadow-2xs"
+                                            style="width: 75px"
+                                            placeholder="0-100">
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="text-center text-slate-400 py-8">
+                                    <i class="bi bi-person-x text-2xl d-block mb-1 text-slate-300"></i>
+                                    Tidak ada data siswa yang cocok dengan kriteria.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+                </div>
             </div>
         </div>
     </div>
