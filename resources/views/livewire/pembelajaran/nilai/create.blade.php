@@ -45,6 +45,12 @@ new class extends Component {
 
     public function setNilai($nama, $siswaId, $nilai)
     {
+        $statusPresensi = $this->presensiStatus[$siswaId] ?? null;
+        if ($statusPresensi === 'A' && $nilai !== '' && $nilai !== null) {
+            $this->dispatch('toast', message: 'Siswa ' . $nama . ' berstatus ALPA, nilai tidak dapat diinput.', type: 'error');
+            return;
+        }
+
         $current = $this->inputNilai[$siswaId] ?? '';
         $next = ($current == $nilai && $nilai !== '') ? '' : $nilai;
 
@@ -81,6 +87,11 @@ new class extends Component {
             $statusPresensi = $this->presensiStatus[$s->id] ?? null;
 
             if ($hanyaHadir && $statusPresensi !== 'H') {
+                continue;
+            }
+
+            // Siswa Alpa tidak boleh dinilai
+            if ($nilai !== '' && $nilai !== null && $statusPresensi === 'A') {
                 continue;
             }
 
@@ -345,6 +356,9 @@ new class extends Component {
                     $s = $a->siswa;
                     $curP = $presensiStatus[$s->id] ?? null;
                     $curN = $inputNilai[$s->id] ?? '';
+                    $isAlpa = ($curP === 'A');
+                    $isSakitIzin = in_array($curP, ['S', 'I']);
+                    $statusLabel = $curP === 'S' ? 'Sakit' : ($curP === 'I' ? 'Izin' : '');
                 @endphp
                 <div wire:key="mobile-input-nilai-{{ $s->id }}" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-3.5 shadow-xs">
                     {{-- Header Kartu: No, Nama Siswa, Edit & Status Presensi --}}
@@ -396,21 +410,59 @@ new class extends Component {
                     <div class="pt-2.5 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-1 overflow-x-auto py-0.5 flex-1 scrollbar-none">
                             @foreach ([70 => 'secondary', 80 => 'info', 85 => 'primary', 90 => 'success', 100 => 'warning'] as $n => $c)
-                                <button wire:key="mobile-btn-nilai-{{ $s->id }}-{{ $n }}"
-                                    wire:click="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', {{ $n }})"
-                                    class="px-2.5 py-1 rounded-xl text-xs font-bold transition active:scale-95 flex-shrink-0 {{ $curN == $n ? 'bg-cyan-500 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700' }}">
-                                    {{ $n }}
-                                </button>
+                                @if ($isAlpa)
+                                    <button type="button"
+                                        disabled
+                                        class="px-2.5 py-1 rounded-xl text-xs font-bold opacity-30 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 flex-shrink-0"
+                                        title="Siswa Alpa, tidak dapat menginput nilai">
+                                        {{ $n }}
+                                    </button>
+                                @else
+                                    <button wire:key="mobile-btn-nilai-{{ $s->id }}-{{ $n }}"
+                                        wire:click="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', {{ $n }})"
+                                        @if ($isSakitIzin)
+                                            wire:confirm="Status presensi {{ addslashes($s->nama) }} adalah {{ strtoupper($statusLabel) }}. Apakah Anda yakin ingin menginput nilai?"
+                                        @endif
+                                        class="px-2.5 py-1 rounded-xl text-xs font-bold transition active:scale-95 flex-shrink-0 {{ $curN == $n ? 'bg-cyan-500 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700' }}">
+                                        {{ $n }}
+                                    </button>
+                                @endif
                             @endforeach
                         </div>
 
                         {{-- Manual Input Box --}}
                         <div class="flex-shrink-0 w-20">
-                            <input type="number"
-                                wire:model.blur="inputNilai.{{ $s->id }}"
-                                wire:change="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', $event.target.value)"
-                                class="form-control rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-black text-center text-xs py-1.5 shadow-2xs"
-                                placeholder="0-100">
+                            @if ($isAlpa)
+                                <input type="text"
+                                    disabled
+                                    value=""
+                                    class="form-control rounded-xl bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-400 font-bold text-center text-xs py-1.5 opacity-40 cursor-not-allowed"
+                                    placeholder="Alpa"
+                                    title="Siswa Alpa, tidak dapat menginput nilai">
+                            @elseif ($isSakitIzin)
+                                <div x-data="{ prev: '{{ $curN }}' }">
+                                    <input type="number"
+                                        value="{{ $curN }}"
+                                        x-on:focus="prev = $el.value"
+                                        x-on:change="
+                                            if (confirm('Status presensi {{ addslashes($s->nama) }} adalah {{ strtoupper($statusLabel) }}. Apakah Anda yakin ingin menginput nilai?')) {
+                                                $wire.setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', $el.value);
+                                                prev = $el.value;
+                                            } else {
+                                                $el.value = prev;
+                                            }
+                                        "
+                                        class="form-control rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700 text-slate-800 dark:text-slate-100 font-black text-center text-xs py-1.5 shadow-2xs"
+                                        placeholder="0-100"
+                                        title="Status: {{ $statusLabel }}">
+                                </div>
+                            @else
+                                <input type="number"
+                                    wire:model.blur="inputNilai.{{ $s->id }}"
+                                    wire:change="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', $event.target.value)"
+                                    class="form-control rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-black text-center text-xs py-1.5 shadow-2xs"
+                                    placeholder="0-100">
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -453,6 +505,9 @@ new class extends Component {
                                 $s = $a->siswa;
                                 $curP = $presensiStatus[$s->id] ?? null;
                                 $curN = $inputNilai[$s->id] ?? '';
+                                $isAlpa = ($curP === 'A');
+                                $isSakitIzin = in_array($curP, ['S', 'I']);
+                                $statusLabel = $curP === 'S' ? 'Sakit' : ($curP === 'I' ? 'Izin' : '');
                             @endphp
                             <tr wire:key="row-nilai-{{ $s->id }}">
                                 <td class="px-4 text-center font-bold text-slate-400">
@@ -502,20 +557,60 @@ new class extends Component {
                                     <div class="d-flex items-center justify-center gap-2">
                                         <div class="btn-group rounded-xl overflow-hidden shadow-2xs">
                                             @foreach ([70 => 'secondary', 80 => 'info', 85 => 'primary', 90 => 'success', 100 => 'warning'] as $n => $c)
-                                                <button wire:key="nilai-{{ $s->id }}-{{ $n }}"
-                                                    wire:click="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', {{ $n }})"
-                                                    class="btn btn-sm btn-outline-{{ $c }} {{ $curN == $n ? 'active font-black' : '' }}">
-                                                    {{ $n }}
-                                                </button>
+                                                @if ($isAlpa)
+                                                    <button type="button"
+                                                        disabled
+                                                        class="btn btn-sm btn-outline-secondary opacity-30 cursor-not-allowed"
+                                                        title="Siswa Alpa, tidak dapat menginput nilai">
+                                                        {{ $n }}
+                                                    </button>
+                                                @else
+                                                    <button wire:key="nilai-{{ $s->id }}-{{ $n }}"
+                                                        wire:click="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', {{ $n }})"
+                                                        @if ($isSakitIzin)
+                                                            wire:confirm="Status presensi {{ addslashes($s->nama) }} adalah {{ strtoupper($statusLabel) }}. Apakah Anda yakin ingin menginput nilai?"
+                                                        @endif
+                                                        class="btn btn-sm btn-outline-{{ $c }} {{ $curN == $n ? 'active font-black' : '' }}">
+                                                        {{ $n }}
+                                                    </button>
+                                                @endif
                                             @endforeach
                                         </div>
 
-                                        <input type="number"
-                                            wire:model.blur="inputNilai.{{ $s->id }}"
-                                            wire:change="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', $event.target.value)"
-                                            class="form-control form-control-sm rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-extrabold text-center text-xs py-1.5 shadow-2xs"
-                                            style="width: 75px"
-                                            placeholder="0-100">
+                                        @if ($isAlpa)
+                                            <input type="text"
+                                                disabled
+                                                value=""
+                                                class="form-control form-control-sm rounded-xl bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 font-extrabold text-center text-xs py-1.5 opacity-40 cursor-not-allowed shadow-2xs"
+                                                style="width: 75px"
+                                                placeholder="Alpa"
+                                                title="Siswa Alpa, tidak dapat menginput nilai">
+                                        @elseif ($isSakitIzin)
+                                            <div x-data="{ prev: '{{ $curN }}' }">
+                                                <input type="number"
+                                                    value="{{ $curN }}"
+                                                    x-on:focus="prev = $el.value"
+                                                    x-on:change="
+                                                        if (confirm('Status presensi {{ addslashes($s->nama) }} adalah {{ strtoupper($statusLabel) }}. Apakah Anda yakin ingin menginput nilai?')) {
+                                                            $wire.setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', $el.value);
+                                                            prev = $el.value;
+                                                        } else {
+                                                            $el.value = prev;
+                                                        }
+                                                    "
+                                                    class="form-control form-control-sm rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700 text-slate-800 dark:text-slate-100 font-extrabold text-center text-xs py-1.5 shadow-2xs"
+                                                    style="width: 75px"
+                                                    placeholder="0-100"
+                                                    title="Status: {{ $statusLabel }}">
+                                            </div>
+                                        @else
+                                            <input type="number"
+                                                wire:model.blur="inputNilai.{{ $s->id }}"
+                                                wire:change="setNilai('{{ addslashes($s->nama) }}', '{{ $s->id }}', $event.target.value)"
+                                                class="form-control form-control-sm rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-extrabold text-center text-xs py-1.5 shadow-2xs"
+                                                style="width: 75px"
+                                                placeholder="0-100">
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
