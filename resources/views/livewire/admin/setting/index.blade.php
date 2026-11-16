@@ -356,6 +356,66 @@ new class extends Component {
 
         return null;
     }
+
+    public function exportJson()
+    {
+        $lembaga = Setting::getValue('lembaga') ?? config('local.lembaga') ?? [];
+
+        // Format logo, kop, ttd, dan stempel ke absolute URL agar client (SAKU-v2) bisa langsung menggunakannya
+        if (is_array($lembaga)) {
+            foreach ($lembaga as $id => &$item) {
+                if (! empty($item['logo']) && ! str_starts_with($item['logo'], 'http')) {
+                    $item['logo_url'] = asset($item['logo']);
+                } else {
+                    $item['logo_url'] = $item['logo'] ?? null;
+                }
+
+                if (! empty($item['kop']) && ! str_starts_with($item['kop'], 'http')) {
+                    $item['kop_url'] = asset($item['kop']);
+                } else {
+                    $item['kop_url'] = $item['kop'] ?? null;
+                }
+
+                if (! empty($item['ttd']) && ! str_starts_with($item['ttd'], 'http')) {
+                    $item['ttd_url'] = asset($item['ttd']);
+                } else {
+                    $item['ttd_url'] = $item['ttd'] ?? null;
+                }
+
+                if (! empty($item['stempel']) && ! str_starts_with($item['stempel'], 'http')) {
+                    $item['stempel_url'] = asset($item['stempel']);
+                } else {
+                    $item['stempel_url'] = $item['stempel'] ?? null;
+                }
+
+                $item['email'] = $item['email'] ?? null;
+                $item['npsn'] = $item['npsn'] ?? null;
+                $item['nomor_statistik'] = $item['nomor_statistik'] ?? $item['nsm'] ?? $item['nss'] ?? null;
+                $item['akreditasi'] = $item['akreditasi'] ?? null;
+                $item['website'] = $item['website'] ?? null;
+                $item['lat'] = $item['lat'] ?? null;
+                $item['lon'] = $item['lon'] ?? null;
+                $item['maps_embed'] = $item['maps_embed'] ?? null;
+                $item['maps_embed_url'] = gmaps_embed_url($id);
+            }
+        }
+
+        $payload = [
+            'status' => 'success',
+            'data' => [
+                'lembaga' => $lembaga,
+            ],
+            'server_time' => now()->toIso8601String(),
+        ];
+
+        $filename = 'simba-setting-lembaga-' . date('Y-m-d_His') . '.json';
+
+        return response()->streamDownload(function () use ($payload) {
+            echo json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }, $filename, [
+            'Content-Type' => 'application/json',
+        ]);
+    }
 };
 ?>
 
@@ -487,7 +547,7 @@ new class extends Component {
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     @if (count($lembaga_items) > 1)
                         <button type="button"
-                                class="btn btn-outline-secondary btn-sm rounded-xl px-3 py-2 text-xs font-semibold d-flex align-items-center gap-1.5 shadow-2xs"
+                                class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white shadow-md hover:shadow-lg transition-all"
                                 @click="openLembaga.length === {{ count($lembaga_items) }} ? collapseAll() : expandAll(@js(array_map('intval', array_keys($lembaga_items))))">
                             <i class="bi" :class="openLembaga.length === {{ count($lembaga_items) }} ? 'bi-chevron-contract' : 'bi-chevron-expand'"></i>
                             <span x-text="openLembaga.length === {{ count($lembaga_items) }} ? 'Tutup Semua' : 'Buka Semua'">Buka Semua</span>
@@ -496,6 +556,11 @@ new class extends Component {
                     <button type="button" wire:click="addLembaga" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white shadow-md hover:shadow-lg transition-all">
                         <i class="bi bi-plus-circle text-sm"></i>
                         <span>Tambah Lembaga</span>
+                    </button>
+                    <button type="button" wire:click="exportJson" class="btn-logo-gradient inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white shadow-md hover:shadow-lg transition-all">
+                        <span wire:loading wire:target="exportJson" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <i wire:loading.remove wire:target="exportJson" class="bi bi-cloud-arrow-down text-sm"></i>
+                        <span>Export JSON</span>
                     </button>
                 </div>
             </div>
