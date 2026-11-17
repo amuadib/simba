@@ -105,7 +105,7 @@ new class extends Component
             'salinTanggal' => [
                 'required',
                 'date',
-                Rule::unique('jurnals', 'tanggal')->where(function ($query) {
+                Rule::unique('jurnal', 'tanggal')->where(function ($query) {
                     return $query->where('pembelajaran_id', $this->pembelajaran_id);
                 }),
             ],
@@ -123,9 +123,10 @@ new class extends Component
                 'tanggal' => $this->salinTanggal,
                 'materi' => $this->salinMateri,
             ]);
-
+            $pembelajaran_tujuan = Pembelajaran::whereId($this->pembelajaran_id)->first();
             $this->reset(['mode', 'salinId', 'salinMateri', 'salinTanggal', 'pembelajaran_id']);
             $this->dispatch('toast', message: 'Jurnal berhasil disalin', type: 'success');
+            $this->redirectRoute('pembelajaran.jurnal.index', $pembelajaran_tujuan);
         } catch (\Illuminate\Database\QueryException $e) {
             $this->addError('salinTanggal', 'Gagal menyalin: jurnal pada tanggal ini sudah ada di pembelajaran tujuan.');
             $this->dispatch('toast', message: 'Gagal menyalin: tanggal jurnal sudah ada.', type: 'warning');
