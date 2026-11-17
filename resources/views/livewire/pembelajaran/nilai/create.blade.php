@@ -378,7 +378,7 @@ new class extends Component {
                     <i class="bi bi-lightning-charge-fill text-amber-500"></i> Isi Cepat:
                 </span>
                 <div class="btn-group btn-group-sm rounded-xl overflow-hidden shadow-2xs">
-                    @foreach ([75, 80, 85, 90, 100] as $presetScore)
+                    @foreach ([75, 80, 90, 100] as $presetScore)
                         <button wire:click="setBulkNilai({{ $presetScore }})"
                                 class="btn btn-outline-primary btn-sm text-xs font-bold px-2.5 py-1">
                             {{ $presetScore }}
@@ -387,10 +387,10 @@ new class extends Component {
                 </div>
 
                 <div class="btn-group btn-group-sm rounded-xl overflow-hidden shadow-2xs">
-                    <button wire:click="setBulkNilai(85, true)"
+                    <button wire:click="setBulkNilai(80, true)"
                             class="btn btn-outline-success btn-sm text-xs font-semibold px-2.5 py-1"
-                            title="Set nilai 85 hanya untuk siswa yang hadir">
-                        Hadir Saja (85)
+                            title="Set nilai 80 hanya untuk siswa yang hadir">
+                        Hadir Saja (80)
                     </button>
                     <button wire:click="setBulkNilai('')"
                             wire:confirm="Yakin ingin mengosongkan semua nilai pada jurnal ini?"
@@ -465,7 +465,7 @@ new class extends Component {
                     {{-- Kontrol Nilai: Preset Nilai Cepat + Manual Input --}}
                     <div class="pt-2.5 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-1 overflow-x-auto py-0.5 flex-1 scrollbar-none">
-                            @foreach ([70 => 'secondary', 80 => 'info', 85 => 'primary', 90 => 'success', 100 => 'warning'] as $n => $c)
+                            @foreach ([70 => 'secondary', 80 => 'info', 90 => 'primary', 100 => 'success'] as $n => $c)
                                 @if ($isAlpa)
                                     <button type="button"
                                         disabled
@@ -593,7 +593,7 @@ new class extends Component {
                                 <td class="px-4">
                                     <div class="d-flex items-center justify-center gap-2">
                                         <div class="btn-group rounded-xl overflow-hidden shadow-2xs">
-                                            @foreach ([70 => 'secondary', 80 => 'info', 85 => 'primary', 90 => 'success', 100 => 'warning'] as $n => $c)
+                                            @foreach ([70 => 'secondary', 80 => 'info', 90 => 'primary', 100 => 'success'] as $n => $c)
                                                 @if ($isAlpa)
                                                     <button type="button"
                                                         disabled
